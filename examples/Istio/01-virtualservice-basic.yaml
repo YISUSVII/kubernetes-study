@@ -1,0 +1,14 @@
+# Istio VirtualService for Traffic Management
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: myapp
+spec:
+  hosts:
+  - myapp
+  http:
+  - route:
+    - destination:
+        host: myapp
+        port:
+          number: 8080

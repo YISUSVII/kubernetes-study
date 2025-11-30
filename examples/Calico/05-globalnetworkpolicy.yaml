@@ -1,0 +1,16 @@
+# Calico GlobalNetworkPolicy - Deny Cross-Namespace Traffic
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: deny-cross-namespace
+spec:
+  order: 1
+  selector: "all()"
+  namespaceSelector: ""
+  types:
+  - Ingress
+  ingress:
+  - action: Deny
+    source:
+      namespaceSelector: "kubernetes.io/metadata.name != 'kube-system'"
+    destination: {}

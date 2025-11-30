@@ -1,0 +1,16 @@
+# KEDA ScaledObject - Prometheus-based Scaling
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: http-scaler
+spec:
+  scaleTargetRef:
+    name: myapp
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      query: rate(http_requests_total[1m])
+      threshold: "100"

@@ -1,0 +1,14 @@
+# Gateway API - ReferenceGrant for Cross-Namespace Routing
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-cross-namespace
+  namespace: backend-namespace
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: gateway-namespace
+  to:
+  - group: ""
+    kind: Service

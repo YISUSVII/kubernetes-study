@@ -1,0 +1,17 @@
+# KEDA ScaledObject - Kafka-based Scaling
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kafka-scaler
+spec:
+  scaleTargetRef:
+    name: kafka-consumer
+  minReplicaCount: 1
+  maxReplicaCount: 30
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: kafka-broker:9092
+      consumerGroup: mygroup
+      topic: mytopic
+      lagThreshold: "10"

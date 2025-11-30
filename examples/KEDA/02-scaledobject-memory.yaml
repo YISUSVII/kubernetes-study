@@ -1,0 +1,15 @@
+# KEDA ScaledObject - Memory-based Scaling
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: memory-scaler
+spec:
+  scaleTargetRef:
+    name: myapp
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: memory
+    metadata:
+      type: Utilization
+      value: "70"

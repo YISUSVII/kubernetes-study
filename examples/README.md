@@ -1,0 +1,290 @@
+# Kubernetes Examples Directory
+
+This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides.
+
+## Directory Structure
+
+```
+examples/
+├── ArgoCD/
+├── CertManager/
+├── Calico/
+├── GatewayAPI/
+├── Istio/
+├── KEDA/
+├── NginxIngress/
+├── Prometheus/
+└── README.md
+```
+
+## File Naming Convention
+
+All example files use the following naming convention:
+```
+NN-description.yaml
+```
+
+Where:
+- `NN` = Sequential number (01, 02, 03, etc.)
+- `description` = Short description of what the file contains
+- `.yaml` = YAML extension (standard for Kubernetes)
+
+## Technology Folders
+
+### ArgoCD/
+GitOps continuous deployment examples
+- `01-basic-app.yaml` - Basic application from Git repository
+- `02-helm-app.yaml` - Application with Helm chart
+- `03-kustomize-app.yaml` - Application with Kustomize
+- `04-appproject-team-a.yaml` - Multi-tenancy AppProject
+- `05-notifications-cm.yaml` - Notifications configuration
+- `06-servicemonitor-metrics.yaml` - Prometheus metrics integration
+
+**Usage:**
+```bash
+kubectl apply -f ArgoCD/01-basic-app.yaml
+```
+
+### CertManager/
+TLS certificate management examples
+- `01-issuer-selfsigned.yaml` - Self-signed issuer (testing)
+- `02-issuer-letsencrypt-staging.yaml` - Let's Encrypt staging
+- `03-clusterissuer-letsencrypt-prod.yaml` - Let's Encrypt production
+- `04-certificate.yaml` - Manual certificate definition
+
+**Usage:**
+```bash
+kubectl apply -f CertManager/03-clusterissuer-letsencrypt-prod.yaml
+```
+
+### Calico/
+Network security policies
+- `01-networkpolicy-deny-all.yaml` - Deny all ingress by default
+- `02-networkpolicy-allow-namespace.yaml` - Allow from specific namespace
+- `03-networkpolicy-pod-to-pod.yaml` - Pod-to-pod communication
+- `04-networkpolicy-egress-dns.yaml` - Egress DNS access
+- `05-globalnetworkpolicy.yaml` - Cluster-wide policies
+
+**Usage:**
+```bash
+kubectl apply -f Calico/01-networkpolicy-deny-all.yaml
+```
+
+### GatewayAPI/
+Next-generation Kubernetes ingress (Gateway API)
+- `01-gatewayclass.yaml` - Gateway controller definition
+- `02-gateway-basic.yaml` - Basic gateway with HTTP/HTTPS
+- `03-httproute-basic.yaml` - Simple HTTP routing
+- `04-httproute-header-matching.yaml` - Header-based routing
+- `05-httproute-traffic-splitting.yaml` - Canary deployments
+- `06-httproute-redirects.yaml` - HTTP redirects
+- `07-httproute-header-modifications.yaml` - Request/response header modification
+- `08-grpcroute.yaml` - gRPC routing
+- `09-referencegrant.yaml` - Cross-namespace routing permissions
+
+**Usage:**
+```bash
+kubectl apply -f GatewayAPI/01-gatewayclass.yaml
+kubectl apply -f GatewayAPI/02-gateway-basic.yaml
+kubectl apply -f GatewayAPI/03-httproute-basic.yaml
+```
+
+### Istio/
+Service mesh examples
+- `01-virtualservice-basic.yaml` - Traffic management
+- `02-gateway-basic.yaml` - Istio gateway definition
+
+**Usage:**
+```bash
+kubectl apply -f Istio/01-virtualservice-basic.yaml
+```
+
+### KEDA/
+Event-driven autoscaling
+- `01-scaledobject-cpu.yaml` - CPU-based scaling
+- `02-scaledobject-memory.yaml` - Memory-based scaling
+- `03-scaledobject-prometheus.yaml` - Prometheus metrics scaling
+- `04-scaledobject-kafka.yaml` - Kafka topic lag scaling
+
+**Usage:**
+```bash
+kubectl apply -f KEDA/01-scaledobject-cpu.yaml
+```
+
+### NginxIngress/
+Traditional Kubernetes Ingress Controller
+- `01-ingress-simple-http.yaml` - Basic HTTP ingress
+- `02-ingress-https.yaml` - HTTPS with TLS
+- `03-ingress-multi-backend.yaml` - Path-based routing
+- `04-ingress-multi-host.yaml` - Virtual hosting
+- `05-ingress-advanced.yaml` - Advanced annotations
+
+**Usage:**
+```bash
+kubectl apply -f NginxIngress/01-ingress-simple-http.yaml
+```
+
+### Prometheus/
+Monitoring and alerting
+- `01-servicemonitor-basic.yaml` - Basic service monitoring
+- `02-prometheusrule-alerts.yaml` - Alert rules
+
+**Usage:**
+```bash
+kubectl apply -f Prometheus/01-servicemonitor-basic.yaml
+```
+
+## How to Use
+
+### 1. View Example Contents
+```bash
+cat ArgoCD/01-basic-app.yaml
+```
+
+### 2. Apply Example to Cluster
+```bash
+kubectl apply -f ArgoCD/01-basic-app.yaml
+```
+
+### 3. Apply Multiple Examples
+```bash
+kubectl apply -f GatewayAPI/
+```
+
+### 4. Deploy with Customization
+```bash
+# Download and customize
+curl -s https://path-to-repo/examples/ArgoCD/01-basic-app.yaml | \
+  sed 's/myapp/myapp-prod/g' | \
+  kubectl apply -f -
+```
+
+## File Modification Workflow
+
+When using these examples:
+
+1. **Copy the example** to your working directory
+2. **Customize** the values for your environment:
+   - Repository URLs
+   - Namespaces
+   - Domain names
+   - Service names
+   - Port numbers
+3. **Validate** the YAML:
+   ```bash
+   kubectl apply -f <file> --dry-run=client
+   ```
+4. **Apply** to your cluster:
+   ```bash
+   kubectl apply -f <file>
+   ```
+
+## Quick Reference by Use Case
+
+### Setting up Ingress
+- Traditional: Use `NginxIngress/` examples
+- Modern: Use `GatewayAPI/` examples (recommended)
+- SSL/TLS: Apply `CertManager/` examples first
+
+### Setting up Security
+- Network policies: Use `Calico/` examples
+- Start with `01-networkpolicy-deny-all.yaml`
+
+### Setting up Autoscaling
+- Event-driven: Use `KEDA/` examples
+- Start with `01-scaledobject-cpu.yaml`
+
+### Setting up GitOps
+- Use `ArgoCD/` examples
+- Start with `01-basic-app.yaml`
+
+### Setting up Monitoring
+- Use `Prometheus/` examples
+- Use `ArgoCD/06-servicemonitor-metrics.yaml` for ArgoCD monitoring
+
+## YAML Best Practices
+
+### Comments in Files
+Each YAML file includes a comment header:
+```yaml
+# Technology Name - Brief Description
+apiVersion: ...
+```
+
+### Common Fields to Customize
+
+When using examples, typically change:
+- **metadata.name** - Resource name
+- **metadata.namespace** - Kubernetes namespace
+- **spec.host/spec.hosts** - Domain names
+- **spec.repoURL** - Git repository URLs
+- **spec.backendRefs[].name** - Service names
+- **spec.email** - Email addresses (for cert-manager)
+- **spec.image** - Container images
+
+## Validation
+
+Before deploying, always validate YAML syntax:
+
+```bash
+# Syntax check
+kubectl apply -f <file> --dry-run=client -o yaml
+
+# Full validation with server-side rules
+kubectl apply -f <file> --dry-run=server
+
+# Kube-linter (additional checks)
+kube-linter lint <file>
+```
+
+## Combining Examples
+
+You can create multi-resource files by combining YAML documents:
+
+```bash
+cat GatewayAPI/01-gatewayclass.yaml \
+    GatewayAPI/02-gateway-basic.yaml \
+    GatewayAPI/03-httproute-basic.yaml > combined.yaml
+
+kubectl apply -f combined.yaml
+```
+
+## Documentation Reference
+
+For each technology, refer to the corresponding setup guide:
+- ArgoCD → `../argocd-setup.md`
+- Cert-Manager → `../cert-manager-setup.md`
+- Calico → `../calico-setup.md`
+- Gateway API → `../gateway-api-setup.md`
+- Istio → `../istio-setup.md`
+- KEDA → `../keda-setup.md`
+- Nginx Ingress → `../nginx-ingress-setup.md`
+- Prometheus → `../prometheus-grafana-setup.md`
+
+## Troubleshooting
+
+### Example doesn't apply?
+1. Check namespace exists: `kubectl get namespace <namespace>`
+2. Validate YAML: `kubectl apply -f <file> --dry-run=client`
+3. Check permissions: `kubectl auth can-i create <kind>`
+
+### Resource not ready?
+```bash
+# Check status
+kubectl get <kind> <name>
+kubectl describe <kind> <name>
+kubectl logs -l app=<label>
+```
+
+## Contributing
+
+When adding new examples:
+1. Follow the naming convention: `NN-description.yaml`
+2. Add a comment header with description
+3. Use meaningful, customizable values
+4. Test before committing
+5. Update this README
+
+## License
+
+These examples are provided as-is for reference and educational purposes.
