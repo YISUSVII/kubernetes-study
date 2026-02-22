@@ -1,16 +1,37 @@
 # KEDA ScaledObject - Prometheus-based Scaling
+# Scales based on custom Prometheus metrics
+# KEDA v2.15+ compatible with namespace-scoped Prometheus support
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: http-scaler
+  namespace: default
 spec:
   scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
     name: myapp
+  pollingInterval: 30
+  cooldownPeriod: 120
   minReplicaCount: 2
   maxReplicaCount: 20
+  fallback:
+    failureThreshold: 5
+    replicas: 3
+  advanced:
+    restoreToOriginalReplicaCount: false
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 120
+          policies:
+          - type: Percent
+            value: 10
+            periodSeconds: 60
   triggers:
   - type: prometheus
     metadata:
-      serverAddress: http://prometheus:9090
-      query: rate(http_requests_total[1m])
+      serverAddress: http://prometheus-operated.monitoring.svc.cluster.local:9090
+      query: rate(http_requests_total{namespace="default"}[1m])
       threshold: "100"
+      namespace: default  # namespace for Thanos/Victoria Metrics compatibility

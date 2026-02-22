@@ -1,0 +1,148 @@
+# ArgoCD ApplicationSet - Multi-App / Multi-Cluster Management
+# ApplicationSet Controller is bundled in ArgoCD v2.5+ and is the standard way
+# to manage many apps in 2025/2026 (replaces manual Application per env/repo)
+#
+# Pattern 1: Git Generator - create an Application per directory in a repo
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-addons
+  namespace: argocd
+spec:
+  # goTemplate: true enables Go templating (recommended, v2.6+)
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  # Git directory generator: create one Application per directory found
+  - git:
+      repoURL: https://github.com/myorg/cluster-addons
+      revision: main
+      directories:
+      - path: addons/*
+  template:
+    metadata:
+      # Use the directory name as the Application name
+      name: '{{.path.basename}}'
+      namespace: argocd
+      annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/myorg/cluster-addons
+        targetRevision: main
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true   # recommended for large CRDs (v2.5+)
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+
+---
+# Pattern 2: List Generator - promote across environments
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapp-environments
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+  - list:
+      elements:
+      - env: dev
+        namespace: myapp-dev
+        valueFile: values-dev.yaml
+        revision: develop
+      - env: staging
+        namespace: myapp-staging
+        valueFile: values-staging.yaml
+        revision: main
+      - env: production
+        namespace: myapp-production
+        valueFile: values-prod.yaml
+        revision: main
+  template:
+    metadata:
+      name: 'myapp-{{.env}}'
+      namespace: argocd
+      labels:
+        app: myapp
+        env: '{{.env}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/myorg/myapp
+        targetRevision: '{{.revision}}'
+        path: helm/myapp
+        helm:
+          releaseName: 'myapp-{{.env}}'
+          valueFiles:
+          - 'environments/{{.valueFile}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+
+---
+# Pattern 3: Matrix Generator - combine cluster list × environment list
+# (multi-cluster pattern popular in large orgs 2025/2026)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapp-multicluster
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+  - matrix:
+      generators:
+      # All clusters registered in ArgoCD
+      - clusters:
+          selector:
+            matchLabels:
+              env: production
+      # Per-cluster values from git
+      - git:
+          repoURL: https://github.com/myorg/myapp
+          revision: main
+          files:
+          - path: clusters/*/config.json
+  template:
+    metadata:
+      name: 'myapp-{{.name}}-{{.path.basename}}'
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/myorg/myapp
+        targetRevision: main
+        path: helm/myapp
+      destination:
+        server: '{{.server}}'
+        namespace: myapp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true

@@ -1,0 +1,102 @@
+# ArgoCD Image Updater - Automated Container Image Updates
+# Image Updater watches container registries and automatically updates
+# image tags in ArgoCD Applications - the GitOps way to handle image updates.
+# Very popular in 2025/2026 for CI/CD pipelines.
+#
+# Install:
+#   helm install argocd-image-updater \
+#     argo/argocd-image-updater \
+#     -n argocd
+---
+# Example 1: Update image to latest semver tag matching a constraint
+# The Image Updater will write the updated image back to Git (gitops mode)
+# or directly to the Application (direct write mode).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-auto-update
+  namespace: argocd
+  annotations:
+    # Enable Image Updater for this Application
+    argocd-image-updater.argoproj.io/image-list: myapp=myorg/myapp
+    # Update strategy: semver | latest | digest | name
+    argocd-image-updater.argoproj.io/myapp.update-strategy: semver
+    # Version constraint (semantic versioning)
+    argocd-image-updater.argoproj.io/myapp.allow-tags: regexp:^v[0-9]+\.[0-9]+\.[0-9]+$
+    # Write method: git (commits back to repo) | argocd (writes to App directly)
+    argocd-image-updater.argoproj.io/write-back-method: git
+    # Branch to commit updated image tags to
+    argocd-image-updater.argoproj.io/git-branch: main
+    # Helm parameter to update (for Helm-based apps)
+    argocd-image-updater.argoproj.io/myapp.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/myapp.helm.image-tag: image.tag
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/myapp
+    targetRevision: main
+    path: helm/myapp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+---
+# Example 2: Multi-image app - update frontend and backend independently
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fullstack-app
+  namespace: argocd
+  annotations:
+    # Define multiple images
+    argocd-image-updater.argoproj.io/image-list: >
+      frontend=myorg/frontend,
+      backend=myorg/backend
+    # Frontend: always use latest digest from main branch
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^main-.*
+    # Backend: use newest semantic version
+    argocd-image-updater.argoproj.io/backend.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/backend.allow-tags: regexp:^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$
+    # Both: write back to git
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/write-back-target: kustomization:helm/fullstack
+    # Kustomize image parameter names
+    argocd-image-updater.argoproj.io/frontend.kustomize.image-name: frontend
+    argocd-image-updater.argoproj.io/backend.kustomize.image-name: backend
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/fullstack
+    targetRevision: main
+    path: kustomize/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+
+---
+# Example 3: Pull secret for private container registry
+# Image Updater needs credentials to poll private registries
+apiVersion: v1
+kind: Secret
+metadata:
+  name: image-updater-registry-secret
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd-image-updater
+type: Opaque
+stringData:
+  # Format: registries entry in Image Updater ConfigMap
+  # or reference via annotation:
+  # argocd-image-updater.argoproj.io/myapp.pull-secret: secret:argocd/registry-credentials#token
+  token: "your-registry-token-here"

@@ -1,15 +1,33 @@
 # Cert-Manager Certificate Resource
+# cert-manager v1.17.x compatible
+# usages field replaces deprecated keyUsage/extKeyUsage (v1.15+)
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: myapp-cert
+  namespace: default
 spec:
   secretName: myapp-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-prod-cluster
     kind: ClusterIssuer
   dnsNames:
   - myapp.example.com
   - www.myapp.example.com
   duration: 2160h # 90d
-  renewBefore: 720h # 30d
+  renewBefore: 360h # 15d - cert-manager v1.15+ defaults to 1/3 of duration
+  # secretTemplate adds labels/annotations to the generated Secret
+  secretTemplate:
+    labels:
+      app: myapp
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+  # privateKey options (v1.14+)
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth

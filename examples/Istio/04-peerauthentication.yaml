@@ -1,0 +1,72 @@
+# Istio PeerAuthentication - mTLS Policy for Service-to-Service Auth
+# networking.istio.io/v1 is GA since Istio 1.22 (v1beta1 deprecated)
+# PeerAuthentication configures the sidecar proxy authentication mode per namespace/workload
+---
+# Example 1: Strict mTLS for the entire namespace (recommended for production)
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: namespace-strict-mtls
+  namespace: production
+spec:
+  mtls:
+    mode: STRICT   # UNSET | DISABLE | PERMISSIVE | STRICT
+  # STRICT: only mTLS traffic is accepted (no plain text)
+  # PERMISSIVE: both mTLS and plain text accepted (migration state)
+  # DISABLE: plain text only
+
+---
+# Example 2: Mesh-wide default mTLS (apply in istio-system for global effect)
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: mesh-default-mtls
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Example 3: Per-port mTLS configuration (mixed mode for legacy compatibility)
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: myapp-mtls-policy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    "8080":
+      mode: STRICT
+    "9090":
+      mode: PERMISSIVE   # Allow plain text on metrics port for Prometheus scraping
+
+---
+# Example 4: AuthorizationPolicy - complement to PeerAuthentication
+# Controls WHAT can talk to a service (PeerAuthentication controls HOW)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: myapp-authz
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/frontend"]
+        namespaces: ["default", "ingress-nginx"]
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+        paths: ["/api/*"]
+    when:
+    - key: request.headers[x-api-version]
+      values: ["v1", "v2"]

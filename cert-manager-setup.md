@@ -18,12 +18,12 @@ kubectl create namespace cert-manager
 
 ### 2. Install Cert-Manager CRDs
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.crds.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.crds.yaml
 ```
 
 ### 3. Install Cert-Manager using Helm
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.13.0
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.17.1
 ```
 
 ## Verify Installation
@@ -70,7 +70,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          ingressClassName: nginx
 EOF
 ```
 
@@ -91,7 +91,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          ingressClassName: nginx
 EOF
 ```
 
@@ -111,10 +111,9 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          ingressClassName: nginx
     - dns01:
         cloudflare:
-          email: admin@example.com
           apiTokenSecretRef:
             name: cloudflare-api-token-secret
             key: api-token
@@ -238,10 +237,10 @@ dns01:
 solvers:
 - http01:
     ingress:
-      class: nginx
+      ingressClassName: nginx
 - http01:
     ingress:
-      class: istio
+      ingressClassName: istio
 ```
 
 ## Best Practices

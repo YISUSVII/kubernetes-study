@@ -38,8 +38,11 @@ Service (Backend)
 
 ### 1. Install Gateway API CRDs
 ```bash
-# Install Gateway API custom resources
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+# Install Gateway API standard channel (v1.2.1 - stable 2025/2026)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+
+# Or install experimental channel for BackendTLSPolicy, TCPRoute, UDPRoute
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
 
 # Verify CRDs installation
 kubectl get crd | grep gateway
@@ -49,10 +52,11 @@ kubectl get crd | grep gateway
 
 Popular implementations:
 - **Nginx** - `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml`
-- **Istio** - Works natively with Gateway API
-- **Envoy Gateway** - Purpose-built implementation
+- **Istio** - Works natively with Gateway API (recommended pair in 2025/2026)
+- **Envoy Gateway** - Purpose-built, CNCF-incubating implementation (fastest growing 2024-2026)
 - **Kong** - API gateway supporting Gateway API
 - **AWS ALB** - AWS managed implementation
+- **Cilium** - CNI with built-in Gateway API support
 
 ## Quick Start Example
 
@@ -119,8 +123,8 @@ EOF
 
 ### Method 1: Install Standard CRDs Only
 ```bash
-# Minimal installation (CRDs only, no controller)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+# Minimal installation (CRDs only, no controller) - v1.2.1 stable 2025/2026
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
 
 # Then install your preferred controller separately
 ```

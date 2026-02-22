@@ -1,0 +1,121 @@
+# NetworkPolicy with Port Ranges - K8s 1.25+ GA Feature
+# The 'endPort' field (GA in K8s 1.25) allows specifying a range of ports
+# without listing each port individually - much cleaner for dynamic port apps.
+---
+# Example 1: Allow ingress on port range (e.g., ephemeral/NodePort range)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-port-range
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: data-processor
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: controller
+    ports:
+    - protocol: TCP
+      port: 8000      # start of range
+      endPort: 9000   # end of range (inclusive) - K8s 1.25+ GA
+
+---
+# Example 2: Egress with port ranges (microservice dynamic port binding)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dynamic-egress
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: myapp
+  policyTypes:
+  - Egress
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow HTTPS to external services
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow ephemeral port range for return traffic
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 32768
+      endPort: 60999
+
+---
+# Example 3: Combined ingress/egress with namespace + pod selectors
+# Using kubernetes.io/metadata.name label (available K8s 1.21+)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      tier: frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Accept traffic from ingress controller namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  # Allow calling backend tier
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: backend
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow calling external APIs
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 443
+  # DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53

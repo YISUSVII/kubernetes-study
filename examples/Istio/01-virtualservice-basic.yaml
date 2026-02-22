@@ -1,5 +1,6 @@
 # Istio VirtualService for Traffic Management
-apiVersion: networking.istio.io/v1beta1
+# networking.istio.io/v1 is GA since Istio 1.22 (v1beta1 deprecated)
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: myapp
@@ -12,3 +13,5 @@ spec:
         host: myapp
         port:
           number: 8080
+      weight: 100
+  - timeout: 30s

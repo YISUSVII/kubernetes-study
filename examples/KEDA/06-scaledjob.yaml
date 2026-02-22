@@ -1,0 +1,94 @@
+# KEDA ScaledJob - Event-driven Batch Job Scaling
+# ScaledJob creates Kubernetes Jobs (not Deployments) on demand.
+# Ideal for batch processing, queue consumers, ML inference jobs.
+# KEDA v2.15+ compatible
+---
+# Example 1: Scale Jobs based on a Redis queue
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: redis-queue-processor
+  namespace: default
+spec:
+  jobTargetRef:
+    parallelism: 1       # Jobs run one task at a time
+    completions: 1
+    activeDeadlineSeconds: 600   # job timeout
+    backoffLimit: 3
+    template:
+      metadata:
+        labels:
+          app: queue-processor
+      spec:
+        restartPolicy: OnFailure
+        containers:
+        - name: processor
+          image: myorg/queue-processor:v2.0.0
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          env:
+          - name: REDIS_ADDRESS
+            value: redis.default.svc.cluster.local:6379
+  pollingInterval: 10
+  maxReplicaCount: 50       # max concurrent jobs
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  scalingStrategy:
+    strategy: default   # default | custom | accurate
+    # For Kafka/queue: accurate ensures each item gets a job
+    customScalingQueueLengthDeduction: 0
+    customScalingRunningJobPercentage: "1.0"
+  triggers:
+  - type: redis
+    metadata:
+      address: redis.default.svc.cluster.local:6379
+      listName: job-queue
+      listLength: "1"     # 1 job per queue item
+
+---
+# Example 2: Scale Jobs based on S3 object count (batch processing pipeline)
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: s3-file-processor
+  namespace: default
+spec:
+  jobTargetRef:
+    parallelism: 1
+    completions: 1
+    activeDeadlineSeconds: 1800
+    backoffLimit: 2
+    template:
+      metadata:
+        labels:
+          app: s3-processor
+      spec:
+        restartPolicy: OnFailure
+        serviceAccountName: s3-processor-sa
+        containers:
+        - name: processor
+          image: myorg/s3-processor:v1.5.0
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+  pollingInterval: 30
+  maxReplicaCount: 20
+  successfulJobsHistoryLimit: 10
+  failedJobsHistoryLimit: 5
+  triggers:
+  - type: aws-sqs-queue
+    authenticationRef:
+      name: aws-keda-auth
+    metadata:
+      queueURL: https://sqs.us-east-1.amazonaws.com/123456789/file-processing-jobs
+      queueLength: "1"
+      awsRegion: us-east-1

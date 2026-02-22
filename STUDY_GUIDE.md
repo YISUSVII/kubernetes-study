@@ -18,8 +18,8 @@ Welcome to your comprehensive Kubernetes study guide! This resource is designed 
 ## Getting Started
 
 ### Prerequisites
-- Kubernetes cluster (v1.24+)
-- `kubectl` installed and configured
+- Kubernetes cluster (v1.34+ recommended; v1.32+ minimum)
+- `kubectl` installed and configured (v1.34+)
 - Docker or container runtime knowledge
 - Basic understanding of networking concepts
 
@@ -1578,9 +1578,9 @@ All YAML examples are in: `/examples/`
 
 ---
 
-**Last Updated**: November 30, 2025  
-**Next Review**: 1 week  
-**Status**: Study Material Ready ✓
+**Last Updated**: February 22, 2026  
+**Next Review**: 1 month  
+**Status**: Study Material Ready ✓ — Updated for K8s 1.34/1.35
 
 ---
 

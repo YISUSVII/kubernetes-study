@@ -53,21 +53,25 @@ kubectl get crds | grep istio
 
 ## Access Kiali Dashboard (Istio Visualization)
 ```bash
-# Install Kiali add-on
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.x/samples/addons/kiali.yaml
+# Install Kiali add-on (use the version matching your Istio release)
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/kiali.yaml
 
 # Port forward to Kiali
-kubectl port-forward -n istio-system svc/kiali 20000:20000
+kubectl port-forward -n istio-system svc/kiali 20001:20001
 
-# Access at http://localhost:20000
+# Access at http://localhost:20001
 ```
 
 ## Common Use Cases
 
+> **API Note (Istio 1.22+)**: The `networking.istio.io/v1` API is now GA.
+> `v1beta1` is **deprecated** and will be removed in a future release.
+> Always use `networking.istio.io/v1` for new manifests targeting K8s 1.34+.
+
 ### Create a VirtualService
 ```bash
 kubectl apply -f - <<EOF
-apiVersion: networking.istio.io/v1beta1
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: myapp
@@ -86,7 +90,7 @@ EOF
 ### Create a Gateway
 ```bash
 kubectl apply -f - <<EOF
-apiVersion: networking.istio.io/v1beta1
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: myapp-gateway
@@ -101,6 +105,23 @@ spec:
     hosts:
     - "myapp.example.com"
 EOF
+```
+
+### Enable Ambient Mode (Istio 1.22+, sidecar-free)
+```bash
+# Install Istio with ambient mode enabled (K8s 1.28+ required)
+helm install istiod istio/istiod -n istio-system --set profile=ambient
+
+# Install ztunnel (per-node proxy replacing sidecars)
+helm install istio-cni istio/cni -n istio-system --set profile=ambient
+helm install ztunnel istio/ztunnel -n istio-system
+
+# Enable ambient mode for a namespace (no pod restart needed)
+kubectl label namespace default istio.io/dataplane-mode=ambient
+
+# Verify
+kubectl get pods -n default  # No sidecar containers injected
+istioctl ztunnel-config
 ```
 
 ## Useful Commands
