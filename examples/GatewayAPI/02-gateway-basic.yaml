@@ -5,7 +5,7 @@ metadata:
   name: mygateway
   namespace: default
 spec:
-  gatewayClassName: nginx-gateway
+  gatewayClassName: cilium
   listeners:
   - name: http
     protocol: HTTP

@@ -1,19 +1,19 @@
 # Kubernetes Examples Directory
 
-This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides. Updated for **K8s 1.34/1.35 (2025/2026)**.
+This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides. Updated for **K8s 1.34/1.35 (mid-2026)**. See [../DEPRECATIONS.md](../DEPRECATIONS.md) for version history and retired components.
 
 ## Directory Structure
 
 ```
 examples/
-├── ArgoCD/          # GitOps - ArgoCD v2.14+
+├── ArgoCD/          # GitOps - ArgoCD v3.4+
 ├── Calico/          # Network policies (+ AdminNetworkPolicy)
-├── CertManager/     # TLS certificates - cert-manager v1.17+
-├── Cilium/          # eBPF-based CNI (most popular CNI 2025)
-├── GatewayAPI/      # Gateway API v1.2+
-├── Istio/           # Service mesh - Istio 1.24+ (v1 APIs)
-├── KEDA/            # Event-driven autoscaling - KEDA v2.15+
-├── NginxIngress/    # Traditional Ingress Controller
+├── CertManager/     # TLS certificates - cert-manager v1.21+
+├── Cilium/          # eBPF-based CNI (most popular CNI)
+├── GatewayAPI/      # Gateway API v1.6+
+├── Istio/           # Service mesh - Istio 1.30+ (v1 APIs)
+├── KEDA/            # Event-driven autoscaling - KEDA v2.20+
+├── NginxIngress/    # Traditional Ingress Controller ⚠️ retired project, see DEPRECATIONS.md
 ├── Prometheus/      # Monitoring - kube-prometheus-stack
 └── README.md
 ```
@@ -33,7 +33,7 @@ Where:
 ## Technology Folders
 
 ### ArgoCD/
-GitOps continuous deployment examples (ArgoCD v2.14+)
+GitOps continuous deployment examples (ArgoCD v3.4+)
 - `01-basic-app.yaml` - Basic application from Git repository
 - `02-helm-app.yaml` - Application with Helm chart
 - `03-kustomize-app.yaml` - Application with Kustomize
@@ -86,7 +86,7 @@ kubectl apply -f Calico/01-networkpolicy-deny-all.yaml
 ```bash
 kubectl apply -f Cilium/01-ciliumnetworkpolicy-basic.yaml
 ```
-Next-generation Kubernetes ingress (Gateway API v1.2+)
+Next-generation Kubernetes ingress (Gateway API v1.6+)
 - `01-gatewayclass.yaml` - Gateway controller definition
 - `02-gateway-basic.yaml` - Basic gateway with HTTP/HTTPS
 - `03-httproute-basic.yaml` - Simple HTTP routing
@@ -96,8 +96,8 @@ Next-generation Kubernetes ingress (Gateway API v1.2+)
 - `07-httproute-header-modifications.yaml` - Request/response header modification
 - `08-grpcroute.yaml` - gRPC routing
 - `09-referencegrant.yaml` - Cross-namespace routing permissions
-- `10-backendtlspolicy.yaml` - **NEW** BackendTLSPolicy (backend TLS, v1.3 standard)
-- `11-httproute-retries-timeouts.yaml` - **NEW** Retry policies and timeouts (v1.1+)
+- `10-backendtlspolicy.yaml` - BackendTLSPolicy (backend TLS, standard since v1.3)
+- `11-httproute-retries-timeouts.yaml` - Retry policies and timeouts (v1.1+)
 
 **Usage:**
 ```bash
@@ -119,7 +119,7 @@ kubectl apply -f Istio/01-virtualservice-basic.yaml
 ```
 
 ### KEDA/
-Event-driven autoscaling (KEDA v2.15+ / K8s 1.34 compatible)
+Event-driven autoscaling (KEDA v2.20+ / K8s 1.34 compatible)
 - `01-scaledobject-cpu.yaml` - CPU-based scaling (updated with modern fields)
 - `02-scaledobject-memory.yaml` - Memory-based scaling (updated)
 - `03-scaledobject-prometheus.yaml` - Prometheus metrics scaling (updated)
@@ -133,7 +133,7 @@ kubectl apply -f KEDA/01-scaledobject-cpu.yaml
 ```
 
 ### NginxIngress/
-Traditional Kubernetes Ingress Controller
+⚠️ **Retired project** (archived March 24, 2026) — traditional Kubernetes Ingress Controller, kept for study/reference. Prefer Gateway API for new work.
 - `01-ingress-simple-http.yaml` - Basic HTTP ingress
 - `02-ingress-https.yaml` - HTTPS with TLS
 - `03-ingress-multi-backend.yaml` - Path-based routing
@@ -146,7 +146,7 @@ kubectl apply -f NginxIngress/01-ingress-simple-http.yaml
 ```
 
 ### Prometheus/
-Monitoring and alerting (kube-prometheus-stack v0.77+)
+Monitoring and alerting (kube-prometheus-stack chart v87+)
 - `01-servicemonitor-basic.yaml` - Basic service monitoring
 - `02-prometheusrule-alerts.yaml` - Alert rules
 - `03-podmonitor-recording-rules.yaml` - **NEW** PodMonitor + recording rules (performance)

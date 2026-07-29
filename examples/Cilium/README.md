@@ -15,7 +15,7 @@
 #
 # Install via Helm (recommended):
 #   helm repo add cilium https://helm.cilium.io/
-#   helm install cilium cilium/cilium --version 1.17.x \
+#   helm install cilium cilium/cilium --version 1.19.x \
 #     --namespace kube-system \
 #     --set kubeProxyReplacement=true \
 #     --set gatewayAPI.enabled=true \

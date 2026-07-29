@@ -1,7 +1,11 @@
 # Gateway API - GatewayClass
+# NOTE: kubernetes/ingress-nginx (k8s.io/ingress-nginx) never implemented the
+# Gateway API and the project was retired/archived in March 2026 - see DEPRECATIONS.md.
+# Use a maintained Gateway API implementation instead, e.g. Cilium (used throughout
+# this repo), Envoy Gateway, or Istio.
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: nginx-gateway
+  name: cilium
 spec:
-  controllerName: k8s.io/ingress-nginx
+  controllerName: io.cilium/gateway-controller

@@ -18,8 +18,10 @@ kubectl create namespace keda
 
 ### Install KEDA using Helm
 ```bash
-helm install keda kedacore/keda --namespace keda
+helm install keda kedacore/keda --namespace keda --version 2.20.1
 ```
+
+> **2026 update**: KEDA v2.20 moved event recording to the `events.k8s.io` API group. If you use custom/restricted RBAC (not the bundled manifests/Helm chart), grant `create`/`patch` on `events.k8s.io/events` before upgrading. See [DEPRECATIONS.md](DEPRECATIONS.md).
 
 ## Verify Installation
 ```bash

@@ -1,5 +1,5 @@
 # Cert-Manager Certificate Resource
-# cert-manager v1.17.x compatible
+# cert-manager v1.21.x compatible
 # usages field replaces deprecated keyUsage/extKeyUsage (v1.15+)
 apiVersion: cert-manager.io/v1
 kind: Certificate

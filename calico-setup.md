@@ -18,8 +18,10 @@ kubectl create namespace tigera-operator
 
 ### 2. Install Calico using Helm
 ```bash
-helm install calico projectcalico/tigera-operator --namespace tigera-operator
+helm install calico projectcalico/tigera-operator --namespace tigera-operator --version v3.32.1
 ```
+
+> **2026 update**: current stable is **Calico v3.32.1**. See [DEPRECATIONS.md](DEPRECATIONS.md) for version history notes.
 
 ### 3. Verify Installation
 ```bash

@@ -1,5 +1,7 @@
 # Istio Service Mesh Setup Notes
 
+> **2026 update**: current stable is **Istio 1.30.3** (supported alongside 1.29.x and 1.28.x). Istio only supports the last few minor releases — if you're still on 1.24.x, that release is long past end-of-life and should be upgraded. Pin an explicit version with `--version 1.30.3` instead of installing whatever `istio/istiod` resolves to by default. See [DEPRECATIONS.md](DEPRECATIONS.md).
+
 ## Prerequisites
 ```bash
 # Add Istio Helm repository
@@ -18,18 +20,18 @@ kubectl create namespace istio-system
 
 ### 2. Install Istio base chart (CRDs and operators)
 ```bash
-helm install istio-base istio/base -n istio-system --set defaultRevision=default
+helm install istio-base istio/base -n istio-system --version 1.30.3 --set defaultRevision=default
 ```
 
 ### 3. Install Istio discovery (control plane)
 ```bash
-helm install istiod istio/istiod -n istio-system
+helm install istiod istio/istiod -n istio-system --version 1.30.3
 ```
 
 ### 4. Install Istio ingress gateway
 ```bash
 kubectl create namespace istio-ingress
-helm install istio-ingressgateway istio/gateway -n istio-ingress
+helm install istio-ingressgateway istio/gateway -n istio-ingress --version 1.30.3
 ```
 
 ## Enable Sidecar Injection

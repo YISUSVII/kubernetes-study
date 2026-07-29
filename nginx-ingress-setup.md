@@ -1,5 +1,7 @@
 # Nginx Ingress Controller Setup Notes
 
+> ⚠️ **RETIRED PROJECT (March 24, 2026)**: `kubernetes/ingress-nginx` has been archived and is now read-only. The final releases are `controller-v1.15.1` / `helm-chart-4.15.1`. Do **not** start new projects on ingress-nginx — migrate to **Gateway API** (see [gateway-api-setup.md](gateway-api-setup.md)) with a maintained implementation (e.g. Envoy Gateway, Cilium Gateway API, or Istio Gateway). Kubernetes SIG-Network provides an [ingress2gateway](https://github.com/kubernetes-sigs/ingress2gateway) migration tool. See [DEPRECATIONS.md](DEPRECATIONS.md) for full details. This guide is kept for historical/study reference only.
+
 ## Prerequisites
 ```bash
 # Add Nginx Helm repository
@@ -20,6 +22,7 @@ kubectl create namespace ingress-nginx
 ```bash
 helm install nginx-ingress ingress-nginx/ingress-nginx \
   --namespace ingress-nginx \
+  --version 4.15.1 \
   --set controller.service.type=LoadBalancer
 ```
 

@@ -22,6 +22,8 @@ Cilium is the most widely deployed CNI in 2025/2026:
 | **AdminNetworkPolicy** | ✅ v3.29+ | ✅ v1.16+ |
 | **Performance** | Good | Excellent (eBPF) |
 
+> **2026 update**: latest stable is Cilium **v1.19.6** (v1.20.0 in release candidate). v1.17.x is approaching end-of-life — plan an upgrade. See [DEPRECATIONS.md](DEPRECATIONS.md).
+
 ## Prerequisites
 
 ```bash
@@ -36,7 +38,7 @@ helm repo update
 ```bash
 # Install Cilium with recommended settings for K8s 1.34+
 helm install cilium cilium/cilium \
-  --version 1.17.x \
+  --version 1.19.x \
   --namespace kube-system \
   --set ipam.mode=kubernetes \
   --set kubeProxyReplacement=true \
@@ -53,7 +55,7 @@ helm install cilium cilium/cilium \
 ### 2. Install with Hubble only (existing cluster)
 ```bash
 helm install cilium cilium/cilium \
-  --version 1.17.x \
+  --version 1.19.x \
   --namespace kube-system \
   --set hubble.enabled=true \
   --set hubble.relay.enabled=true \

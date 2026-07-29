@@ -18,13 +18,15 @@ kubectl create namespace cert-manager
 
 ### 2. Install Cert-Manager CRDs
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.crds.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.0/cert-manager.crds.yaml
 ```
 
 ### 3. Install Cert-Manager using Helm
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.17.1
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.21.0
 ```
+
+> **2026 update**: v1.21.0 is current stable (July 2026). If you're on v1.19.x/v1.20.x, upgrade at least to v1.19.6/v1.20.3 — those patch releases fix a HIGH severity RBAC issue ([GHSA-8rvj-mm4h-c258](https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258)) where `cert-manager-edit` allowed direct creation of ACME `Challenge`/`Order` resources. See [DEPRECATIONS.md](DEPRECATIONS.md) for breaking Helm value changes in v1.21.
 
 ## Verify Installation
 ```bash

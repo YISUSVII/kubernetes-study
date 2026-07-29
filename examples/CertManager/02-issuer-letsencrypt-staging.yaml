@@ -1,6 +1,6 @@
 # Cert-Manager Issuer - Let's Encrypt Staging
 # Use staging to avoid rate limits during testing
-# cert-manager v1.15+: ingressClassName replaces deprecated class field
+# cert-manager v1.15+: ingressClassName replaces deprecated class field (still valid in v1.21)
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:

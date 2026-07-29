@@ -11,15 +11,17 @@ helm repo update
 
 ## Installation Command
 ```bash
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 87.21.0
 ```
 
 ## Installation Details
-- **Chart Version**: 79.9.0 (closest available)
+- **Chart Version**: 87.21.0 (current stable, mid-2026; was 79.9.0)
 - **Release Name**: prometheus
 - **Namespace**: monitoring
 - **Status**: deployed
 - **Deployment Date**: Sun Nov 30 16:03:00 2025
+
+> **2026 update**: the standalone `prometheus-operator/kube-prometheus` jsonnet project is now at v0.18.0. See [DEPRECATIONS.md](DEPRECATIONS.md).
 
 ## Post-Installation Commands
 

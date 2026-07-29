@@ -62,7 +62,7 @@ spec:
   - from:
     - source:
         principals: ["cluster.local/ns/default/sa/frontend"]
-        namespaces: ["default", "ingress-nginx"]
+        namespaces: ["default", "istio-ingress"]
     to:
     - operation:
         methods: ["GET", "POST"]

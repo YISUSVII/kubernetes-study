@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes Study Repository — 2026 Edition</title>
+<meta name="description" content="A structured, visual guide to production-grade Kubernetes tooling: ArgoCD, Cilium, Gateway API, Istio, KEDA, cert-manager, Calico, and Prometheus/Grafana. Updated for mid-2026." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%8E%88%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="bg-fx" aria-hidden="true"></div>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="top">
+  <nav class="nav container">
+    <a class="brand" href="#top">
+      <span class="brand-mark">⎈</span>
+      <span class="brand-text">K8s Study<span class="brand-year">.2026</span></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#technologies" data-nav>Technologies</a></li>
+      <li><a href="#paths" data-nav>Learning Paths</a></li>
+      <li><a href="#versions" data-nav>Versions</a></li>
+      <li><a href="#deprecations" data-nav>2026 Updates</a></li>
+      <li><a href="#examples" data-nav>Examples</a></li>
+      <li><a href="#community" data-nav>Community</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
+        <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" fill="currentColor"/></svg>
+      </button>
+      <a class="btn btn-ghost" href="https://github.com/YISUSVII/kubernetes-study" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <p class="eyebrow reveal">Kubernetes 1.34 / 1.35 &middot; Refreshed July 29, 2026</p>
+      <h1 class="reveal">
+        Learn production‑grade <span class="grad-text">Kubernetes</span><br/>
+        the way the ecosystem <em>actually</em> looks in 2026
+      </h1>
+      <p class="hero-sub reveal">
+        A hands-on study repo covering GitOps, service mesh, eBPF networking, the Gateway API,
+        event-driven autoscaling, TLS automation, and observability — with real YAML,
+        version-accurate setup guides, and a full audit of what's outdated or retired.
+      </p>
+      <div class="hero-cta reveal">
+        <a class="btn btn-primary" href="#technologies">Explore Technologies</a>
+        <a class="btn btn-outline" href="#paths">Start a Learning Path</a>
+      </div>
+      <div class="stat-strip reveal" id="statStrip">
+        <div class="stat"><span class="stat-num" data-count="9">0</span><span class="stat-label">Technologies</span></div>
+        <div class="stat"><span class="stat-num" data-count="60">0</span><span class="stat-label">Example manifests</span></div>
+        <div class="stat"><span class="stat-num" data-count="5">0</span><span class="stat-label">Learning paths</span></div>
+        <div class="stat"><span class="stat-num" data-count="1" data-suffix=" critical">0</span><span class="stat-label">Retired dependency flagged</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALERT BANNER -->
+  <section class="container">
+    <a href="#deprecations" class="alert-banner reveal">
+      <span class="alert-icon">⚠️</span>
+      <span class="alert-text">
+        <strong>ingress-nginx was archived by Kubernetes on March 24, 2026.</strong>
+        See the 2026 Deprecations section for migration guidance to Gateway API.
+      </span>
+      <span class="alert-arrow">→</span>
+    </a>
+  </section>
+
+  <!-- TECHNOLOGIES -->
+  <section id="technologies" class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Guides</p>
+        <h2>Technologies covered</h2>
+        <p class="section-sub">Every card links straight to the setup guide and ready-to-apply YAML examples in this repo.</p>
+      </div>
+
+      <div class="filter-bar reveal">
+        <input id="techSearch" type="search" placeholder="Search technologies (e.g. mesh, autoscaling, TLS)…" aria-label="Search technologies" />
+        <div class="chip-group" id="statusChips">
+          <button class="chip is-active" data-filter="all">All</button>
+          <button class="chip" data-filter="stable">Stable</button>
+          <button class="chip" data-filter="major-update">Major update</button>
+          <button class="chip" data-filter="attention">Needs attention</button>
+          <button class="chip" data-filter="retired">Retired</button>
+        </div>
+      </div>
+
+      <div class="tech-grid" id="techGrid"><!-- injected by script.js --></div>
+    </div>
+  </section>
+
+  <!-- LEARNING PATHS -->
+  <section id="paths" class="section alt">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Curriculum</p>
+        <h2>Learning paths</h2>
+        <p class="section-sub">Five guided tracks from <code>STUDY_GUIDE.md</code>, ordered by difficulty and time investment.</p>
+      </div>
+      <div class="path-list" id="pathList"><!-- injected by script.js --></div>
+    </div>
+  </section>
+
+  <!-- VERSION MATRIX -->
+  <section id="versions" class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Compatibility</p>
+        <h2>Version matrix — July 2026</h2>
+        <p class="section-sub">Verified directly against each project's official GitHub Releases page.</p>
+      </div>
+      <div class="table-wrap reveal">
+        <table class="version-table" id="versionTable">
+          <thead>
+            <tr><th>Tool</th><th>Latest stable</th><th>K8s 1.34</th><th>K8s 1.35</th><th>Status</th></tr>
+          </thead>
+          <tbody><!-- injected by script.js --></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEPRECATIONS -->
+  <section id="deprecations" class="section alt">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Audit</p>
+        <h2>2026 deprecations &amp; breaking changes</h2>
+        <p class="section-sub">Full detail lives in <a href="https://github.com/YISUSVII/kubernetes-study/blob/main/DEPRECATIONS.md" target="_blank" rel="noopener">DEPRECATIONS.md</a> — here's the executive summary.</p>
+      </div>
+
+      <div class="callout callout-critical reveal">
+        <h3>🔴 ingress-nginx is retired</h3>
+        <p><code>kubernetes/ingress-nginx</code> was archived on <strong>March 24, 2026</strong>. The repository is read-only and the final release is <code>controller-v1.15.1</code>. Migrate to the <strong>Gateway API</strong> with a maintained implementation (Cilium, Envoy Gateway, or Istio). Kubernetes SIG-Network's <a href="https://github.com/kubernetes-sigs/ingress2gateway" target="_blank" rel="noopener">ingress2gateway</a> tool can convert existing manifests.</p>
+      </div>
+
+      <div class="deprecation-grid" id="deprecationGrid"><!-- injected by script.js --></div>
+    </div>
+  </section>
+
+  <!-- EXAMPLES -->
+  <section id="examples" class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Hands-on</p>
+        <h2>Browse the example manifests</h2>
+        <p class="section-sub">Every folder below is ready to <code>kubectl apply -f</code>.</p>
+      </div>
+      <div class="example-grid" id="exampleGrid"><!-- injected by script.js --></div>
+    </div>
+  </section>
+
+  <!-- COMMUNITY -->
+  <section id="community" class="section alt">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Stay current</p>
+        <h2>Community &amp; news</h2>
+        <p class="section-sub">This ecosystem moves fast — these are the sources this repo's version audit was checked against.</p>
+      </div>
+      <div class="community-grid reveal">
+        <a class="community-card" href="https://kubernetes.io/blog/" target="_blank" rel="noopener"><span>📰</span><div><strong>Kubernetes Blog</strong><small>Release notes &amp; deprecations</small></div></a>
+        <a class="community-card" href="https://kubeweekly.io/" target="_blank" rel="noopener"><span>📬</span><div><strong>KubeWeekly</strong><small>Official CNCF weekly newsletter</small></div></a>
+        <a class="community-card" href="https://endoflife.date/kubernetes" target="_blank" rel="noopener"><span>⏳</span><div><strong>endoflife.date</strong><small>Support window tracker</small></div></a>
+        <a class="community-card" href="https://artifacthub.io/" target="_blank" rel="noopener"><span>📦</span><div><strong>ArtifactHub</strong><small>Track Helm chart versions</small></div></a>
+        <a class="community-card" href="https://kubernetespodcast.com/" target="_blank" rel="noopener"><span>🎙️</span><div><strong>Kubernetes Podcast</strong><small>Google's official K8s podcast</small></div></a>
+        <a class="community-card" href="https://gateway-api.sigs.k8s.io/" target="_blank" rel="noopener"><span>🌐</span><div><strong>Gateway API Docs</strong><small>GEPs &amp; implementation status</small></div></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      <span class="brand-mark">⎈</span> Kubernetes Study Repository
+      <p class="muted">Last content refresh: July 29, 2026 · <a href="https://github.com/YISUSVII/kubernetes-study/blob/main/DEPRECATIONS.md" target="_blank" rel="noopener">DEPRECATIONS.md</a></p>
+    </div>
+    <a class="btn btn-ghost" href="#top">Back to top ↑</a>
+  </div>
+</footer>
+
+<script src="assets/script.js"></script>
+</body>
+</html>

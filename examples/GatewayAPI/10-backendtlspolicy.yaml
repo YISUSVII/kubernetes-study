@@ -1,13 +1,15 @@
-# Gateway API BackendTLSPolicy - v1.3 Standard Channel
+# Gateway API BackendTLSPolicy - GA (v1) since Gateway API v1.6
 # Configures TLS from the Gateway proxy to backend Services (east-west TLS)
 # This is DIFFERENT from Gateway TLS (which is north-south / client-facing)
-# BackendTLSPolicy was promoted to Standard in Gateway API v1.3 (2025)
+# BackendTLSPolicy was promoted to Standard channel in Gateway API v1.3 (2025);
+# the API version itself graduated from v1alpha3 to v1 in v1.6 (mid-2026).
+# NOTE: v1alpha3 is now deprecated and no longer served by the CRD - use v1.
 #
 # Use case: Ensure traffic between the Gateway and your backend pods is encrypted
 # even inside the cluster (zero-trust networking)
 ---
 # Example 1: Basic BackendTLSPolicy using a cluster CA
-apiVersion: gateway.networking.k8s.io/v1alpha3
+apiVersion: gateway.networking.k8s.io/v1
 kind: BackendTLSPolicy
 metadata:
   name: myapp-backend-tls
@@ -33,7 +35,7 @@ spec:
 ---
 # Example 2: BackendTLSPolicy for a gRPC service using cert-manager issued cert
 # Pair this with a cert-manager Certificate on the backend pod
-apiVersion: gateway.networking.k8s.io/v1alpha3
+apiVersion: gateway.networking.k8s.io/v1
 kind: BackendTLSPolicy
 metadata:
   name: grpc-backend-tls

@@ -38,15 +38,17 @@ Service (Backend)
 
 ### 1. Install Gateway API CRDs
 ```bash
-# Install Gateway API standard channel (v1.2.1 - stable 2025/2026)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+# Install Gateway API standard channel (v1.6.1 - current stable, mid-2026)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml
 
-# Or install experimental channel for BackendTLSPolicy, TCPRoute, UDPRoute
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
+# Or install experimental channel for BackendTLSPolicy, ListenerSet, CORS filter, etc.
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/experimental-install.yaml
 
 # Verify CRDs installation
 kubectl get crd | grep gateway
 ```
+
+> **2026 update**: as of v1.6.0, `TCPRoute` and `UDPRoute` graduated to **GA (`v1`)** — the `v1alpha2` versions are deprecated and will be removed in a future release. `TLSRoute`, `ListenerSet`, and the HTTPRoute CORS filter graduated to Standard in v1.5.0. See [DEPRECATIONS.md](DEPRECATIONS.md) for the full list of API version changes.
 
 ### 2. Install a Gateway Controller Implementation
 
@@ -123,8 +125,8 @@ EOF
 
 ### Method 1: Install Standard CRDs Only
 ```bash
-# Minimal installation (CRDs only, no controller) - v1.2.1 stable 2025/2026
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+# Minimal installation (CRDs only, no controller) - v1.6.1 current stable
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml
 
 # Then install your preferred controller separately
 ```
