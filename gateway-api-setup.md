@@ -38,22 +38,23 @@ Service (Backend)
 
 ### 1. Install Gateway API CRDs
 ```bash
-# Install Gateway API standard channel (v1.6.1 - current stable, mid-2026)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml
+# Install Gateway API standard channel (v1.6.2 - stable, checked October 1, 2026)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
 
-# Or install experimental channel for BackendTLSPolicy, ListenerSet, CORS filter, etc.
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/experimental-install.yaml
+# Alternative for features that still require Experimental CRDs.
+# Choose one channel; review safe-upgrade restrictions before changing channels.
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/experimental-install.yaml
 
 # Verify CRDs installation
 kubectl get crd | grep gateway
 ```
 
-> **2026 update**: as of v1.6.0, `TCPRoute` and `UDPRoute` graduated to **GA (`v1`)** — the `v1alpha2` versions are deprecated and will be removed in a future release. `TLSRoute`, `ListenerSet`, and the HTTPRoute CORS filter graduated to Standard in v1.5.0. See [DEPRECATIONS.md](DEPRECATIONS.md) for the full list of API version changes.
+> **October 2026 update**: [v1.6.2](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2) clarifies that redirect status codes 303, 307, and 308 require Extended conformance. Check controller support. As of v1.6.0, `TCPRoute` and `UDPRoute` graduated to **GA (`v1`)** — the `v1alpha2` versions are deprecated and will be removed in a future release. `TLSRoute`, `ListenerSet`, and the HTTPRoute CORS filter graduated to Standard in v1.5.0. See [DEPRECATIONS.md](DEPRECATIONS.md) for the full list of API version changes.
 
 ### 2. Install a Gateway Controller Implementation
 
 Popular implementations:
-- **Nginx** - `kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml`
+- **NGINX Gateway Fabric** - A separate Gateway API implementation; retired ingress-nginx does not implement Gateway API. See the [implementation list](https://gateway-api.sigs.k8s.io/implementations/).
 - **Istio** - Works natively with Gateway API (recommended pair in 2025/2026)
 - **Envoy Gateway** - Purpose-built, CNCF-incubating implementation (fastest growing 2024-2026)
 - **Kong** - API gateway supporting Gateway API
@@ -125,8 +126,8 @@ EOF
 
 ### Method 1: Install Standard CRDs Only
 ```bash
-# Minimal installation (CRDs only, no controller) - v1.6.1 current stable
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml
+# Minimal installation (CRDs only, no controller) - v1.6.2 current stable
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
 
 # Then install your preferred controller separately
 ```

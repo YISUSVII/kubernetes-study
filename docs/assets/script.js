@@ -10,44 +10,44 @@ const REPO_TREE = "https://github.com/YISUSVII/kubernetes-study/tree/main";
 const TECHNOLOGIES = [
   {
     id: "argocd", icon: "🔄", name: "ArgoCD", tagline: "Declarative GitOps continuous delivery for Kubernetes.",
-    version: "v3.4.5", note: "v3.5 in RC", status: "major-update", statusLabel: "Major update from v2.14",
-    install: "kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.5/manifests/install.yaml",
+    version: "v3.5.3", note: "Helm 4; review upgrade guide", status: "major-update", statusLabel: "Major update from v2.14",
+    install: "kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml",
     setup: `${REPO}/argocd-setup.md`, examples: `${REPO_TREE}/examples/ArgoCD`,
   },
   {
     id: "calico", icon: "🛡️", name: "Calico", tagline: "Network policy enforcement, including AdminNetworkPolicy.",
-    version: "v3.32.1", note: "current stable", status: "stable", statusLabel: "Stable",
-    install: "helm install calico projectcalico/tigera-operator -n tigera-operator --version v3.32.1",
+    version: "v3.32.2", note: "current stable", status: "stable", statusLabel: "Stable",
+    install: "helm install calico projectcalico/tigera-operator -n tigera-operator --version v3.32.2",
     setup: `${REPO}/calico-setup.md`, examples: `${REPO_TREE}/examples/Calico`,
   },
   {
     id: "cert-manager", icon: "🔐", name: "cert-manager", tagline: "Automated TLS certificate issuance and renewal.",
-    version: "v1.21.0", note: "security fix in v1.19.6+", status: "attention", statusLabel: "Security fix — upgrade",
-    install: "helm install cert-manager jetstack/cert-manager -n cert-manager --version v1.21.0",
+    version: "v1.21.2", note: "security hardening and renewal fixes", status: "attention", statusLabel: "Security fix — upgrade",
+    install: "helm install cert-manager jetstack/cert-manager -n cert-manager --version v1.21.2",
     setup: `${REPO}/cert-manager-setup.md`, examples: `${REPO_TREE}/examples/CertManager`,
   },
   {
     id: "cilium", icon: "⚡", name: "Cilium", tagline: "eBPF-based CNI with native Gateway API and Hubble observability.",
-    version: "v1.19.6", note: "v1.20 in RC", status: "stable", statusLabel: "Stable",
-    install: "helm install cilium cilium/cilium --version 1.19.x -n kube-system",
+    version: "v1.20.2", note: "1.20 stable", status: "stable", statusLabel: "Stable",
+    install: "helm install cilium cilium/cilium --version 1.20.2 -n kube-system",
     setup: `${REPO}/cilium-setup.md`, examples: `${REPO_TREE}/examples/Cilium`,
   },
   {
     id: "gateway-api", icon: "🌐", name: "Gateway API", tagline: "The role-oriented successor to Ingress: HTTPRoute, GRPCRoute, TCPRoute/UDPRoute.",
-    version: "v1.6.1", note: "TCPRoute/UDPRoute now GA", status: "stable", statusLabel: "Stable",
-    install: "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml",
+    version: "v1.6.2", note: "TCPRoute/UDPRoute now GA", status: "stable", statusLabel: "Stable",
+    install: "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml",
     setup: `${REPO}/gateway-api-setup.md`, examples: `${REPO_TREE}/examples/GatewayAPI`,
   },
   {
     id: "istio", icon: "🕸️", name: "Istio", tagline: "Full-featured service mesh: mTLS, traffic shaping, observability.",
-    version: "v1.30.3", note: "was 1.24 (past EOL)", status: "major-update", statusLabel: "Multiple releases behind",
-    install: "helm install istiod istio/istiod -n istio-system --version 1.30.3",
+    version: "v1.31.1", note: "was 1.24 (past EOL)", status: "major-update", statusLabel: "Multiple releases behind",
+    install: "helm install istiod istio/istiod -n istio-system --version 1.31.1",
     setup: `${REPO}/istio-setup.md`, examples: `${REPO_TREE}/examples/Istio`,
   },
   {
     id: "keda", icon: "📈", name: "KEDA", tagline: "Event-driven autoscaling for Kubernetes workloads.",
-    version: "v2.20.1", note: "events.k8s.io RBAC change", status: "attention", statusLabel: "Breaking RBAC change",
-    install: "helm install keda kedacore/keda -n keda --version 2.20.1",
+    version: "v2.21.0", note: "critical token-audience fix", status: "attention", statusLabel: "Security and breaking changes",
+    install: "helm install keda kedacore/keda -n keda --version 2.21.0",
     setup: `${REPO}/keda-setup.md`, examples: `${REPO_TREE}/examples/KEDA`,
   },
   {
@@ -58,8 +58,8 @@ const TECHNOLOGIES = [
   },
   {
     id: "prometheus", icon: "📊", name: "Prometheus & Grafana", tagline: "Metrics, alerting, and dashboards via kube-prometheus-stack.",
-    version: "chart 87.21.0", note: "was chart 79.9.0", status: "stable", statusLabel: "Stable",
-    install: "helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --version 87.21.0",
+    version: "chart 91.8.2", note: "was chart 79.9.0", status: "stable", statusLabel: "Stable",
+    install: "helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --version 91.8.2",
     setup: `${REPO}/prometheus-grafana-setup.md`, examples: `${REPO_TREE}/examples/Prometheus`,
   },
 ];
@@ -73,24 +73,20 @@ const PATHS = [
 ];
 
 const VERSIONS = [
-  { tool: "ArgoCD", version: "v3.4.5", k34: true, k35: true, status: "ok", note: "v3.5 in RC" },
-  { tool: "Calico", version: "v3.32.1", k34: true, k35: true, status: "ok", note: "" },
-  { tool: "cert-manager", version: "v1.21.0", k34: true, k35: true, status: "ok", note: "HIGH sev. RBAC fix in v1.19.6/v1.20.3" },
-  { tool: "Cilium", version: "v1.19.6", k34: true, k35: true, status: "ok", note: "v1.20 in RC; v1.17.x nearing EOL" },
-  { tool: "Gateway API", version: "v1.6.1", k34: true, k35: true, status: "ok", note: "TCPRoute/UDPRoute graduated to v1" },
-  { tool: "Istio", version: "v1.30.3", k34: true, k35: true, status: "ok", note: "1.24 is long past EOL" },
-  { tool: "KEDA", version: "v2.20.1", k34: true, k35: true, status: "ok", note: "events now use events.k8s.io" },
-  { tool: "NGINX Ingress", version: "controller-v1.15.1", k34: false, k35: false, status: "danger", note: "Project retired March 24, 2026" },
-  { tool: "kube-prometheus-stack", version: "chart 87.21.0", k34: true, k35: true, status: "ok", note: "" },
+  { tool: "Kubernetes", version: "v1.37.1", status: "ok", note: "Maintained: 1.35 / 1.36 / 1.37", source: "https://kubernetes.io/releases/" },
+  ...TECHNOLOGIES.map((t) => ({
+    tool: t.name, version: t.version, status: t.status === "retired" ? "danger" : "ok", note: t.note,
+    source: `${REPO}/DEPRECATIONS.md`,
+  })),
 ];
 
 const DEPRECATIONS = [
-  { tool: "ArgoCD v2.14 → v3.4", severity: "Major", detail: "Helm 3→4 migration for Helm-type Applications; upgrade one major at a time, don't skip to 3.5." },
-  { tool: "Istio 1.24 → 1.30", severity: "Major", detail: "1.24.x no longer receives patches. Upgrade one minor version at a time per Istio's canary process." },
-  { tool: "Cilium 1.17 → 1.19", severity: "Plan ahead", detail: "1.17.x approaching EOL. Beta Mutual Auth and local REST BGP APIs are deprecated." },
-  { tool: "cert-manager RBAC CVE", severity: "Security", detail: "GHSA-8rvj-mm4h-c258 (HIGH): cert-manager-edit allowed direct Challenge/Order creation. Fixed in v1.19.6 / v1.20.3 / v1.21.0." },
-  { tool: "Gateway API v1alpha2/v1alpha3", severity: "API change", detail: "TCPRoute/UDPRoute graduated to v1 (v1alpha2 removed from serving path). BackendTLSPolicy v1alpha3 is deprecated — use v1." },
-  { tool: "KEDA events RBAC", severity: "Breaking", detail: "v2.20 records events via events.k8s.io. Custom RBAC must grant create/patch on events.k8s.io/events." },
+  { tool: "KEDA 2.21 token audiences", severity: "Critical fix", detail: "CVE-2026-77524 affects Vault Kubernetes auth and bound service account tokens. Review dedicated audience mappings before upgrading; Temporal and Azure Pipelines also have breaking changes." },
+  { tool: "ArgoCD 3.5", severity: "Upgrade", detail: "Helm 4 changes plain HTTP OCI registry handling. AppProject signatureKeys is deprecated in favor of sourceIntegrity." },
+  { tool: "Istio support window", severity: "Plan ahead", detail: "1.29 support is expected to end October 12, 2026. Istio 1.31 lists Kubernetes 1.32–1.36 as supported." },
+  { tool: "cert-manager 1.21.2", severity: "Security", detail: "September patch hardens issuer responses and ambient AWS credentials and fixes renewal, webhook, and Gateway listener issues." },
+  { tool: "Gateway API 1.6.2", severity: "Conformance", detail: "Redirect codes 303, 307, and 308 require Extended conformance. Check your controller's supported features." },
+  { tool: "Cilium 1.20", severity: "Stable release", detail: "1.20 is now stable; 1.20.2 includes networking and policy fixes. Review minor upgrade requirements before replacing a CNI." },
 ];
 
 const EXAMPLE_FOLDERS = [
@@ -155,8 +151,7 @@ function renderVersionTable() {
     <tr>
       <td>${v.tool}</td>
       <td><code>${v.version}</code></td>
-      <td>${v.k34 ? "✅" : "❌"}</td>
-      <td>${v.k35 ? "✅" : "❌"}</td>
+      <td><a href="${v.source}" target="_blank" rel="noopener">Release / upgrade notes</a></td>
       <td><span class="${v.status === "ok" ? "ok-dot" : "warn-dot"}"></span> ${v.note || "&nbsp;"}</td>
     </tr>
   `).join("");

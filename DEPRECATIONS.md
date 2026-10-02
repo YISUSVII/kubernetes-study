@@ -1,98 +1,67 @@
-# 2026 Update: Deprecated, Outdated & Retired Resources
+# 2026 Update: Releases, Deprecations & Ecosystem News
 
-> Generated as part of the mid-2026 refresh of this repository. Versions below were verified against each project's official GitHub Releases pages on **July 29, 2026**. Re-check `endoflife.date` and each project's release page periodically, since these ecosystems move fast.
+> Checked against official project releases and upgrade documentation on **October 1, 2026**. Previous refresh: July 29, 2026. These are published release pins, not validation of a deployed cluster.
 
-## Summary Table
+## Release changes since July
 
-| Component | Repo previously referenced | Current stable (Jul 2026) | Severity |
-|-----------|----------------------------|----------------------------|----------|
-| ingress-nginx | v1.11 / chart 4.x | controller-v1.15.1 / chart-4.15.1 — **project retired** | 🔴 Critical |
-| ArgoCD | v2.14 | v3.4.5 (v3.5 in RC) | 🟠 Major version behind |
-| Istio | 1.24 | 1.30.3 | 🟠 Major version behind (past EOL) |
-| Cilium | 1.17 | 1.19.6 (1.20 in RC) | 🟡 Behind, 1.17 nearing EOL |
-| cert-manager | v1.17 | v1.21.0 | 🟡 Behind, security fix in v1.19.6/v1.20.3 |
-| Gateway API | v1.2.1 | v1.6.1 | 🟡 Behind, API graduations |
-| KEDA | v2.15 | v2.20.1 | 🟡 Behind, breaking RBAC change |
-| Calico | (unpinned, ~v3.29 era) | v3.32.1 | 🟢 Minor |
-| kube-prometheus-stack (Helm chart) | 79.9.0 | 87.21.0 | 🟢 Minor |
+| Component | July pin | October snapshot | Official release |
+|-----------|----------|------------------|------------------|
+| Kubernetes | Study baseline 1.34/1.35 | Latest 1.37.1; study baseline 1.35/1.36 | [Upstream support](https://kubernetes.io/releases/) |
+| ArgoCD | v3.4.5 | v3.5.3 | [Release](https://github.com/argoproj/argo-cd/releases/tag/v3.5.3) |
+| Calico | v3.32.1 | v3.32.2 | [Release](https://github.com/projectcalico/calico/releases/tag/v3.32.2) |
+| cert-manager | v1.21.0 | v1.21.2 | [Release](https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2) |
+| Cilium | v1.19.6 | v1.20.2 | [Release](https://github.com/cilium/cilium/releases/tag/v1.20.2) |
+| Gateway API | v1.6.1 | v1.6.2 | [Release](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2) |
+| Istio | 1.30.3 | 1.31.1 | [Release](https://github.com/istio/istio/releases/tag/1.31.1) |
+| KEDA | v2.20.1 | v2.21.0 | [Release](https://github.com/kedacore/keda/releases/tag/v2.21.0) |
+| kube-prometheus-stack | Chart 87.21.0 | Chart 91.8.2 | [Release](https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2) |
+| ingress-nginx | Retired | Still retired | [Archived repository](https://github.com/kubernetes/ingress-nginx) |
 
----
+## Priority: KEDA 2.21 security and breaking changes
 
-## 🔴 Critical: ingress-nginx is retired
+KEDA 2.21 fixes critical **CVE-2026-77524 / GHSA-637c-6jxx-4rwm**. The affected paths use Vault Kubernetes authentication or `boundServiceAccountToken` in TriggerAuthentication/ClusterTriggerAuthentication. Review these integrations before upgrading; API keys and ordinary Vault token authentication are outside those affected paths. [Release and advisory links](https://github.com/kedacore/keda/releases/tag/v2.21.0).
 
-**`kubernetes/ingress-nginx` was archived by its maintainers/Kubernetes SIG on March 24, 2026.** The GitHub repository is now read-only ("Public archive"), no further releases, security patches, or bug fixes will be published. The final releases are `controller-v1.15.1` and Helm chart `4.15.1`.
+- **Token audiences:** Configure dedicated audiences and matching receiver validation. Tokens minted for named service accounts need exact namespace/name audience mappings. Avoid using the operator-wide insecure `legacy` mode as a permanent solution.
+- **Temporal:** Removed `buildId`, `selectAllActive`, and `selectUnversioned`. For versioned workers, migrate to `workerDeploymentName` and `workerDeploymentBuildId`.
+- **Azure Pipelines:** `scaleOnInFlight` defaults to `true`, counting unfinished assigned jobs. Review scaling behavior; `false` restores unassigned-only counting.
 
-- **Action**: Do not deploy `ingress-nginx` for new workloads. If you're currently running it, plan a migration.
-- **Migration path**: Move to the [Gateway API](gateway-api-setup.md) with an actively maintained implementation — options include **Envoy Gateway**, **Cilium** (native Gateway API support, see [cilium-setup.md](cilium-setup.md)), **Istio Gateway**, or another [conformant Gateway API implementation](https://gateway-api.sigs.k8s.io/implementations/).
-- **Tooling**: Kubernetes SIG-Network maintains [ingress2gateway](https://github.com/kubernetes-sigs/ingress2gateway), a CLI that converts existing `Ingress` resources (including many ingress-nginx annotations) into Gateway API resources.
-- This repo's [nginx-ingress-setup.md](nginx-ingress-setup.md) and `examples/NginxIngress/` are kept only for historical/study reference (e.g. understanding the older Ingress annotation model).
+Follow the [2.20 → 2.21 migration guide](https://keda.sh/docs/2.21/migration/). The bundled examples do not configure these authentication paths or the Temporal/Azure Pipelines scalers, so this refresh changes their documented baseline without adding token configuration.
 
-## 🟠 ArgoCD v2.14 → v3.4 (major version jump)
+Earlier migration reminder: custom RBAC for KEDA 2.20+ must allow event recording through `events.k8s.io/events`. Review all intervening release notes when upgrading older installations.
 
-- ArgoCD 3.0 was a major release with breaking changes vs. the 2.x series referenced previously in this repo:
-  - **Helm 3 → Helm 4 migration** inside the repo-server for Helm-type Applications — test Helm-based Applications carefully after upgrading.
-  - RBAC and impersonation behavior changes (server operations now use impersonation by default in newer 3.x releases).
-  - `Application` CRD (`argoproj.io/v1alpha1`) is unchanged in group/version, but new optional fields were added (e.g. `sourceHydrator`, source integrity verification) — no manifest rewrite required, but review the [ArgoCD upgrade docs](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) before jumping multiple majors.
-- **Action**: Upgrade path is 2.x → 3.0 → 3.4/3.5, following the official upgrade guide one minor/major at a time. Do not skip straight from 2.14 to 3.5.
+## ArgoCD 3.5: Helm and deprecated signature configuration
 
-## 🟠 Istio 1.24 → 1.30 (multiple releases behind, past EOL)
+ArgoCD 3.5 uses Helm 4. Plain HTTP OCI registries require explicit configuration, including dependency repositories. Existing `spec.source.helm.version: v3` no longer selects Helm 3. GnuPG signature configuration (`AppProject.spec.signatureKeys`) is deprecated in favor of `sourceIntegrity`. Impersonation now covers API server operations **when enabled**; it is not an assertion that every installation enables impersonation by default. Review the [3.4 → 3.5 upgrade guide](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/).
 
-- Istio only actively supports roughly the last 4 minor releases (currently 1.28.x, 1.29.x, 1.30.x, plus 1.31 in alpha). **1.24.x no longer receives patches.**
-- No breaking `networking.istio.io` API changes between 1.24 and 1.30 for the resources used in this repo's examples (`VirtualService`, `Gateway`, `DestinationRule`, `PeerAuthentication` are all stable `v1`), but **always upgrade one minor version at a time** per Istio's supported upgrade policy — do not jump 1.24 → 1.30 directly.
-- **Action**: Pin explicit Helm chart versions (`--version 1.30.3`) instead of installing whatever the `istio/istiod` chart resolves to by default, and follow the [canary control plane upgrade](https://istio.io/latest/docs/setup/upgrade/canary/) process.
+The [setup guide](argocd-setup.md) pins the application manifest to v3.5.3. Helm chart versions are independent of application versions; select a chart by its `appVersion` rather than retaining the previous `8.x` placeholder.
 
-## 🟡 Cilium 1.17 → 1.19/1.20
+## cert-manager 1.21.2: security hardening and reliability
 
-- Cilium 1.17.x is approaching end-of-life; 1.18 and 1.19 are the actively maintained stable branches, with 1.20 currently in release-candidate.
-- Notable recent changes relevant to this repo's `examples/Cilium/` manifests:
-  - Gateway API support inside Cilium has been updated to track Gateway API v1.6.x (TCPRoute/UDPRoute now `v1`).
-  - Beta Mutual Auth is deprecated and will be removed in a future Cilium version.
-  - The local REST BGP APIs are deprecated.
-- **Action**: Upgrade to 1.19.x for new deployments; avoid 1.17.x for new clusters.
+The September patch fixes renewal/HTTP-01 solver issues, webhook/controller panics, and duplicate Gateway listener DNS names. It limits untrusted issuer responses in status/events and tightens ambient AWS credential use for namespaced Vault Issuers. Upstream recommends upgrading. [Release notes](https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2).
 
-## 🟡 cert-manager v1.17 → v1.21 (includes a security fix)
+The July RBAC advisory remains relevant to older installations: [GHSA-8rvj-mm4h-c258](https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258). Check the advisory's affected/fixed versions when assessing an existing cluster.
 
-- **Security**: [GHSA-8rvj-mm4h-c258](https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258) (HIGH) — the default `cert-manager-edit` aggregated ClusterRole allowed namespaced users to directly create ACME `Challenge`/`Order` resources, potentially bypassing Issuer solver selectors and exfiltrating DNS provider credentials (notably with the acme-dns solver). Fixed in **v1.19.6**, **v1.20.3**, and **v1.21.0**. If you run any version between v1.17 and v1.20.2, upgrade immediately.
-- **Breaking Helm chart changes in v1.21.0**:
-  - The chart no longer creates a default `Role`/`RoleBinding` granting `serviceaccounts/token: create` to the controller ServiceAccount.
-  - `prometheus.servicemonitor.targetPort`, `prometheus.servicemonitor.path`, and `prometheus.podmonitor.path` Helm values were **removed** (schema uses `additionalProperties: false` — leftover values will fail validation). The metrics Service port was renamed from `tcp-prometheus-servicemonitor` to `http-metrics`.
-  - `cert-manager-edit` ClusterRole no longer grants `create`/`patch`/`update` on ACME `Challenge`/`Order` (this is the security fix above).
-- **Action**: Update `CertManager/` example ClusterIssuers/Issuers are unaffected (no API version change — `cert-manager.io/v1` is unchanged), but review your Helm values before upgrading the chart.
+## Kubernetes and Istio support windows
 
-## 🟡 Gateway API v1.2.1 → v1.6.1
+Upstream Kubernetes currently maintains **1.35, 1.36, and 1.37**. The study prerequisites now use 1.35/1.36 and recommend matching kubectl's minor version to the cluster. [Kubernetes releases](https://kubernetes.io/releases/).
 
-- **API graduations** (relevant to `examples/GatewayAPI/`):
-  - `TCPRoute` and `UDPRoute` graduated to **GA (`v1`)** in v1.6.0. The `v1alpha2` versions are now deprecated and will be removed in a future release — update any custom manifests using `gateway.networking.k8s.io/v1alpha2` for these kinds.
-  - `TLSRoute`, `ListenerSet` (`XListenerSet`), and the HTTPRoute `CORS` filter graduated to the **Standard** channel in v1.5.0.
-  - `ReferenceGrant` is moving toward `v1` (currently still `v1beta1` in this repo's [`examples/GatewayAPI/09-referencegrant.yaml`](examples/GatewayAPI/09-referencegrant.yaml) — that alias remains valid, but watch for the `v1` promotion in upcoming releases).
-  - A new `safe-upgrades.gateway.networking.k8s.io` ValidatingAdmissionPolicy (introduced in v1.5) blocks installing Experimental CRDs on top of Standard CRDs and blocks downgrading below v1.5 once installed — be aware of this when scripting CRD installs/upgrades.
-- **Action**: Bump install manifests to `v1.6.1` (already done in [gateway-api-setup.md](gateway-api-setup.md)); prefer `v1` over `v1alpha2` for TCPRoute/UDPRoute in any new manifests.
+Istio supports **1.29, 1.30, and 1.31**; 1.28 is out of support. Istio 1.29's expected end of support is **October 12, 2026**. Istio 1.31 lists Kubernetes **1.32–1.36** as supported, so the latest Kubernetes release is not automatically supported by the whole stack. [Istio support matrix](https://istio.io/latest/docs/releases/supported-releases/).
 
-### Fixed in this repo (2026 update)
+Ecosystem news: Istio 1.31 adds weighted ambient waypoint canaries and enables stricter separation of cross-namespace Istio Gateways from managed Gateway API proxies by default. Review custom gateway sharing before upgrading. [1.31 change notes](https://istio.io/latest/news/releases/1.31.x/announcing-1.31/change-notes/).
 
-- **[`examples/GatewayAPI/10-backendtlspolicy.yaml`](examples/GatewayAPI/10-backendtlspolicy.yaml)** used `apiVersion: gateway.networking.k8s.io/v1alpha3` for `BackendTLSPolicy`. As of the v1.6.1 CRDs, **`v1alpha3` is deprecated and no longer served** (`served: false` in the CRD) — applying that manifest against a current cluster would fail. Updated to `gateway.networking.k8s.io/v1`.
-- **[`examples/GatewayAPI/01-gatewayclass.yaml`](examples/GatewayAPI/01-gatewayclass.yaml)** and **[`02-gateway-basic.yaml`](examples/GatewayAPI/02-gateway-basic.yaml)** referenced `controllerName: k8s.io/ingress-nginx` — ingress-nginx never implemented the Gateway API and the project is now retired anyway. Updated the examples to use Cilium's Gateway API controller (`io.cilium/gateway-controller`), which is already documented elsewhere in this repo and is actively maintained.
-- **[`examples/Cilium/03-hubble-observability.yaml`](examples/Cilium/03-hubble-observability.yaml)** exposed Hubble UI through an `ingressClassName: nginx` Ingress with `nginx.ingress.kubernetes.io/*` annotations. Added a note recommending Gateway API + a maintained implementation instead of standing up a new ingress-nginx deployment.
+## Networking and monitoring updates
 
-## 🟡 KEDA v2.15 → v2.20 (breaking RBAC change + removed deprecated fields)
+- **Cilium 1.20 is stable**, replacing July's release-candidate notice. Patch 1.20.2 includes ENI/IPAM, network-policy, and Gateway API fixes. Follow the project's minor upgrade documentation before changing the CNI. [Release notes](https://github.com/cilium/cilium/releases/tag/v1.20.2).
+- **Gateway API 1.6.2** clarifies that redirect codes 303, 307, and 308 require Extended conformance. Check the implementation's supported features. Standard and Experimental are alternative CRD channels; the setup guide no longer describes already-standard features as requiring Experimental. [Release notes](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2).
+- **Calico 3.32.2** is a patch update; no example API rewrites were made in this refresh. [Release](https://github.com/projectcalico/calico/releases/tag/v3.32.2).
+- **kube-prometheus-stack 91.8.2** replaces chart 87.21.0. Major chart changes require reading the intervening upgrade sections and CRD handling instructions; a larger chart version is not evidence of a harmless upgrade. [Chart documentation](https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.8.2/charts/kube-prometheus-stack/README.md).
 
-- **Breaking**: starting in v2.20.0, KEDA records Kubernetes events via the `events.k8s.io` API group instead of the legacy core `events` resource (tracks the Kubernetes 0.35 client-go dependency bump). If you deploy KEDA with **custom/restricted RBAC** (not the bundled manifests or Helm chart), you must grant `create`/`patch` on `events.k8s.io/events` before upgrading, or event recording will silently fail.
-- **Removed in v2.20** (deprecated since v2.18): GCP Pub/Sub Scaler's `subscriptionSize` setting (use `mode`/`value` instead); Huawei Cloudeye Scaler's `minMetricValue` (use `activationTargetMetricValue`).
-- **Removed in v2.18**: NATS Streaming ("Stan") scaler; CPU/Memory scaler's legacy `type` setting (use `metricType`); IBM MQ scaler's `tls` setting (use `unsafeSsl`).
-- **Action**: none of this repo's `examples/KEDA/` manifests use the removed fields, so they remain valid — but if you deploy KEDA with hand-written RBAC, update it for the `events.k8s.io` change.
+## ingress-nginx remains retired
 
-## 🟢 Calico v3.32.1
+The repository was archived on **March 24, 2026**. Keep [nginx-ingress-setup.md](nginx-ingress-setup.md) and its manifests for historical study; use a maintained [Gateway API implementation](https://gateway-api.sigs.k8s.io/implementations/) for new work. [Archive status](https://github.com/kubernetes/ingress-nginx).
 
-- No breaking changes identified against the manifests in `examples/Calico/`. `AdminNetworkPolicy` (`policy.networking.k8s.io/v1alpha1`) is still alpha upstream in Kubernetes (network-policy-api project) — it has not yet graduated to beta/GA, so the existing example remains accurate. Re-check `policy.networking.k8s.io` graduation status periodically.
+The Gateway API guide previously listed ingress-nginx as a Gateway controller. It now distinguishes **NGINX Gateway Fabric**, a separate implementation. Existing GatewayClass examples use Cilium's `io.cilium/gateway-controller`, and BackendTLSPolicy examples use `gateway.networking.k8s.io/v1`.
 
-## 🟢 kube-prometheus-stack Helm chart 79.9.0 → 87.21.0
+## Rechecking this snapshot
 
-- Large chart version jump is normal for this fast-moving chart (it bundles Prometheus Operator, Prometheus, Alertmanager, Grafana, and node-exporter versions together — the jump reflects many small releases, not one breaking change).
-- The standalone `prometheus-operator/kube-prometheus` (jsonnet) project separately moved from v0.14 (referenced implicitly via older examples) to **v0.18.0**, which migrated service discovery to `EndpointSlices` and dropped the deprecated `apiserver_storage_objects` metric (replaced by `apiserver_resource_objects` since Kubernetes 1.34).
-- **Action**: `examples/Prometheus/` manifests (`ServiceMonitor`, `PrometheusRule`, `PodMonitor` on `monitoring.coreos.com/v1`) are unaffected — that CRD API has been stable for years.
-
----
-
-## How this list was produced
-
-Versions were checked directly against the official GitHub Releases page for each project (argoproj/argo-cd, projectcalico/calico, cert-manager/cert-manager, cilium/cilium, kubernetes-sigs/gateway-api, istio/istio, kedacore/keda, kubernetes/ingress-nginx, prometheus-community/helm-charts, prometheus-operator/kube-prometheus) on **2026-07-29**. When re-running this check in the future, prefer each project's `/releases/latest` endpoint and cross-reference [endoflife.date](https://endoflife.date/) for support windows.
+Check each project's release and upgrade documentation again before deployment. For repositories containing multiple Helm charts, use the component-specific release tag rather than assuming `/releases/latest` identifies the desired chart. Review security advisories, Kubernetes support windows, and controller conformance separately from release numbers.

@@ -1,18 +1,18 @@
 # Kubernetes Examples Directory
 
-This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides. Updated for **K8s 1.34/1.35 (mid-2026)**. See [../DEPRECATIONS.md](../DEPRECATIONS.md) for version history and retired components.
+This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides. Updated for **K8s 1.35/1.36 study baseline (October 2026)**. See [../DEPRECATIONS.md](../DEPRECATIONS.md) for version history and retired components.
 
 ## Directory Structure
 
 ```
 examples/
-├── ArgoCD/          # GitOps - ArgoCD v3.4+
+├── ArgoCD/          # GitOps - ArgoCD v3.5+
 ├── Calico/          # Network policies (+ AdminNetworkPolicy)
 ├── CertManager/     # TLS certificates - cert-manager v1.21+
 ├── Cilium/          # eBPF-based CNI (most popular CNI)
 ├── GatewayAPI/      # Gateway API v1.6+
 ├── Istio/           # Service mesh - Istio 1.30+ (v1 APIs)
-├── KEDA/            # Event-driven autoscaling - KEDA v2.20+
+├── KEDA/            # Event-driven autoscaling - KEDA v2.21+
 ├── NginxIngress/    # Traditional Ingress Controller ⚠️ retired project, see DEPRECATIONS.md
 ├── Prometheus/      # Monitoring - kube-prometheus-stack
 └── README.md
@@ -33,7 +33,7 @@ Where:
 ## Technology Folders
 
 ### ArgoCD/
-GitOps continuous deployment examples (ArgoCD v3.4+)
+GitOps continuous deployment examples (ArgoCD v3.5+)
 - `01-basic-app.yaml` - Basic application from Git repository
 - `02-helm-app.yaml` - Application with Helm chart
 - `03-kustomize-app.yaml` - Application with Kustomize
@@ -119,7 +119,7 @@ kubectl apply -f Istio/01-virtualservice-basic.yaml
 ```
 
 ### KEDA/
-Event-driven autoscaling (KEDA v2.20+ / K8s 1.34 compatible)
+Event-driven autoscaling (KEDA v2.21+; review token-audience migration before upgrading)
 - `01-scaledobject-cpu.yaml` - CPU-based scaling (updated with modern fields)
 - `02-scaledobject-memory.yaml` - Memory-based scaling (updated)
 - `03-scaledobject-prometheus.yaml` - Prometheus metrics scaling (updated)
@@ -285,7 +285,7 @@ For each technology, refer to the corresponding setup guide:
 - Prometheus → `../prometheus-grafana-setup.md`
 
 ---
-**Last Updated**: February 22, 2026 — Compatible with K8s 1.34/1.35
+**Last Updated**: October 1, 2026 — Compatible with K8s 1.35/1.36 study baseline
 
 ## Troubleshooting
 

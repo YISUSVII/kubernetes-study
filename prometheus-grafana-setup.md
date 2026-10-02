@@ -11,17 +11,16 @@ helm repo update
 
 ## Installation Command
 ```bash
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 87.21.0
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 91.8.2
 ```
 
-## Installation Details
-- **Chart Version**: 87.21.0 (current stable, mid-2026; was 79.9.0)
+## Example Installation Details
+- **Chart Version**: 91.8.2 (stable snapshot checked October 1, 2026)
 - **Release Name**: prometheus
 - **Namespace**: monitoring
-- **Status**: deployed
-- **Deployment Date**: Sun Nov 30 16:03:00 2025
+- **Status**: verify in your cluster using the commands below
 
-> **2026 update**: the standalone `prometheus-operator/kube-prometheus` jsonnet project is now at v0.18.0. See [DEPRECATIONS.md](DEPRECATIONS.md).
+> **October 2026 update**: [chart 91.8.2](https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2) replaces the July 87.21.0 pin. Review the [chart upgrade notes](https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.8.2/charts/kube-prometheus-stack/README.md) before upgrading across major chart versions.
 
 ## Post-Installation Commands
 

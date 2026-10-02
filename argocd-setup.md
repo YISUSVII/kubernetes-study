@@ -1,6 +1,6 @@
 # ArgoCD Setup Notes
 
-> **2026 update**: current stable is **ArgoCD v3.4.5** (v3.5 in release candidate). ArgoCD v3 is a major version with breaking changes vs. the v2.x line referenced in older guides (Helm 3→Helm 4 migration for Helm-type Applications, RBAC changes). See [DEPRECATIONS.md](DEPRECATIONS.md) before upgrading a v2.x installation.
+> **October 2026 update**: stable is [ArgoCD v3.5.3](https://github.com/argoproj/argo-cd/releases/tag/v3.5.3). Review the [3.4 → 3.5 upgrade guide](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/) for Helm 4, OCI registry settings, and Source Integrity migration before upgrading. See [DEPRECATIONS.md](DEPRECATIONS.md).
 
 ## Prerequisites
 ```bash
@@ -20,12 +20,15 @@ kubectl create namespace argocd
 
 ### 2. Install ArgoCD using kubectl (recommended for simplicity)
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.5/manifests/install.yaml
+kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml
 ```
 
 ### Alternative: Install using Helm
 ```bash
-helm install argocd argo/argo-cd --namespace argocd --version 8.x
+# Select a chart version whose appVersion matches v3.5.3 (chart and app versions differ).
+helm search repo argo/argo-cd --versions
+helm show chart argo/argo-cd --version <CHART_VERSION>
+helm install argocd argo/argo-cd --namespace argocd --version <CHART_VERSION>
 ```
 
 ## Verify Installation
