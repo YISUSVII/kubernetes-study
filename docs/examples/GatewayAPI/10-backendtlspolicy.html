@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>10-backendtlspolicy.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>10-backendtlspolicy.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>10-backendtlspolicy.yaml</h1><p><a href="index.html">← GatewayAPI examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="10-backendtlspolicy.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Gateway API BackendTLSPolicy - GA (v1) since Gateway API v1.6
+# Configures TLS from the Gateway proxy to backend Services (east-west TLS)
+# This is DIFFERENT from Gateway TLS (which is north-south / client-facing)
+# BackendTLSPolicy was promoted to Standard channel in Gateway API v1.3 (2025);
+# the API version itself graduated from v1alpha3 to v1 in v1.6 (mid-2026).
+# NOTE: v1alpha3 is now deprecated and no longer served by the CRD - use v1.
+#
+# Use case: Ensure traffic between the Gateway and your backend pods is encrypted
+# even inside the cluster (zero-trust networking)
+---
+# Example 1: Basic BackendTLSPolicy using a cluster CA
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: myapp-backend-tls
+  namespace: default
+spec:
+  # Target the Service that the Gateway routes traffic to
+  targetRefs:
+  - group: &quot;&quot;
+    kind: Service
+    name: myapp-service
+    sectionName: https   # optional: only apply to this port name
+  validation:
+    # Use a CA from a ConfigMap to verify the backend&#x27;s certificate
+    caCertificateRefs:
+    - kind: ConfigMap
+      group: &quot;&quot;
+      name: backend-ca-cert
+    # The hostname the backend certificate must match
+    hostname: myapp-backend.default.svc.cluster.local
+    # wellKnownCACertificates can be used for public CAs
+    # wellKnownCACertificates: System
+
+---
+# Example 2: BackendTLSPolicy for a gRPC service using cert-manager issued cert
+# Pair this with a cert-manager Certificate on the backend pod
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: grpc-backend-tls
+  namespace: default
+spec:
+  targetRefs:
+  - group: &quot;&quot;
+    kind: Service
+    name: grpc-backend
+  validation:
+    caCertificateRefs:
+    - kind: ConfigMap
+      group: &quot;&quot;
+      name: cluster-ca-bundle    # ConfigMap populated by cert-manager trust-manager
+    hostname: grpc-backend.default.svc.cluster.local
+
+---
+# Supporting ConfigMap: CA certificate bundle
+# In production, use cert-manager trust-manager to auto-populate this
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-ca-cert
+  namespace: default
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    # Your CA certificate goes here
+    # Generate with: kubectl get secret &lt;tls-secret&gt; -o jsonpath=&#x27;{.data.ca\.crt}&#x27; | base64 -d
+    -----END CERTIFICATE-----
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

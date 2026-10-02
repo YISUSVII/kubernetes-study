@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crossplane Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Crossplane Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="crossplane-setup-notes">Crossplane Setup Notes</h1>
+<p>Crossplane adds a declarative platform API to Kubernetes. This lab creates an <code>AppConfig</code> API that reconciles a ConfigMap, without provisioning cloud infrastructure. It complements ArgoCD: GitOps can deliver the API definitions and requests, while Crossplane reconciles their composed resources.</p>
+<p><a href="https://www.cncf.io/projects/crossplane/">CNCF graduated status</a> and <a href="https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration">Scheduling &amp; Orchestration category</a> checked October 1, 2026. Release pin: <a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.2">v2.4.2</a>.</p>
+<h2 id="install">Install</h2>
+<p>Use a disposable Kubernetes cluster, Helm, and permission to install CRDs/RBAC. These instructions assume the chart's default ServiceAccount name <code>crossplane</code>.</p>
+<pre><code class="language-bash">helm repo add crossplane-stable https://charts.crossplane.io/stable
+helm repo update
+helm install crossplane crossplane-stable/crossplane \
+  --namespace crossplane-system --create-namespace --version 2.4.2 --wait
+kubectl get pods -n crossplane-system
+</code></pre>
+<p>Source: <a href="https://docs.crossplane.io/latest/get-started/install/">official installation guide</a>.</p>
+<h2 id="run-the-composition-lab">Run the composition lab</h2>
+<p>Run commands from the repository root. Apply dependencies separately so the generated API exists before creating its first resource.</p>
+<pre><code class="language-bash">kubectl apply -f examples/Crossplane/01-lab-rbac.yaml
+kubectl apply -f examples/Crossplane/02-function-and-xrd.yaml
+kubectl wait --for=condition=Healthy function/function-patch-and-transform --timeout=180s
+kubectl wait --for=condition=Established crd/appconfigs.study.example.org --timeout=120s
+kubectl apply -f examples/Crossplane/03-composition.yaml
+kubectl apply -f examples/Crossplane/04-appconfig.yaml
+kubectl wait --for=condition=Ready appconfig/hello-platform -n crossplane-study --timeout=180s
+kubectl get configmaps -n crossplane-study -l study.example.org/lab=crossplane -o yaml
+</code></pre>
+<p>Change <code>spec.message</code> in <a href="../examples/Crossplane/04-appconfig.html"><code>04-appconfig.yaml</code></a>, apply it again, and observe the ConfigMap's data change. The composed ConfigMap gets a generated name and remains in the composite resource's namespace.</p>
+<p>The lab uses a <a href="https://docs.crossplane.io/latest/whats-new/">namespaced v2 XRD</a> and a <a href="https://docs.crossplane.io/latest/composition/compositions/">pipeline Composition</a>. Its <a href="https://docs.crossplane.io/latest/guides/function-patch-and-transform/">Patch and Transform function</a> copies the requested message into ConfigMap data. <code>readinessChecks: None</code> suits ConfigMaps, which have no Ready condition; it would not establish application health for a Deployment. Function pin: <a href="https://github.com/crossplane-contrib/function-patch-and-transform/releases/tag/v0.10.8">v0.10.8</a>.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>If reconciliation fails, describe the AppConfig and Function, then inspect <code>kubectl logs -n crossplane-system deployment/crossplane</code>. For Forbidden errors, verify the chart ServiceAccount and the lab RoleBinding. Function download failures usually require checking registry access.</p>
+<pre><code class="language-bash">kubectl delete -f examples/Crossplane/04-appconfig.yaml --wait=true
+kubectl delete -f examples/Crossplane/03-composition.yaml
+kubectl delete -f examples/Crossplane/02-function-and-xrd.yaml
+kubectl delete -f examples/Crossplane/01-lab-rbac.yaml
+</code></pre>
+<p>Delete the request first so Crossplane can clean up composed resources while it still has permissions. Leave the controller installed if other compositions use it. For further exercises, extend the schema and composition to add another ConfigMap key, then explore <a href="https://docs.crossplane.io/latest/get-started/get-started-with-composition/">application composition</a>.</p></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#install">Install</a></li>
+<li><a href="#run-the-composition-lab">Run the composition lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

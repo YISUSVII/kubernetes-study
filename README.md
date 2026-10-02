@@ -125,3 +125,17 @@ See [DEPRECATIONS.md](DEPRECATIONS.md) for the October security, deprecation, an
 ---
 
 **Last Updated**: October 1, 2026
+
+## Website content
+
+The website keeps setup guides, learning paths, admin references, and YAML examples on the site as styled HTML pages. Each learning path opens its section of the complete study guide. Manifest pages include copy and download controls.
+
+Markdown files and `examples/` remain the source of truth. After changing them, regenerate the website and commit the generated files in `docs/`:
+
+```bash
+python3 -m pip install -r scripts/requirements.txt
+python3 scripts/build_site.py
+python3 scripts/check_site.py
+```
+
+Preview locally with `python3 -m http.server 8765 --directory docs`, then open `http://localhost:8765/`. GitHub Pages continues to serve `main` → `/docs`; no server or runtime Markdown dependency is needed.

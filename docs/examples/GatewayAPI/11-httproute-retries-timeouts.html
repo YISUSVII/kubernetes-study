@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>11-httproute-retries-timeouts.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>11-httproute-retries-timeouts.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>11-httproute-retries-timeouts.yaml</h1><p><a href="index.html">← GatewayAPI examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="11-httproute-retries-timeouts.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Gateway API HTTPRoute with Retries and Timeouts
+# Retry support was promoted to Standard channel in Gateway API v1.1
+# This is a common pattern for resilient services in 2025/2026
+---
+# HTTPRoute with retry policy and fine-grained timeouts
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: resilient-api-route
+  namespace: default
+spec:
+  parentRefs:
+  - name: mygateway
+    namespace: default
+  hostnames:
+  - api.example.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/v1
+    backendRefs:
+    - name: api-service
+      port: 8080
+    # Timeout configuration (GA in Gateway API v1.1)
+    timeouts:
+      request: 30s           # total request timeout (client to response)
+      backendRequest: 25s    # timeout for backend response (must be &lt; request)
+    # Retry policies (GA in Gateway API v1.1+, Envoy Gateway / Istio needed)
+    filters:
+    - type: ExtensionRef
+      extensionRef:
+        group: gateway.envoyproxy.io   # Envoy Gateway extension
+        kind: HTTPRouteFilter
+        name: retry-filter
+  # Second rule: no retries for mutation paths (POST/PUT/DELETE)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/v1/write
+      method: POST
+    - path:
+        type: PathPrefix
+        value: /api/v1/write
+      method: DELETE
+    backendRefs:
+    - name: api-service
+      port: 8080
+    timeouts:
+      request: 60s
+      backendRequest: 55s
+
+---
+# Envoy Gateway: HTTPRouteFilter for retry policy
+# Install Envoy Gateway: helm install eg oci://docker.io/envoyproxy/gateway-helm -n envoy-gateway-system
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: api-retry-policy
+  namespace: default
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: resilient-api-route
+  retry:
+    retryOn:
+    - 503
+    - 429
+    - connect-failure
+    numRetries: 3
+    perRetryPolicy:
+      timeout: 5s
+      backOff:
+        baseInterval: 100ms
+        maxInterval: 10s
+  # Circuit breaker
+  circuitBreaker:
+    maxConnections: 1024
+    maxPendingRequests: 1024
+    maxParallelRequests: 1024
+    maxParallelRetries: 3
+  # Rate limiting header-based
+  rateLimit:
+    type: Local
+    local:
+      rules:
+      - clientSelectors:
+        - headers:
+          - name: x-api-key
+            type: Distinct
+        limit:
+          requests: 1000
+          unit: Hour
+
+---
+# Istio alternative: VirtualService with retry policy (networking.istio.io/v1)
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: resilient-api-vs
+  namespace: default
+spec:
+  hosts:
+  - api-service
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1
+    route:
+    - destination:
+        host: api-service
+        port:
+          number: 8080
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: &quot;5xx,connect-failure,retriable-4xx&quot;
+      retryRemoteLocalities: true   # retry on different availability zone
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

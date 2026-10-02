@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes Examples Directory · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../guides/study-guide.html">Study guide</a><a href="index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kubernetes Examples Directory</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><nav aria-label="Example collections"><h2>Example collections</h2><ul class="manifest-list"><li><a href="ArgoCD/index.html">ArgoCD</a></li><li><a href="Calico/index.html">Calico</a></li><li><a href="CertManager/index.html">CertManager</a></li><li><a href="Cilium/index.html">Cilium</a></li><li><a href="Crossplane/index.html">Crossplane</a></li><li><a href="GatewayAPI/index.html">GatewayAPI</a></li><li><a href="Istio/index.html">Istio</a></li><li><a href="KEDA/index.html">KEDA</a></li><li><a href="Karmada/index.html">Karmada</a></li><li><a href="NginxIngress/index.html">NginxIngress</a></li><li><a href="Prometheus/index.html">Prometheus</a></li></ul></nav><h1 id="kubernetes-examples-directory">Kubernetes Examples Directory</h1>
+<p>This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides. Updated for <strong>K8s 1.35/1.36 study baseline (October 2026)</strong>. See <a href="../guides/deprecations.html">../DEPRECATIONS.md</a> for version history and retired components.</p>
+<h2 id="directory-structure">Directory Structure</h2>
+<pre><code>examples/
+├── ArgoCD/          # GitOps - ArgoCD v3.5+
+├── Calico/          # Network policies (+ AdminNetworkPolicy)
+├── CertManager/     # TLS certificates - cert-manager v1.21+
+├── Cilium/          # eBPF-based CNI (most popular CNI)
+├── Crossplane/      # Namespaced platform API and ConfigMap composition
+├── Karmada/         # Multi-cluster placement and replica scheduling
+├── GatewayAPI/      # Gateway API v1.6+
+├── Istio/           # Service mesh - Istio 1.30+ (v1 APIs)
+├── KEDA/            # Event-driven autoscaling - KEDA v2.21+
+├── NginxIngress/    # Traditional Ingress Controller ⚠️ retired project, see DEPRECATIONS.md
+├── Prometheus/      # Monitoring - kube-prometheus-stack
+└── README.md
+</code></pre>
+<h2 id="file-naming-convention">File Naming Convention</h2>
+<p>All example files use the following naming convention:</p>
+<pre><code>NN-description.yaml
+</code></pre>
+<p>Where:
+- <code>NN</code> = Sequential number (01, 02, 03, etc.)
+- <code>description</code> = Short description of what the file contains
+- <code>.yaml</code> = YAML extension (standard for Kubernetes)</p>
+<h2 id="new-graduated-orchestration-labs">New graduated orchestration labs</h2>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>Files</th>
+<th>Apply order</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="Crossplane/index.html">Crossplane/</a></td>
+<td>RBAC, Function/XRD, Composition, AppConfig</td>
+<td>Follow <a href="../guides/crossplane-setup.html">setup</a>; wait for Function and generated CRD before applying the request</td>
+</tr>
+<tr>
+<td><a href="Karmada/index.html">Karmada/</a></td>
+<td>Workload, duplicated placement, divided placement</td>
+<td>Follow <a href="../guides/karmada-setup.html">setup</a>; file 03 replaces file 02 as a second exercise</td>
+</tr>
+</tbody>
+</table>
+<p>These labs require their controllers. Karmada resources target the Karmada API, while Crossplane resources target the cluster hosting Crossplane. Do not apply either whole directory before completing the setup steps.</p>
+<h2 id="technology-folders">Technology Folders</h2>
+<h3 id="argocd">ArgoCD/</h3>
+<p>GitOps continuous deployment examples (ArgoCD v3.5+)
+- <a href="ArgoCD/01-basic-app.html"><code>01-basic-app.yaml</code></a> - Basic application from Git repository
+- <a href="ArgoCD/02-helm-app.html"><code>02-helm-app.yaml</code></a> - Application with Helm chart
+- <a href="ArgoCD/03-kustomize-app.html"><code>03-kustomize-app.yaml</code></a> - Application with Kustomize
+- <a href="ArgoCD/04-appproject-team-a.html"><code>04-appproject-team-a.yaml</code></a> - Multi-tenancy AppProject
+- <a href="ArgoCD/05-notifications-cm.html"><code>05-notifications-cm.yaml</code></a> - Notifications configuration
+- <a href="ArgoCD/06-servicemonitor-metrics.html"><code>06-servicemonitor-metrics.yaml</code></a> - Prometheus metrics integration
+- <a href="ArgoCD/07-applicationset.html"><code>07-applicationset.yaml</code></a> - <strong>NEW</strong> ApplicationSet (multi-app/multi-cluster, 2025)
+- <a href="ArgoCD/08-image-updater.html"><code>08-image-updater.yaml</code></a> - <strong>NEW</strong> ArgoCD Image Updater (GitOps image promotion)</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f ArgoCD/01-basic-app.yaml
+</code></pre>
+<h3 id="certmanager">CertManager/</h3>
+<p>TLS certificate management examples
+- <a href="CertManager/01-issuer-selfsigned.html"><code>01-issuer-selfsigned.yaml</code></a> - Self-signed issuer (testing)
+- <a href="CertManager/02-issuer-letsencrypt-staging.html"><code>02-issuer-letsencrypt-staging.yaml</code></a> - Let's Encrypt staging
+- <a href="CertManager/03-clusterissuer-letsencrypt-prod.html"><code>03-clusterissuer-letsencrypt-prod.yaml</code></a> - Let's Encrypt production
+- <a href="CertManager/04-certificate.html"><code>04-certificate.yaml</code></a> - Manual certificate definition</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f CertManager/03-clusterissuer-letsencrypt-prod.yaml
+</code></pre>
+<h3 id="calico">Calico/</h3>
+<p>Network security policies (+ K8s native AdminNetworkPolicy)
+- <a href="Calico/01-networkpolicy-deny-all.html"><code>01-networkpolicy-deny-all.yaml</code></a> - Deny all ingress by default
+- <a href="Calico/02-networkpolicy-allow-namespace.html"><code>02-networkpolicy-allow-namespace.yaml</code></a> - Allow from specific namespace
+- <a href="Calico/03-networkpolicy-pod-to-pod.html"><code>03-networkpolicy-pod-to-pod.yaml</code></a> - Pod-to-pod communication
+- <a href="Calico/04-networkpolicy-egress-dns.html"><code>04-networkpolicy-egress-dns.yaml</code></a> - Egress DNS access
+- <a href="Calico/05-globalnetworkpolicy.html"><code>05-globalnetworkpolicy.yaml</code></a> - Calico cluster-wide policies
+- <a href="Calico/06-adminnetworkpolicy.html"><code>06-adminnetworkpolicy.yaml</code></a> - <strong>NEW</strong> K8s AdminNetworkPolicy (1.31+ beta)
+- <a href="Calico/07-networkpolicy-port-range.html"><code>07-networkpolicy-port-range.yaml</code></a> - <strong>NEW</strong> Port ranges with <code>endPort</code> (K8s 1.25+)</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f Calico/01-networkpolicy-deny-all.yaml
+</code></pre>
+<h3 id="cilium">Cilium/</h3>
+<p><strong>NEW</strong> eBPF-based CNI - most popular CNI in 2025/2026 (CNCF Graduated)
+- <a href="index.html"><code>README.md</code></a> - Cilium overview and setup commands
+- <a href="Cilium/01-ciliumnetworkpolicy-basic.html"><code>01-ciliumnetworkpolicy-basic.yaml</code></a> - L4/L7 network policies with FQDN support
+- <a href="Cilium/02-ciliumclusterwidenetworkpolicy.html"><code>02-ciliumclusterwidenetworkpolicy.yaml</code></a> - Cluster-wide eBPF policies
+- <a href="Cilium/03-hubble-observability.html"><code>03-hubble-observability.yaml</code></a> - Real-time network observability</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f Cilium/01-ciliumnetworkpolicy-basic.yaml
+</code></pre>
+<p>Next-generation Kubernetes ingress (Gateway API v1.6+)
+- <a href="GatewayAPI/01-gatewayclass.html"><code>01-gatewayclass.yaml</code></a> - Gateway controller definition
+- <code>02-gateway-basic.yaml</code> - Basic gateway with HTTP/HTTPS
+- <a href="GatewayAPI/03-httproute-basic.html"><code>03-httproute-basic.yaml</code></a> - Simple HTTP routing
+- <a href="GatewayAPI/04-httproute-header-matching.html"><code>04-httproute-header-matching.yaml</code></a> - Header-based routing
+- <a href="GatewayAPI/05-httproute-traffic-splitting.html"><code>05-httproute-traffic-splitting.yaml</code></a> - Canary deployments
+- <a href="GatewayAPI/06-httproute-redirects.html"><code>06-httproute-redirects.yaml</code></a> - HTTP redirects
+- <a href="GatewayAPI/07-httproute-header-modifications.html"><code>07-httproute-header-modifications.yaml</code></a> - Request/response header modification
+- <a href="GatewayAPI/08-grpcroute.html"><code>08-grpcroute.yaml</code></a> - gRPC routing
+- <a href="GatewayAPI/09-referencegrant.html"><code>09-referencegrant.yaml</code></a> - Cross-namespace routing permissions
+- <a href="GatewayAPI/10-backendtlspolicy.html"><code>10-backendtlspolicy.yaml</code></a> - BackendTLSPolicy (backend TLS, standard since v1.3)
+- <a href="GatewayAPI/11-httproute-retries-timeouts.html"><code>11-httproute-retries-timeouts.yaml</code></a> - Retry policies and timeouts (v1.1+)</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f GatewayAPI/01-gatewayclass.yaml
+kubectl apply -f GatewayAPI/02-gateway-basic.yaml
+kubectl apply -f GatewayAPI/03-httproute-basic.yaml
+</code></pre>
+<h3 id="istio">Istio/</h3>
+<p>Service mesh examples (networking.istio.io/v1 - GA since Istio 1.22)
+- <a href="Istio/01-virtualservice-basic.html"><code>01-virtualservice-basic.yaml</code></a> - Traffic management (updated to v1 API)
+- <code>02-gateway-basic.yaml</code> - Istio gateway with TLS (updated to v1 API)
+- <a href="Istio/03-destinationrule.html"><code>03-destinationrule.yaml</code></a> - <strong>NEW</strong> Load balancing, circuit breaking, mTLS
+- <a href="Istio/04-peerauthentication.html"><code>04-peerauthentication.yaml</code></a> - <strong>NEW</strong> mTLS enforcement + AuthorizationPolicy</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f Istio/01-virtualservice-basic.yaml
+</code></pre>
+<h3 id="keda">KEDA/</h3>
+<p>Event-driven autoscaling (KEDA v2.21+; review token-audience migration before upgrading)
+- <a href="KEDA/01-scaledobject-cpu.html"><code>01-scaledobject-cpu.yaml</code></a> - CPU-based scaling (updated with modern fields)
+- <a href="KEDA/02-scaledobject-memory.html"><code>02-scaledobject-memory.yaml</code></a> - Memory-based scaling (updated)
+- <a href="KEDA/03-scaledobject-prometheus.html"><code>03-scaledobject-prometheus.yaml</code></a> - Prometheus metrics scaling (updated)
+- <a href="KEDA/04-scaledobject-kafka.html"><code>04-scaledobject-kafka.yaml</code></a> - Kafka topic lag scaling (updated with auth)
+- <a href="KEDA/05-scaledobject-http.html"><code>05-scaledobject-http.yaml</code></a> - <strong>NEW</strong> HTTP Add-on (scale to zero for HTTP)
+- <a href="KEDA/06-scaledjob.html"><code>06-scaledjob.yaml</code></a> - <strong>NEW</strong> ScaledJob for batch processing</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f KEDA/01-scaledobject-cpu.yaml
+</code></pre>
+<h3 id="nginxingress">NginxIngress/</h3>
+<p>⚠️ <strong>Retired project</strong> (archived March 24, 2026) — traditional Kubernetes Ingress Controller, kept for study/reference. Prefer Gateway API for new work.
+- <a href="NginxIngress/01-ingress-simple-http.html"><code>01-ingress-simple-http.yaml</code></a> - Basic HTTP ingress
+- <a href="NginxIngress/02-ingress-https.html"><code>02-ingress-https.yaml</code></a> - HTTPS with TLS
+- <a href="NginxIngress/03-ingress-multi-backend.html"><code>03-ingress-multi-backend.yaml</code></a> - Path-based routing
+- <a href="NginxIngress/04-ingress-multi-host.html"><code>04-ingress-multi-host.yaml</code></a> - Virtual hosting
+- <a href="NginxIngress/05-ingress-advanced.html"><code>05-ingress-advanced.yaml</code></a> - Advanced annotations</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f NginxIngress/01-ingress-simple-http.yaml
+</code></pre>
+<h3 id="prometheus">Prometheus/</h3>
+<p>Monitoring and alerting (kube-prometheus-stack chart v87+)
+- <a href="Prometheus/01-servicemonitor-basic.html"><code>01-servicemonitor-basic.yaml</code></a> - Basic service monitoring
+- <a href="Prometheus/02-prometheusrule-alerts.html"><code>02-prometheusrule-alerts.yaml</code></a> - Alert rules
+- <a href="Prometheus/03-podmonitor-recording-rules.html"><code>03-podmonitor-recording-rules.yaml</code></a> - <strong>NEW</strong> PodMonitor + recording rules (performance)</p>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash">kubectl apply -f Prometheus/01-servicemonitor-basic.yaml
+</code></pre>
+<h2 id="how-to-use">How to Use</h2>
+<h3 id="1-view-example-contents">1. View Example Contents</h3>
+<pre><code class="language-bash">cat ArgoCD/01-basic-app.yaml
+</code></pre>
+<h3 id="2-apply-example-to-cluster">2. Apply Example to Cluster</h3>
+<pre><code class="language-bash">kubectl apply -f ArgoCD/01-basic-app.yaml
+</code></pre>
+<h3 id="3-apply-multiple-examples">3. Apply Multiple Examples</h3>
+<pre><code class="language-bash">kubectl apply -f GatewayAPI/
+</code></pre>
+<h3 id="4-deploy-with-customization">4. Deploy with Customization</h3>
+<pre><code class="language-bash"># Download and customize
+curl -s https://path-to-repo/examples/ArgoCD/01-basic-app.yaml | \
+  sed 's/myapp/myapp-prod/g' | \
+  kubectl apply -f -
+</code></pre>
+<h2 id="file-modification-workflow">File Modification Workflow</h2>
+<p>When using these examples:</p>
+<ol>
+<li><strong>Copy the example</strong> to your working directory</li>
+<li><strong>Customize</strong> the values for your environment:
+   - Repository URLs
+   - Namespaces
+   - Domain names
+   - Service names
+   - Port numbers</li>
+<li><strong>Validate</strong> the YAML:
+   <code>bash
+   kubectl apply -f &lt;file&gt; --dry-run=client</code></li>
+<li><strong>Apply</strong> to your cluster:
+   <code>bash
+   kubectl apply -f &lt;file&gt;</code></li>
+</ol>
+<h2 id="quick-reference-by-use-case">Quick Reference by Use Case</h2>
+<h3 id="setting-up-ingress">Setting up Ingress</h3>
+<ul>
+<li>Traditional: Use <a href="NginxIngress/index.html"><code>NginxIngress/</code></a> examples</li>
+<li>Modern: Use <a href="GatewayAPI/index.html"><code>GatewayAPI/</code></a> examples (recommended)</li>
+<li>SSL/TLS: Apply <a href="CertManager/index.html"><code>CertManager/</code></a> examples first</li>
+</ul>
+<h3 id="setting-up-security">Setting up Security</h3>
+<ul>
+<li>Network policies: Use <a href="Calico/index.html"><code>Calico/</code></a> examples</li>
+<li>Start with <a href="Calico/01-networkpolicy-deny-all.html"><code>01-networkpolicy-deny-all.yaml</code></a></li>
+</ul>
+<h3 id="setting-up-autoscaling">Setting up Autoscaling</h3>
+<ul>
+<li>Event-driven: Use <a href="KEDA/index.html"><code>KEDA/</code></a> examples</li>
+<li>Start with <a href="KEDA/01-scaledobject-cpu.html"><code>01-scaledobject-cpu.yaml</code></a></li>
+</ul>
+<h3 id="setting-up-gitops">Setting up GitOps</h3>
+<ul>
+<li>Use <a href="ArgoCD/index.html"><code>ArgoCD/</code></a> examples</li>
+<li>Start with <a href="ArgoCD/01-basic-app.html"><code>01-basic-app.yaml</code></a></li>
+</ul>
+<h3 id="setting-up-monitoring">Setting up Monitoring</h3>
+<ul>
+<li>Use <a href="Prometheus/index.html"><code>Prometheus/</code></a> examples</li>
+<li>Use <a href="ArgoCD/06-servicemonitor-metrics.html"><code>ArgoCD/06-servicemonitor-metrics.yaml</code></a> for ArgoCD monitoring</li>
+</ul>
+<h2 id="yaml-best-practices">YAML Best Practices</h2>
+<h3 id="comments-in-files">Comments in Files</h3>
+<p>Each YAML file includes a comment header:</p>
+<pre><code class="language-yaml"># Technology Name - Brief Description
+apiVersion: ...
+</code></pre>
+<h3 id="common-fields-to-customize">Common Fields to Customize</h3>
+<p>When using examples, typically change:
+- <strong>metadata.name</strong> - Resource name
+- <strong>metadata.namespace</strong> - Kubernetes namespace
+- <strong>spec.host/spec.hosts</strong> - Domain names
+- <strong>spec.repoURL</strong> - Git repository URLs
+- <strong>spec.backendRefs[].name</strong> - Service names
+- <strong>spec.email</strong> - Email addresses (for cert-manager)
+- <strong>spec.image</strong> - Container images</p>
+<h2 id="validation">Validation</h2>
+<p>Before deploying, always validate YAML syntax:</p>
+<pre><code class="language-bash"># Syntax check
+kubectl apply -f &lt;file&gt; --dry-run=client -o yaml
+
+# Full validation with server-side rules
+kubectl apply -f &lt;file&gt; --dry-run=server
+
+# Kube-linter (additional checks)
+kube-linter lint &lt;file&gt;
+</code></pre>
+<h2 id="combining-examples">Combining Examples</h2>
+<p>You can create multi-resource files by combining YAML documents:</p>
+<pre><code class="language-bash">cat GatewayAPI/01-gatewayclass.yaml \
+    GatewayAPI/02-gateway-basic.yaml \
+    GatewayAPI/03-httproute-basic.yaml &gt; combined.yaml
+
+kubectl apply -f combined.yaml
+</code></pre>
+<h2 id="documentation-reference">Documentation Reference</h2>
+<p>For each technology, refer to the corresponding setup guide:
+- ArgoCD → <a href="../guides/argocd-setup.html"><code>../argocd-setup.md</code></a>
+- Cert-Manager → <a href="../guides/cert-manager-setup.html"><code>../cert-manager-setup.md</code></a>
+- Calico/NetworkPolicy → <a href="../guides/calico-setup.html"><code>../calico-setup.md</code></a>
+- <strong>Cilium (NEW)</strong> → <a href="../guides/cilium-setup.html"><code>../cilium-setup.md</code></a>
+- Gateway API → <a href="../guides/gateway-api-setup.html"><code>../gateway-api-setup.md</code></a>
+- Istio → <a href="../guides/istio-setup.html"><code>../istio-setup.md</code></a>
+- KEDA → <a href="../guides/keda-setup.html"><code>../keda-setup.md</code></a>
+- Nginx Ingress → <a href="../guides/nginx-ingress-setup.html"><code>../nginx-ingress-setup.md</code></a>
+- Prometheus → <a href="../guides/prometheus-grafana-setup.html"><code>../prometheus-grafana-setup.md</code></a></p>
+<hr />
+<p><strong>Last Updated</strong>: October 1, 2026 — Compatible with K8s 1.35/1.36 study baseline</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="example-doesnt-apply">Example doesn't apply?</h3>
+<ol>
+<li>Check namespace exists: <code>kubectl get namespace &lt;namespace&gt;</code></li>
+<li>Validate YAML: <code>kubectl apply -f &lt;file&gt; --dry-run=client</code></li>
+<li>Check permissions: <code>kubectl auth can-i create &lt;kind&gt;</code></li>
+</ol>
+<h3 id="resource-not-ready">Resource not ready?</h3>
+<pre><code class="language-bash"># Check status
+kubectl get &lt;kind&gt; &lt;name&gt;
+kubectl describe &lt;kind&gt; &lt;name&gt;
+kubectl logs -l app=&lt;label&gt;
+</code></pre>
+<h2 id="contributing">Contributing</h2>
+<p>When adding new examples:
+1. Follow the naming convention: <code>NN-description.yaml</code>
+2. Add a comment header with description
+3. Use meaningful, customizable values
+4. Test before committing
+5. Update this README</p>
+<h2 id="license">License</h2>
+<p>These examples are provided as-is for reference and educational purposes.</p></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#directory-structure">Directory Structure</a></li>
+<li><a href="#file-naming-convention">File Naming Convention</a></li>
+<li><a href="#new-graduated-orchestration-labs">New graduated orchestration labs</a></li>
+<li><a href="#technology-folders">Technology Folders</a><ul>
+<li><a href="#argocd">ArgoCD/</a></li>
+<li><a href="#certmanager">CertManager/</a></li>
+<li><a href="#calico">Calico/</a></li>
+<li><a href="#cilium">Cilium/</a></li>
+<li><a href="#istio">Istio/</a></li>
+<li><a href="#keda">KEDA/</a></li>
+<li><a href="#nginxingress">NginxIngress/</a></li>
+<li><a href="#prometheus">Prometheus/</a></li>
+</ul>
+</li>
+<li><a href="#how-to-use">How to Use</a><ul>
+<li><a href="#1-view-example-contents">1. View Example Contents</a></li>
+<li><a href="#2-apply-example-to-cluster">2. Apply Example to Cluster</a></li>
+<li><a href="#3-apply-multiple-examples">3. Apply Multiple Examples</a></li>
+<li><a href="#4-deploy-with-customization">4. Deploy with Customization</a></li>
+</ul>
+</li>
+<li><a href="#file-modification-workflow">File Modification Workflow</a></li>
+<li><a href="#quick-reference-by-use-case">Quick Reference by Use Case</a><ul>
+<li><a href="#setting-up-ingress">Setting up Ingress</a></li>
+<li><a href="#setting-up-security">Setting up Security</a></li>
+<li><a href="#setting-up-autoscaling">Setting up Autoscaling</a></li>
+<li><a href="#setting-up-gitops">Setting up GitOps</a></li>
+<li><a href="#setting-up-monitoring">Setting up Monitoring</a></li>
+</ul>
+</li>
+<li><a href="#yaml-best-practices">YAML Best Practices</a><ul>
+<li><a href="#comments-in-files">Comments in Files</a></li>
+<li><a href="#common-fields-to-customize">Common Fields to Customize</a></li>
+</ul>
+</li>
+<li><a href="#validation">Validation</a></li>
+<li><a href="#combining-examples">Combining Examples</a></li>
+<li><a href="#documentation-reference">Documentation Reference</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a><ul>
+<li><a href="#example-doesnt-apply">Example doesn't apply?</a></li>
+<li><a href="#resource-not-ready">Resource not ready?</a></li>
+</ul>
+</li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#license">License</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

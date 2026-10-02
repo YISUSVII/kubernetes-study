@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KEDA (Kubernetes Event-Driven Autoscaling) Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>KEDA (Kubernetes Event-Driven Autoscaling) Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="keda-kubernetes-event-driven-autoscaling-setup-notes">KEDA (Kubernetes Event-Driven Autoscaling) Setup Notes</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add KEDA Helm repository
+helm repo add kedacore https://kedacore.github.io/charts
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="create-keda-namespace">Create KEDA namespace</h3>
+<pre><code class="language-bash">kubectl create namespace keda
+</code></pre>
+<h3 id="install-keda-using-helm">Install KEDA using Helm</h3>
+<pre><code class="language-bash">helm install keda kedacore/keda --namespace keda --version 2.21.0
+</code></pre>
+<blockquote>
+<p><strong>October 2026 update</strong>: <a href="https://github.com/kedacore/keda/releases/tag/v2.21.0">KEDA v2.21.0</a> fixes critical CVE-2026-77524 and changes token-audience enforcement, Temporal scaler metadata, and Azure Pipelines queue counting. Review the <a href="https://keda.sh/docs/2.21/migration/">2.21 migration guide</a> before upgrading. KEDA v2.20 moved event recording to the <code>events.k8s.io</code> API group. If you use custom/restricted RBAC (not the bundled manifests/Helm chart), grant <code>create</code>/<code>patch</code> on <code>events.k8s.io/events</code> before upgrading. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+</blockquote>
+<h2 id="verify-installation">Verify Installation</h2>
+<pre><code class="language-bash"># Check KEDA pods
+kubectl get pods -n keda
+
+# Check KEDA CRDs
+kubectl get crds | grep keda
+</code></pre>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<h3 id="1-auto-scale-based-on-cpu">1. Auto-scale based on CPU</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: cpu-scaler
+spec:
+  scaleTargetRef:
+    name: myapp
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: cpu
+    metadata:
+      type: Utilization
+      value: &quot;60&quot;
+EOF
+</code></pre>
+<h3 id="2-auto-scale-based-on-memory">2. Auto-scale based on memory</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: memory-scaler
+spec:
+  scaleTargetRef:
+    name: myapp
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: memory
+    metadata:
+      type: Utilization
+      value: &quot;70&quot;
+EOF
+</code></pre>
+<h3 id="3-auto-scale-based-on-http-requests">3. Auto-scale based on HTTP requests</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: http-scaler
+spec:
+  scaleTargetRef:
+    name: myapp
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      query: rate(http_requests_total[1m])
+      threshold: &quot;100&quot;
+EOF
+</code></pre>
+<h3 id="4-auto-scale-based-on-kafka-messages">4. Auto-scale based on Kafka messages</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kafka-scaler
+spec:
+  scaleTargetRef:
+    name: kafka-consumer
+  minReplicaCount: 1
+  maxReplicaCount: 30
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: kafka-broker:9092
+      consumerGroup: mygroup
+      topic: mytopic
+      lagThreshold: &quot;10&quot;
+EOF
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># Check ScaledObjects
+kubectl get scaledobjects
+
+# Check ScaledObject details
+kubectl describe scaledobject &lt;name&gt;
+
+# Check HPA status (KEDA creates HPAs)
+kubectl get hpa
+
+# Check KEDA operator logs
+kubectl logs -n keda -l app=keda-operator -f
+
+# Uninstall KEDA
+helm uninstall keda -n keda
+</code></pre>
+<h2 id="supported-scalers">Supported Scalers</h2>
+<ul>
+<li>CPU &amp; Memory</li>
+<li>Prometheus</li>
+<li>Azure Queue, Azure Blob, Azure Event Hubs</li>
+<li>AWS SQS, Kinesis</li>
+<li>Google Cloud Pub/Sub</li>
+<li>Kafka</li>
+<li>RabbitMQ</li>
+<li>Redis</li>
+<li>PostgreSQL</li>
+<li>MySQL</li>
+<li>And many more...</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li>Set appropriate <code>minReplicaCount</code> to avoid cold starts</li>
+<li>Use <code>pollingInterval</code> to control how often KEDA checks metrics</li>
+<li>Combine multiple triggers for complex scaling logic</li>
+<li>Monitor KEDA performance with Prometheus metrics</li>
+<li>Test scaling behavior in non-production environments first</li>
+</ol>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://keda.sh/</li>
+<li><strong>Scalers List</strong>: https://keda.sh/docs/scalers/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/kedacore/keda</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>KEDA creates HorizontalPodAutoscalers (HPAs) internally</li>
+<li>Requires metrics-server for CPU/memory-based scaling</li>
+<li>Works well with Prometheus for custom metrics</li>
+<li>Supports event-driven and metric-driven scaling</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#create-keda-namespace">Create KEDA namespace</a></li>
+<li><a href="#install-keda-using-helm">Install KEDA using Helm</a></li>
+</ul>
+</li>
+<li><a href="#verify-installation">Verify Installation</a></li>
+<li><a href="#common-use-cases">Common Use Cases</a><ul>
+<li><a href="#1-auto-scale-based-on-cpu">1. Auto-scale based on CPU</a></li>
+<li><a href="#2-auto-scale-based-on-memory">2. Auto-scale based on memory</a></li>
+<li><a href="#3-auto-scale-based-on-http-requests">3. Auto-scale based on HTTP requests</a></li>
+<li><a href="#4-auto-scale-based-on-kafka-messages">4. Auto-scale based on Kafka messages</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#supported-scalers">Supported Scalers</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

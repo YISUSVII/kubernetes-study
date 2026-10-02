@@ -1,0 +1,10 @@
+apiVersion: study.example.org/v1alpha1
+kind: AppConfig
+metadata:
+  name: hello-platform
+  namespace: crossplane-study
+spec:
+  message: Hello from a Crossplane platform API
+  crossplane:
+    compositionRef:
+      name: appconfig-configmap

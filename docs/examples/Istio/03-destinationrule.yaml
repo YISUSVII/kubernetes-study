@@ -1,0 +1,71 @@
+# Istio DestinationRule - Load Balancing, Circuit Breaking & mTLS
+# networking.istio.io/v1 is GA since Istio 1.22 (v1beta1/v1alpha3 deprecated)
+---
+# Example 1: DestinationRule with circuit breaker and load balancing
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: myapp-destination
+  namespace: default
+spec:
+  host: myapp.default.svc.cluster.local
+  trafficPolicy:
+    # Load balancing algorithm
+    loadBalancer:
+      simple: LEAST_REQUEST   # ROUND_ROBIN | LEAST_REQUEST | RANDOM | PASSTHROUGH
+    # Connection pool limits
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30ms
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+        idleTimeout: 90s
+        h2UpgradePolicy: DEFAULT
+    # Circuit breaker (outlier detection)
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    # mTLS mode for this specific service
+    tls:
+      mode: ISTIO_MUTUAL   # DISABLE | SIMPLE | MUTUAL | ISTIO_MUTUAL
+  # Per-port policies
+  portLevelSettings:
+  - port:
+      number: 8080
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: x-user-id   # session affinity by header
+  # Subsets for canary deployments
+  subsets:
+  - name: stable
+    labels:
+      version: v1
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+  - name: canary
+    labels:
+      version: v2
+
+---
+# Example 2: DestinationRule enforcing strict mTLS for a namespace
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: default-mtls
+  namespace: default
+spec:
+  host: "*.default.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL

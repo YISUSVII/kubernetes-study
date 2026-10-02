@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calico Network Policy Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Calico Network Policy Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="calico-network-policy-setup-notes">Calico Network Policy Setup Notes</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add Calico Helm repository
+helm repo add projectcalico https://projectcalico.docs.tigera.io/charts
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="1-create-tigera-operator-namespace">1. Create tigera-operator namespace</h3>
+<pre><code class="language-bash">kubectl create namespace tigera-operator
+</code></pre>
+<h3 id="2-install-calico-using-helm">2. Install Calico using Helm</h3>
+<pre><code class="language-bash">helm install calico projectcalico/tigera-operator --namespace tigera-operator --version v3.32.2
+</code></pre>
+<blockquote>
+<p><strong>2026 update</strong>: stable as checked October 1, 2026 is <a href="https://github.com/projectcalico/calico/releases/tag/v3.32.2">Calico v3.32.2</a>. See <a href="deprecations.html">DEPRECATIONS.md</a> for version history notes.</p>
+</blockquote>
+<h3 id="3-verify-installation">3. Verify Installation</h3>
+<pre><code class="language-bash"># Check Calico pods
+kubectl get pods -n calico-system
+kubectl get pods -n tigera-operator
+
+# Check Calico CRDs
+kubectl get crds | grep calico
+
+# Verify network connectivity
+kubectl run -it --rm debug --image=busybox --restart=Never -- ping 8.8.8.8
+</code></pre>
+<h2 id="network-policy-examples">Network Policy Examples</h2>
+<h3 id="1-deny-all-ingress-traffic-by-default">1. Deny all ingress traffic by default</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+EOF
+</code></pre>
+<h3 id="2-allow-traffic-from-specific-namespace">2. Allow traffic from specific namespace</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: myapp
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: allowed-namespace
+    ports:
+    - protocol: TCP
+      port: 8080
+EOF
+</code></pre>
+<h3 id="3-allow-specific-pod-communication">3. Allow specific pod communication</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-specific-pods
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 5000
+EOF
+</code></pre>
+<h3 id="4-allow-egress-to-specific-service">4. Allow egress to specific service</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-dns
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+EOF
+</code></pre>
+<h3 id="5-calico-globalnetworkpolicy-cluster-wide">5. Calico GlobalNetworkPolicy (cluster-wide)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: deny-cross-namespace
+spec:
+  order: 1
+  selector: &quot;all()&quot;
+  namespaceSelector: &quot;&quot;
+  types:
+  - Ingress
+  ingress:
+  - action: Deny
+    source:
+      namespaceSelector: &quot;kubernetes.io/metadata.name != 'kube-system'&quot;
+    destination: {}
+EOF
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># View Calico nodes
+calicoctl get nodes
+
+# View Calico workloads (pods)
+calicoctl get workloadendpoints
+
+# View IP pools
+calicoctl get ippools
+
+# View Network Policies
+kubectl get networkpolicy --all-namespaces
+
+# Describe NetworkPolicy
+kubectl describe networkpolicy &lt;policy-name&gt;
+
+# Check Calico logs
+kubectl logs -n calico-system -l k8s-app=calico-node -f
+
+# Access Calico Manager UI (if installed)
+# kubectl port-forward -n calico-system svc/calico-typha 5055:5055
+</code></pre>
+<h2 id="advanced-configurations">Advanced Configurations</h2>
+<h3 id="1-enable-calico-ip-autodetection">1. Enable Calico IP autodetection</h3>
+<pre><code class="language-bash"># Check current autodetection
+calicoctl get felixconfig default -o yaml | grep autodetectionMethod
+
+# Set autodetection method
+kubectl patch felixconfig default --type merge -p '{&quot;spec&quot;:{&quot;autodetectionMethod&quot;:&quot;kubernetes&quot;}}'
+</code></pre>
+<h3 id="2-increase-mtu-for-better-performance">2. Increase MTU for better performance</h3>
+<pre><code class="language-bash">kubectl set env daemonset/calico-node -n calico-system FELIX_XDPMODE=native
+</code></pre>
+<h3 id="3-enable-encryption-between-pods">3. Enable encryption between pods</h3>
+<pre><code class="language-bash">kubectl patch installation default --type merge -p '{&quot;spec&quot;:{&quot;calicoNetwork&quot;:{&quot;encryption&quot;:&quot;wireguard&quot;}}}'
+</code></pre>
+<h2 id="network-policy-best-practices">Network Policy Best Practices</h2>
+<ol>
+<li>Start with deny-all policies, then allow specific traffic</li>
+<li>Use labels for pod selection (more maintainable)</li>
+<li>Separate ingress and egress policies</li>
+<li>Test policies in development before production</li>
+<li>Monitor network policy violations with logs</li>
+<li>Document policy purposes with annotations</li>
+<li>Use namespace-level policies for coarse-grained control</li>
+</ol>
+<h2 id="debugging-commands">Debugging Commands</h2>
+<pre><code class="language-bash"># Test connectivity between pods
+kubectl exec -it &lt;pod&gt; -- ping &lt;target-pod-ip&gt;
+
+# Check iptables rules (Calico uses iptables internally)
+kubectl exec -it &lt;pod&gt; -- iptables -L -n
+
+# View packet drops
+kubectl logs -n calico-system -l k8s-app=calico-node | grep &quot;drop&quot;
+
+# Verify DNS resolution
+kubectl exec -it &lt;pod&gt; -- nslookup kubernetes.default
+</code></pre>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://docs.tigera.io/</li>
+<li><strong>Calico Network Policies</strong>: https://docs.tigera.io/reference/resources/networkpolicy</li>
+<li><strong>GitHub Repository</strong>: https://github.com/projectcalico/calico</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Calico provides both network policies and BGP routing</li>
+<li>Supports both overlay and non-overlay networking</li>
+<li>Can work alongside other CNI plugins</li>
+<li>Essential for security in multi-tenant Kubernetes clusters</li>
+<li>Integrates well with Kubernetes RBAC</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#1-create-tigera-operator-namespace">1. Create tigera-operator namespace</a></li>
+<li><a href="#2-install-calico-using-helm">2. Install Calico using Helm</a></li>
+<li><a href="#3-verify-installation">3. Verify Installation</a></li>
+</ul>
+</li>
+<li><a href="#network-policy-examples">Network Policy Examples</a><ul>
+<li><a href="#1-deny-all-ingress-traffic-by-default">1. Deny all ingress traffic by default</a></li>
+<li><a href="#2-allow-traffic-from-specific-namespace">2. Allow traffic from specific namespace</a></li>
+<li><a href="#3-allow-specific-pod-communication">3. Allow specific pod communication</a></li>
+<li><a href="#4-allow-egress-to-specific-service">4. Allow egress to specific service</a></li>
+<li><a href="#5-calico-globalnetworkpolicy-cluster-wide">5. Calico GlobalNetworkPolicy (cluster-wide)</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#advanced-configurations">Advanced Configurations</a><ul>
+<li><a href="#1-enable-calico-ip-autodetection">1. Enable Calico IP autodetection</a></li>
+<li><a href="#2-increase-mtu-for-better-performance">2. Increase MTU for better performance</a></li>
+<li><a href="#3-enable-encryption-between-pods">3. Enable encryption between pods</a></li>
+</ul>
+</li>
+<li><a href="#network-policy-best-practices">Network Policy Best Practices</a></li>
+<li><a href="#debugging-commands">Debugging Commands</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

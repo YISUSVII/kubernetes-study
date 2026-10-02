@@ -1,0 +1,35 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: appconfig-configmap
+spec:
+  compositeTypeRef:
+    apiVersion: study.example.org/v1alpha1
+    kind: AppConfig
+  mode: Pipeline
+  pipeline:
+    - step: create-config
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: config
+            base:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                labels:
+                  study.example.org/lab: crossplane
+              data:
+                message: placeholder
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.message
+                toFieldPath: data.message
+                policy:
+                  fromFieldPath: Required
+            # ConfigMap has no Ready status condition.
+            readinessChecks:
+              - type: None

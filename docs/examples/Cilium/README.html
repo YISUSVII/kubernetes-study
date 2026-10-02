@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cilium Setup Notes - 2025/2026 Best Practices · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>Cilium Setup Notes - 2025/2026 Best Practices</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1 id="cilium-setup-notes---20252026-best-practices">Cilium Setup Notes - 2025/2026 Best Practices</h1>
+<h1 id="_1"></h1>
+<h1 id="cilium-is-the-most-adopted-cni-in-20252026">Cilium is the most adopted CNI in 2025/2026:</h1>
+<h1 id="--default-cni-on-aws-eks-gke-autopilot-azure-aks-optional-kind">- Default CNI on AWS EKS, GKE Autopilot, Azure AKS (optional), KIND</h1>
+<h1 id="--cncf-graduated-project-2023">- CNCF Graduated project (2023)</h1>
+<h1 id="--built-on-ebpf-for-high-performance-kernel-level-networking">- Built on eBPF for high-performance, kernel-level networking</h1>
+<h1 id="_2"></h1>
+<h1 id="key-advantages-over-calico-2025">Key advantages over Calico (2025):</h1>
+<h1 id="--native-ebpf-datapath-no-iptables-lower-latency">- Native eBPF datapath (no iptables, lower latency)</h1>
+<h1 id="--built-in-gateway-api-support">- Built-in Gateway API support</h1>
+<h1 id="--l7-httpgrpckafka-network-policies">- L7 (HTTP/gRPC/Kafka) network policies</h1>
+<h1 id="--hubble-real-time-network-observability">- Hubble: real-time network observability</h1>
+<h1 id="--wireguard-transparent-encryption">- WireGuard transparent encryption</h1>
+<h1 id="--better-kubernetes-gateway-api-integration">- Better Kubernetes Gateway API integration</h1>
+<h1 id="_3"></h1>
+<h1 id="install-via-helm-recommended">Install via Helm (recommended):</h1>
+<h1 id="helm-repo-add-cilium-httpshelmciliumio">helm repo add cilium https://helm.cilium.io/</h1>
+<p>#   helm install cilium cilium/cilium --version 1.20.2 \
+#     --namespace kube-system \
+#     --set kubeProxyReplacement=true \
+#     --set gatewayAPI.enabled=true \
+#     --set hubble.enabled=true \
+#     --set hubble.relay.enabled=true \</p>
+<h1 id="--set-hubbleuienabledtrue">--set hubble.ui.enabled=true</h1>
+<h1 id="_4"></h1>
+<h1 id="this-file-contains-example-policies-organized-as">This file contains example policies organized as:</h1>
+<h1 id="--01-ciliumnetworkpolicy-basicyaml--l4l7-namespace-scoped-policies">- 01-ciliumnetworkpolicy-basic.yaml     → L4/L7 namespace-scoped policies</h1>
+<h1 id="--02-ciliumclusterwidenetworkpolicyyaml--cluster-wide-policies">- 02-ciliumclusterwidenetworkpolicy.yaml → Cluster-wide policies</h1>
+<h1 id="--03-hubble-observabilityyaml--network-observability-config">- 03-hubble-observability.yaml           → Network observability config</h1></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>03-podmonitor-recording-rules.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>03-podmonitor-recording-rules.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>03-podmonitor-recording-rules.yaml</h1><p><a href="index.html">← Prometheus examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="03-podmonitor-recording-rules.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Prometheus PodMonitor - Direct Pod Scraping (no Service required)
+# Use PodMonitor when pods expose metrics directly and you don&#x27;t have/need a Service.
+# Complements ServiceMonitor (which scrapes via Services).
+# monitoring.coreos.com/v1 - stable in kube-prometheus-stack v0.75+
+---
+# Example 1: Basic PodMonitor for pods with metrics on a named port
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: myapp-pod-monitor
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack   # must match PrometheusName.podMonitorSelector
+spec:
+  # Namespaces to look for matching pods
+  namespaceSelector:
+    matchNames:
+    - default
+    - production
+  # Which pods to scrape
+  selector:
+    matchLabels:
+      app: myapp
+      metrics-enabled: &quot;true&quot;
+  podMetricsEndpoints:
+  - port: metrics         # named port in Pod spec
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /metrics
+    scheme: http
+    # Optional: relabeling to add custom labels to metrics
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_label_version]
+      targetLabel: version
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: kubernetes_namespace
+    metricRelabelings:
+    # Drop high-cardinality metrics to save storage
+    - sourceLabels: [__name__]
+      regex: &#x27;go_gc_.*&#x27;
+      action: drop
+
+---
+# Example 2: PodMonitor with TLS and authentication (secure scraping)
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: secure-app-pod-monitor
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+    - secure-apps
+  selector:
+    matchLabels:
+      app: secure-service
+  podMetricsEndpoints:
+  - port: metrics-tls
+    interval: 30s
+    scheme: https
+    tlsConfig:
+      ca:
+        secret:
+          name: prometheus-scrape-ca
+          key: ca.crt
+      cert:
+        secret:
+          name: prometheus-scrape-cert
+          key: tls.crt
+      keySecret:
+        name: prometheus-scrape-cert
+        key: tls.key
+      insecureSkipVerify: false
+    authorization:
+      credentials:
+        name: prometheus-scrape-token
+        key: token
+
+---
+# Example 3: PrometheusRule with recording rules (performance optimization)
+# Recording rules precompute expensive queries for faster dashboard loads
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: myapp-recording-rules
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: myapp.recording
+    interval: 30s
+    rules:
+    # Precompute request rate per service
+    - record: job:http_requests_total:rate5m
+      expr: sum(rate(http_requests_total[5m])) by (job, namespace, service)
+    # Precompute p99 latency
+    - record: job:http_request_duration_seconds:p99
+      expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, service))
+    # Precompute error rate
+    - record: job:http_requests_errors:rate5m
+      expr: sum(rate(http_requests_total{status=~&quot;5..&quot;}[5m])) by (job, service) / sum(rate(http_requests_total[5m])) by (job, service)
+  - name: myapp.alerts
+    rules:
+    - alert: HighErrorRate
+      expr: job:http_requests_errors:rate5m &gt; 0.05
+      for: 5m
+      labels:
+        severity: critical
+        team: platform
+      annotations:
+        summary: &quot;High error rate detected for {{ $labels.service }}&quot;
+        description: &quot;Error rate is {{ $value | humanizePercentage }} for {{ $labels.service }}&quot;
+        runbook: &quot;https://wiki.example.com/runbooks/high-error-rate&quot;
+    - alert: HighP99Latency
+      expr: job:http_request_duration_seconds:p99 &gt; 1.0
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: &quot;High p99 latency for {{ $labels.service }}&quot;
+        description: &quot;p99 latency is {{ $value | humanizeDuration }}&quot;
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

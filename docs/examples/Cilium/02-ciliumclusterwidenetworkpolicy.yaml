@@ -1,0 +1,84 @@
+# Cilium CiliumClusterwideNetworkPolicy (CCNP) - Cluster-Scoped Policies
+# Similar to AdminNetworkPolicy but Cilium-native with L7 support
+# Works alongside AdminNetworkPolicy (ANP) for defense in depth
+---
+# Example 1: Cluster-wide deny-all baseline with platform exceptions
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: cluster-baseline-deny
+spec:
+  description: "Cluster baseline: deny cross-namespace, allow DNS and monitoring"
+  endpointSelector:
+    matchExpressions:
+    - key: "k8s:io.kubernetes.pod.namespace"
+      operator: NotIn
+      values: [kube-system, kube-public, cert-manager, monitoring, argocd]
+  # Allow egress to kube-dns
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        "k8s:io.kubernetes.pod.namespace": kube-system
+        "k8s:k8s-app": kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: UDP
+      - port: "53"
+        protocol: TCP
+  # Allow monitoring namespace to scrape all pods
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        "k8s:io.kubernetes.pod.namespace": monitoring
+    toPorts:
+    - ports:
+      - port: "9090"
+        protocol: TCP
+      - port: "8080"
+        protocol: TCP
+      - port: "15020"
+        protocol: TCP   # Istio proxy metrics
+
+---
+# Example 2: Cluster-wide L7 enforcement using Cilium + Envoy
+# Block SQL injection patterns at the network level
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: block-sql-injection
+spec:
+  description: "Block common SQL injection patterns (requires Cilium L7 proxy)"
+  endpointSelector:
+    matchLabels:
+      security.cilium.io/l7-inspection: "true"
+  ingress:
+  - fromEndpoints:
+    - {}   # from any endpoint
+    toPorts:
+    - ports:
+      - port: "8080"
+        protocol: TCP
+      rules:
+        http:
+        - method: ".*"
+          # Deny requests with SQL injection patterns
+          path: "(?!.*(%27|%22|--|\\/\\*|\\*\\/|xp_)).*"
+
+---
+# Example 3: Node-to-node encryption enforcement (Cilium WireGuard)
+# Enable transparent WireGuard encryption between nodes
+# Requires: Cilium installed with --enable-wireguard=true
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: require-node-encryption
+spec:
+  description: "Require WireGuard encryption for all node-to-node traffic"
+  nodeSelector: {}   # all nodes
+  egress:
+  - toNodes: {}
+    toPorts:
+    - ports:
+      - port: "51871"
+        protocol: UDP   # WireGuard port used by Cilium

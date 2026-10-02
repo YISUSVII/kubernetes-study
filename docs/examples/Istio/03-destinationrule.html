@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>03-destinationrule.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>03-destinationrule.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>03-destinationrule.yaml</h1><p><a href="index.html">← Istio examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="03-destinationrule.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Istio DestinationRule - Load Balancing, Circuit Breaking &amp; mTLS
+# networking.istio.io/v1 is GA since Istio 1.22 (v1beta1/v1alpha3 deprecated)
+---
+# Example 1: DestinationRule with circuit breaker and load balancing
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: myapp-destination
+  namespace: default
+spec:
+  host: myapp.default.svc.cluster.local
+  trafficPolicy:
+    # Load balancing algorithm
+    loadBalancer:
+      simple: LEAST_REQUEST   # ROUND_ROBIN | LEAST_REQUEST | RANDOM | PASSTHROUGH
+    # Connection pool limits
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30ms
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+        idleTimeout: 90s
+        h2UpgradePolicy: DEFAULT
+    # Circuit breaker (outlier detection)
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    # mTLS mode for this specific service
+    tls:
+      mode: ISTIO_MUTUAL   # DISABLE | SIMPLE | MUTUAL | ISTIO_MUTUAL
+  # Per-port policies
+  portLevelSettings:
+  - port:
+      number: 8080
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: x-user-id   # session affinity by header
+  # Subsets for canary deployments
+  subsets:
+  - name: stable
+    labels:
+      version: v1
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+  - name: canary
+    labels:
+      version: v2
+
+---
+# Example 2: DestinationRule enforcing strict mTLS for a namespace
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: default-mtls
+  namespace: default
+spec:
+  host: &quot;*.default.svc.cluster.local&quot;
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

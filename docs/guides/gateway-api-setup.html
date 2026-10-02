@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes Gateway API Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kubernetes Gateway API Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="kubernetes-gateway-api-setup-notes">Kubernetes Gateway API Setup Notes</h1>
+<h2 id="overview">Overview</h2>
+<p><strong>Gateway API</strong> is the next-generation Kubernetes API for L4 and L7 routing, replacing the older Ingress API. It offers more expressive, extensible, and role-oriented traffic routing capabilities.</p>
+<h3 id="key-differences-from-ingress">Key Differences from Ingress</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Ingress</th>
+<th>Gateway API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Maturity</strong></td>
+<td>Stable (but limited)</td>
+<td>Standard Channel (v0.5+)</td>
+</tr>
+<tr>
+<td><strong>Route Matching</strong></td>
+<td>Host and path only</td>
+<td>Host, path, headers, methods, query params</td>
+</tr>
+<tr>
+<td><strong>Traffic Splitting</strong></td>
+<td>Via annotations</td>
+<td>Native support</td>
+</tr>
+<tr>
+<td><strong>TLS</strong></td>
+<td>Via annotations</td>
+<td>Native support</td>
+</tr>
+<tr>
+<td><strong>Role-Oriented</strong></td>
+<td>Single flat API</td>
+<td>Separate resources for different roles</td>
+</tr>
+<tr>
+<td><strong>Cross-Namespace</strong></td>
+<td>Limited</td>
+<td>Full support with ReferenceGrant</td>
+</tr>
+<tr>
+<td><strong>Protocol Support</strong></td>
+<td>HTTP/HTTPS</td>
+<td>HTTP, HTTPS, gRPC, TCP, UDP</td>
+</tr>
+</tbody>
+</table>
+<h2 id="core-concepts">Core Concepts</h2>
+<h3 id="three-main-personas">Three Main Personas</h3>
+<ol>
+<li><strong>Infrastructure Provider</strong> - Manages shared infrastructure (cloud provider, cluster admin)</li>
+<li><strong>Cluster Operator</strong> - Manages cluster policies and networking</li>
+<li><strong>Application Developer</strong> - Manages application routing and services</li>
+</ol>
+<h3 id="resource-hierarchy">Resource Hierarchy</h3>
+<pre><code>GatewayClass (Controller type) 
+  ↓
+Gateway (Instance of traffic handler)
+  ↓
+Route (HTTPRoute, GRPCRoute, TCPRoute, etc.)
+  ↓
+Service (Backend)
+</code></pre>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="1-install-gateway-api-crds">1. Install Gateway API CRDs</h3>
+<pre><code class="language-bash"># Install Gateway API standard channel (v1.6.2 - stable, checked October 1, 2026)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
+
+# Alternative for features that still require Experimental CRDs.
+# Choose one channel; review safe-upgrade restrictions before changing channels.
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/experimental-install.yaml
+
+# Verify CRDs installation
+kubectl get crd | grep gateway
+</code></pre>
+<blockquote>
+<p><strong>October 2026 update</strong>: <a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2">v1.6.2</a> clarifies that redirect status codes 303, 307, and 308 require Extended conformance. Check controller support. As of v1.6.0, <code>TCPRoute</code> and <code>UDPRoute</code> graduated to <strong>GA (<code>v1</code>)</strong> — the <code>v1alpha2</code> versions are deprecated and will be removed in a future release. <code>TLSRoute</code>, <code>ListenerSet</code>, and the HTTPRoute CORS filter graduated to Standard in v1.5.0. See <a href="deprecations.html">DEPRECATIONS.md</a> for the full list of API version changes.</p>
+</blockquote>
+<h3 id="2-install-a-gateway-controller-implementation">2. Install a Gateway Controller Implementation</h3>
+<p>Popular implementations:
+- <strong>NGINX Gateway Fabric</strong> - A separate Gateway API implementation; retired ingress-nginx does not implement Gateway API. See the <a href="https://gateway-api.sigs.k8s.io/implementations/">implementation list</a>.
+- <strong>Istio</strong> - Works natively with Gateway API (recommended pair in 2025/2026)
+- <strong>Envoy Gateway</strong> - Purpose-built, CNCF-incubating implementation (fastest growing 2024-2026)
+- <strong>Kong</strong> - API gateway supporting Gateway API
+- <strong>AWS ALB</strong> - AWS managed implementation
+- <strong>Cilium</strong> - CNI with built-in Gateway API support</p>
+<h2 id="quick-start-example">Quick Start Example</h2>
+<h3 id="1-create-gatewayclass-infrastructure-provider">1. Create GatewayClass (Infrastructure Provider)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: nginx-gateway
+spec:
+  controllerName: k8s.io/ingress-nginx
+EOF
+</code></pre>
+<h3 id="2-create-gateway-cluster-operator">2. Create Gateway (Cluster Operator)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: mygateway
+  namespace: default
+spec:
+  gatewayClassName: nginx-gateway
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: my-tls-cert
+EOF
+</code></pre>
+<h3 id="3-create-httproute-application-developer">3. Create HTTPRoute (Application Developer)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: myapp-route
+spec:
+  parentRefs:
+  - name: mygateway
+  hostnames:
+  - myapp.example.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: myapp-service
+      port: 8080
+EOF
+</code></pre>
+<h2 id="installation-methods">Installation Methods</h2>
+<h3 id="method-1-install-standard-crds-only">Method 1: Install Standard CRDs Only</h3>
+<pre><code class="language-bash"># Minimal installation (CRDs only, no controller) - v1.6.2 current stable
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
+
+# Then install your preferred controller separately
+</code></pre>
+<h3 id="method-2-install-with-nginx-ingress-controller">Method 2: Install with Nginx Ingress Controller</h3>
+<pre><code class="language-bash"># Install Nginx with Gateway API support
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace \
+  --set controller.enableGatewayApi=true
+</code></pre>
+<h3 id="method-3-install-with-istio">Method 3: Install with Istio</h3>
+<pre><code class="language-bash"># Istio comes with Gateway API support built-in
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm install istio-base istio/base -n istio-system --create-namespace
+helm install istiod istio/istiod -n istio-system
+</code></pre>
+<h3 id="method-4-install-envoy-gateway-purpose-built">Method 4: Install Envoy Gateway (Purpose-built)</h3>
+<pre><code class="language-bash"># Add Envoy Gateway repository
+helm repo add envoy-gateway https://gateway.envoyproxy.io/charts
+helm repo update
+
+# Install Envoy Gateway
+helm install envoy-gateway envoy-gateway/gateway -n envoy-gateway --create-namespace
+</code></pre>
+<h2 id="advanced-examples">Advanced Examples</h2>
+<h3 id="1-httproute-with-header-matching">1. HTTPRoute with Header Matching</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-route
+spec:
+  parentRefs:
+  - name: mygateway
+  hostnames:
+  - api.example.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/v1
+      headers:
+      - name: X-Version
+        value: beta
+    backendRefs:
+    - name: api-service
+      port: 8080
+    timeouts:
+      request: 30s
+      backendRequest: 25s
+EOF
+</code></pre>
+<h3 id="2-traffic-splitting-canary-deployment">2. Traffic Splitting (Canary Deployment)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: canary-route
+spec:
+  parentRefs:
+  - name: mygateway
+  hostnames:
+  - app.example.com
+  rules:
+  - backendRefs:
+    - name: app-service-stable
+      port: 8080
+      weight: 90
+    - name: app-service-canary
+      port: 8080
+      weight: 10
+EOF
+</code></pre>
+<h3 id="3-httproute-with-redirects">3. HTTPRoute with Redirects</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: redirect-route
+spec:
+  parentRefs:
+  - name: mygateway
+  hostnames:
+  - old-domain.com
+  rules:
+  - filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        hostname: new-domain.com
+        statusCode: 301
+EOF
+</code></pre>
+<h3 id="4-httproute-with-header-modifications">4. HTTPRoute with Header Modifications</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: header-route
+spec:
+  parentRefs:
+  - name: mygateway
+  rules:
+  - filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        add:
+          X-Custom-Header: &quot;custom-value&quot;
+        remove:
+        - X-Internal-Header
+    - type: ResponseHeaderModifier
+      responseHeaderModifier:
+        add:
+          X-Server: &quot;MyServer/1.0&quot;
+    backendRefs:
+    - name: backend-service
+      port: 8080
+EOF
+</code></pre>
+<h3 id="5-grpcroute-example">5. GRPCRoute Example</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: grpc-api-route
+spec:
+  parentRefs:
+  - name: mygateway
+  hostnames:
+  - grpc.example.com
+  rules:
+  - matches:
+    - method:
+        service: com.example.Service
+        method: GetData
+    backendRefs:
+    - name: grpc-backend
+      port: 50051
+EOF
+</code></pre>
+<h3 id="6-cross-namespace-routing-with-referencegrant">6. Cross-Namespace Routing (with ReferenceGrant)</h3>
+<pre><code class="language-bash"># Grant permission for backend in different namespace
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-cross-namespace
+  namespace: backend-namespace
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: gateway-namespace
+  to:
+  - group: &quot;&quot;
+    kind: Service
+EOF
+
+# HTTPRoute in gateway-namespace can now reference backend-namespace services
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: cross-ns-route
+  namespace: gateway-namespace
+spec:
+  parentRefs:
+  - name: mygateway
+  rules:
+  - backendRefs:
+    - name: backend-service
+      namespace: backend-namespace
+      port: 8080
+EOF
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># List Gateway Classes
+kubectl get gatewayclass
+
+# List Gateways
+kubectl get gateway --all-namespaces
+
+# List HTTPRoutes
+kubectl get httproute --all-namespaces
+
+# List GRPCRoutes
+kubectl get grpcroute --all-namespaces
+
+# Describe Gateway
+kubectl describe gateway &lt;gateway-name&gt;
+
+# Describe HTTPRoute
+kubectl describe httproute &lt;route-name&gt;
+
+# Check Gateway status
+kubectl get gateway -o wide
+
+# View route status and conditions
+kubectl get httproute -o jsonpath='{.items[*].status.parents}'
+
+# Check if route is attached to gateway
+kubectl get httproute &lt;route-name&gt; -o yaml | grep -A5 &quot;status:&quot;
+
+# Install gwctl (Gateway API CLI)
+go install github.com/kubernetes-sigs/gateway-api/gwctl/cmd/gwctl@latest
+
+# Use gwctl for better visibility
+gwctl get gatewayclasses
+gwctl get gateways
+gwctl get httproutes
+</code></pre>
+<h2 id="migrating-from-ingress-to-gateway-api">Migrating from Ingress to Gateway API</h2>
+<h3 id="comparison-ingress-vs-gateway-api">Comparison: Ingress vs Gateway API</h3>
+<p><strong>Old Ingress:</strong></p>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: old-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - example.com
+    secretName: example-tls
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-service
+            port:
+              number: 80
+EOF
+</code></pre>
+<p><strong>New Gateway API:</strong></p>
+<pre><code class="language-bash"># Step 1: Create GatewayClass
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: nginx
+spec:
+  controllerName: k8s.io/ingress-nginx
+EOF
+
+# Step 2: Create Gateway
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: example-gateway
+spec:
+  gatewayClassName: nginx
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: example-tls
+EOF
+
+# Step 3: Create HTTPRoute
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route
+spec:
+  parentRefs:
+  - name: example-gateway
+  hostnames:
+  - example.com
+  rules:
+  - backendRefs:
+    - name: web-service
+      port: 80
+EOF
+</code></pre>
+<h2 id="role-based-access-control-rbac-examples">Role-Based Access Control (RBAC) Examples</h2>
+<pre><code class="language-bash"># Infrastructure Provider role
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-admin
+rules:
+- apiGroups: [&quot;gateway.networking.k8s.io&quot;]
+  resources: [&quot;gatewayclasses&quot;, &quot;gateways&quot;]
+  verbs: [&quot;*&quot;]
+EOF
+
+# Cluster Operator role
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-operator
+rules:
+- apiGroups: [&quot;gateway.networking.k8s.io&quot;]
+  resources: [&quot;gateways&quot;]
+  verbs: [&quot;get&quot;, &quot;list&quot;, &quot;watch&quot;]
+- apiGroups: [&quot;gateway.networking.k8s.io&quot;]
+  resources: [&quot;httproutes&quot;, &quot;grpcroutes&quot;]
+  verbs: [&quot;*&quot;]
+EOF
+
+# Application Developer role
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-developer
+rules:
+- apiGroups: [&quot;gateway.networking.k8s.io&quot;]
+  resources: [&quot;httproutes&quot;, &quot;grpcroutes&quot;]
+  verbs: [&quot;get&quot;, &quot;list&quot;, &quot;watch&quot;, &quot;create&quot;, &quot;update&quot;]
+EOF
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="check-gateway-status">Check Gateway Status</h3>
+<pre><code class="language-bash"># See if gateway is ready
+kubectl describe gateway &lt;gateway-name&gt;
+
+# Check listeners status
+kubectl get gateway &lt;gateway-name&gt; -o jsonpath='{.status.listeners}'
+
+# Check gateway conditions
+kubectl get gateway &lt;gateway-name&gt; -o jsonpath='{.status.conditions}'
+</code></pre>
+<h3 id="check-route-attachment">Check Route Attachment</h3>
+<pre><code class="language-bash"># Verify if route is attached to gateway
+kubectl get httproute &lt;route-name&gt; -o yaml | grep -A10 &quot;status:&quot;
+
+# View route parents
+kubectl get httproute &lt;route-name&gt; -o jsonpath='{.status.parents}'
+</code></pre>
+<h3 id="common-issues">Common Issues</h3>
+<p><strong>Issue: Route not attaching to Gateway</strong></p>
+<pre><code class="language-bash"># Check if parentRef name matches
+# Check if route namespace is allowed
+# Verify ReferenceGrant if cross-namespace
+
+kubectl describe httproute &lt;route-name&gt;
+</code></pre>
+<p><strong>Issue: Controller not managing Gateway</strong></p>
+<pre><code class="language-bash"># Verify GatewayClass controller name
+kubectl get gatewayclass -o yaml
+
+# Check controller logs
+kubectl logs -n ingress-nginx -l app=ingress-nginx
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Separate Concerns</strong>: Use different namespaces for infrastructure, operators, and developers</li>
+<li><strong>RBAC</strong>: Implement proper RBAC for different personas</li>
+<li><strong>Use ReferenceGrant</strong>: For cross-namespace references in multi-tenant clusters</li>
+<li><strong>Traffic Splitting</strong>: Use for canary and blue-green deployments</li>
+<li><strong>Monitoring</strong>: Monitor Gateway and Route status</li>
+<li><strong>Gradual Migration</strong>: Migrate from Ingress to Gateway API incrementally</li>
+<li><strong>Documentation</strong>: Document your gateway classes and policies</li>
+<li><strong>Policy Attachment</strong>: Use policy attachment for cross-cutting concerns</li>
+</ol>
+<h2 id="implementations-comparison">Implementations Comparison</h2>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>Best For</th>
+<th>Maturity</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nginx Gateway</strong></td>
+<td>Traditional web apps</td>
+<td>Stable</td>
+<td>Core Gateway API</td>
+</tr>
+<tr>
+<td><strong>Istio</strong></td>
+<td>Service mesh + ingress</td>
+<td>Stable</td>
+<td>Advanced traffic, mesh</td>
+</tr>
+<tr>
+<td><strong>Envoy Gateway</strong></td>
+<td>Native Gateway API</td>
+<td>Stable</td>
+<td>Full Gateway API spec</td>
+</tr>
+<tr>
+<td><strong>Kong</strong></td>
+<td>API gateway use cases</td>
+<td>Stable</td>
+<td>API management + Gateway</td>
+</tr>
+<tr>
+<td><strong>AWS ALB</strong></td>
+<td>AWS-native deployments</td>
+<td>Mature</td>
+<td>Cloud-native integration</td>
+</tr>
+</tbody>
+</table>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://gateway-api.sigs.k8s.io/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/kubernetes-sigs/gateway-api</li>
+<li><strong>API Reference</strong>: https://gateway-api.sigs.k8s.io/reference/spec/</li>
+<li><strong>Implementations</strong>: https://gateway-api.sigs.k8s.io/implementations/</li>
+<li><strong>Migration Guide</strong>: https://gateway-api.sigs.k8s.io/guides/migrating-from-ingress/</li>
+<li><strong>Kubernetes Docs</strong>: https://kubernetes.io/docs/concepts/services-networking/gateway/</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Gateway API is the <strong>successor to Ingress</strong> - more expressive and role-oriented</li>
+<li><strong>Multiple implementations available</strong> - choose based on your needs</li>
+<li><strong>Backward compatible</strong> - Ingress resources still work, but Gateway API is recommended for new deployments</li>
+<li><strong>Stable channel</strong> - Safe for production use</li>
+<li><strong>Extensible</strong> - Supports custom policies and backends</li>
+<li><strong>Better for multi-tenant clusters</strong> - Cross-namespace support with proper RBAC</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#overview">Overview</a><ul>
+<li><a href="#key-differences-from-ingress">Key Differences from Ingress</a></li>
+</ul>
+</li>
+<li><a href="#core-concepts">Core Concepts</a><ul>
+<li><a href="#three-main-personas">Three Main Personas</a></li>
+<li><a href="#resource-hierarchy">Resource Hierarchy</a></li>
+</ul>
+</li>
+<li><a href="#prerequisites">Prerequisites</a><ul>
+<li><a href="#1-install-gateway-api-crds">1. Install Gateway API CRDs</a></li>
+<li><a href="#2-install-a-gateway-controller-implementation">2. Install a Gateway Controller Implementation</a></li>
+</ul>
+</li>
+<li><a href="#quick-start-example">Quick Start Example</a><ul>
+<li><a href="#1-create-gatewayclass-infrastructure-provider">1. Create GatewayClass (Infrastructure Provider)</a></li>
+<li><a href="#2-create-gateway-cluster-operator">2. Create Gateway (Cluster Operator)</a></li>
+<li><a href="#3-create-httproute-application-developer">3. Create HTTPRoute (Application Developer)</a></li>
+</ul>
+</li>
+<li><a href="#installation-methods">Installation Methods</a><ul>
+<li><a href="#method-1-install-standard-crds-only">Method 1: Install Standard CRDs Only</a></li>
+<li><a href="#method-2-install-with-nginx-ingress-controller">Method 2: Install with Nginx Ingress Controller</a></li>
+<li><a href="#method-3-install-with-istio">Method 3: Install with Istio</a></li>
+<li><a href="#method-4-install-envoy-gateway-purpose-built">Method 4: Install Envoy Gateway (Purpose-built)</a></li>
+</ul>
+</li>
+<li><a href="#advanced-examples">Advanced Examples</a><ul>
+<li><a href="#1-httproute-with-header-matching">1. HTTPRoute with Header Matching</a></li>
+<li><a href="#2-traffic-splitting-canary-deployment">2. Traffic Splitting (Canary Deployment)</a></li>
+<li><a href="#3-httproute-with-redirects">3. HTTPRoute with Redirects</a></li>
+<li><a href="#4-httproute-with-header-modifications">4. HTTPRoute with Header Modifications</a></li>
+<li><a href="#5-grpcroute-example">5. GRPCRoute Example</a></li>
+<li><a href="#6-cross-namespace-routing-with-referencegrant">6. Cross-Namespace Routing (with ReferenceGrant)</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#migrating-from-ingress-to-gateway-api">Migrating from Ingress to Gateway API</a><ul>
+<li><a href="#comparison-ingress-vs-gateway-api">Comparison: Ingress vs Gateway API</a></li>
+</ul>
+</li>
+<li><a href="#role-based-access-control-rbac-examples">Role-Based Access Control (RBAC) Examples</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a><ul>
+<li><a href="#check-gateway-status">Check Gateway Status</a></li>
+<li><a href="#check-route-attachment">Check Route Attachment</a></li>
+<li><a href="#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#implementations-comparison">Implementations Comparison</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cilium Setup Notes (2025/2026) · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Cilium Setup Notes (2025/2026)</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="cilium-setup-notes-20252026">Cilium Setup Notes (2025/2026)</h1>
+<h2 id="overview">Overview</h2>
+<p>Cilium is the most widely deployed CNI in 2025/2026:
+- Default CNI on <strong>AWS EKS</strong>, <strong>GKE Autopilot</strong>, and cloud-managed clusters
+- <strong>CNCF Graduated</strong> project (2023), backed by Isovalent/Cisco
+- Built on <strong>eBPF</strong> — kernel-level networking, no iptables chains
+- Native support for <strong>Kubernetes Gateway API</strong>, <strong>NetworkPolicy</strong>, and <strong>AdminNetworkPolicy</strong>
+- Built-in observability via <strong>Hubble</strong></p>
+<h3 id="why-cilium-over-calico-in-2025">Why Cilium over Calico in 2025?</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Calico</th>
+<th>Cilium</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Datapath</strong></td>
+<td>iptables / IPVS</td>
+<td>eBPF (kernel bypass)</td>
+</tr>
+<tr>
+<td><strong>L7 Policies</strong></td>
+<td>❌</td>
+<td>✅ HTTP, gRPC, Kafka</td>
+</tr>
+<tr>
+<td><strong>FQDN Egress</strong></td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Gateway API</strong></td>
+<td>Partial</td>
+<td>✅ Native</td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td>Limited</td>
+<td>✅ Hubble (real-time flows)</td>
+</tr>
+<tr>
+<td><strong>Wireguard Encryption</strong></td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>AdminNetworkPolicy</strong></td>
+<td>✅ v3.29+</td>
+<td>✅ v1.16+</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Good</td>
+<td>Excellent (eBPF)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>2026 update</strong>: stable is <a href="https://github.com/cilium/cilium/releases/tag/v1.20.2">Cilium <strong>v1.20.2</strong></a>. Review the minor-version upgrade guide before moving an existing cluster to 1.20. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+</blockquote>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add Cilium Helm repository
+helm repo add cilium https://helm.cilium.io/
+helm repo update
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="1-quick-install-new-cluster">1. Quick Install (new cluster)</h3>
+<pre><code class="language-bash"># Install Cilium with recommended settings for K8s 1.34+
+helm install cilium cilium/cilium \
+  --version 1.20.2 \
+  --namespace kube-system \
+  --set ipam.mode=kubernetes \
+  --set kubeProxyReplacement=true \
+  --set gatewayAPI.enabled=true \
+  --set hubble.enabled=true \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --set encryption.enabled=true \
+  --set encryption.type=wireguard \
+  --set k8sServiceHost=${KUBERNETES_SERVICE_HOST} \
+  --set k8sServicePort=${KUBERNETES_SERVICE_PORT}
+</code></pre>
+<h3 id="2-install-with-hubble-only-existing-cluster">2. Install with Hubble only (existing cluster)</h3>
+<pre><code class="language-bash">helm install cilium cilium/cilium \
+  --version 1.20.2 \
+  --namespace kube-system \
+  --set hubble.enabled=true \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true
+</code></pre>
+<h3 id="3-verify-installation">3. Verify Installation</h3>
+<pre><code class="language-bash"># Check Cilium pods
+kubectl get pods -n kube-system -l k8s-app=cilium
+
+# Check all components
+kubectl get pods -n kube-system | grep -E &quot;cilium|hubble&quot;
+
+# Validate connectivity
+cilium connectivity test
+</code></pre>
+<h2 id="install-cilium-cli">Install Cilium CLI</h2>
+<pre><code class="language-bash"># macOS
+brew install cilium-cli
+
+# Linux
+CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+curl -L --fail --remote-name-all \
+  https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-amd64.tar.gz
+sudo tar xzvf cilium-linux-amd64.tar.gz -C /usr/local/bin
+</code></pre>
+<h2 id="hubble-observability">Hubble Observability</h2>
+<h3 id="access-hubble-ui">Access Hubble UI</h3>
+<pre><code class="language-bash"># Port-forward Hubble UI
+cilium hubble ui
+
+# Or manually
+kubectl port-forward -n kube-system svc/hubble-ui 12000:80
+# Access at http://localhost:12000
+</code></pre>
+<h3 id="hubble-cli">Hubble CLI</h3>
+<pre><code class="language-bash"># Install hubble CLI (macOS)
+brew install hubble
+
+# Set up relay forwarding
+cilium hubble port-forward &amp;
+
+# Observe all flows
+hubble observe
+
+# Filter by namespace
+hubble observe --namespace production
+
+# Filter by protocol
+hubble observe --protocol http
+hubble observe --protocol dns
+
+# Watch specific pod traffic
+hubble observe --from-pod default/frontend --to-pod default/backend
+
+# Watch for dropped flows
+hubble observe --verdict DROPPED
+
+# Get flow statistics
+hubble observe --output json | jq '.flow.verdict' | sort | uniq -c
+</code></pre>
+<h2 id="network-policy-examples">Network Policy Examples</h2>
+<h3 id="1-basic-l4-policy-same-as-standard-networkpolicy">1. Basic L4 Policy (same as standard NetworkPolicy)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: &quot;cilium.io/v2&quot;
+kind: CiliumNetworkPolicy
+metadata:
+  name: backend-allow-frontend
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app: frontend
+    toPorts:
+    - ports:
+      - port: &quot;8080&quot;
+        protocol: TCP
+EOF
+</code></pre>
+<h3 id="2-l7-http-policy">2. L7 HTTP Policy</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: &quot;cilium.io/v2&quot;
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-l7-policy
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app: frontend
+    toPorts:
+    - ports:
+      - port: &quot;8080&quot;
+        protocol: TCP
+      rules:
+        http:
+        - method: &quot;GET&quot;
+          path: &quot;/api/.*&quot;
+        - method: &quot;POST&quot;
+          path: &quot;/api/data&quot;
+EOF
+</code></pre>
+<h3 id="3-fqdn-egress-policy">3. FQDN Egress Policy</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: &quot;cilium.io/v2&quot;
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-external
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: myapp
+  egress:
+  - toFQDNs:
+    - matchName: &quot;api.example.com&quot;
+    - matchPattern: &quot;*.amazonaws.com&quot;
+    toPorts:
+    - ports:
+      - port: &quot;443&quot;
+        protocol: TCP
+EOF
+</code></pre>
+<h2 id="gateway-api-with-cilium">Gateway API with Cilium</h2>
+<p>Cilium natively implements Gateway API v1.2+ without needing NGINX:</p>
+<pre><code class="language-bash"># Cilium Gateway API is enabled with --set gatewayAPI.enabled=true
+# Create a GatewayClass that uses Cilium
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: cilium
+spec:
+  controllerName: io.cilium/gateway-controller
+EOF
+
+# Create a Gateway
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: cilium-gateway
+  namespace: default
+spec:
+  gatewayClassName: cilium
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: my-tls-cert
+EOF
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># Check Cilium status
+cilium status
+
+# Check connectivity
+cilium connectivity test
+
+# Monitor in real-time
+cilium monitor
+
+# Show endpoint policies
+cilium endpoint list
+cilium policy get
+
+# Check network map
+hubble observe --output json | head -20
+
+# Troubleshoot dropped packets
+hubble observe --verdict DROPPED --last 100
+
+# Check encryption status
+cilium encrypt status
+
+# View service mesh
+cilium service list
+</code></pre>
+<h2 id="metrics--monitoring">Metrics &amp; Monitoring</h2>
+<pre><code class="language-bash"># Cilium exposes Prometheus metrics on port 9090
+# Apply ServiceMonitor for kube-prometheus-stack
+kubectl apply -f examples/Cilium/03-hubble-observability.yaml
+</code></pre>
+<p>Key Cilium Grafana dashboards (import by ID):
+- <strong>16611</strong> - Cilium v1.x Overview
+- <strong>16612</strong> - Cilium Operator
+- <strong>16613</strong> - Hubble L7 HTTP Metrics</p>
+<h2 id="migration-from-calico-to-cilium">Migration from Calico to Cilium</h2>
+<pre><code class="language-bash"># 1. Install Cilium in migration mode alongside Calico
+helm install cilium cilium/cilium \
+  --set policyEnforcementMode=never \
+  --set ipam.mode=kubernetes
+
+# 2. Migrate CNI (node by node - requires node restart)
+# Drain node
+kubectl drain &lt;node&gt; --ignore-daemonsets --delete-emptydir-data
+
+# 3. Remove Calico annotations from node
+kubectl annotate node &lt;node&gt; projectcalico.org/IPv4Address-
+kubectl annotate node &lt;node&gt; projectcalico.org/IPv4IPIPTunnelAddr-
+
+# 4. Uncordon node
+kubectl uncordon &lt;node&gt;
+
+# 5. After all nodes migrated, remove Calico
+helm uninstall calico -n kube-system
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="pod-connectivity-issues">Pod connectivity issues</h3>
+<pre><code class="language-bash"># Check endpoint status
+cilium endpoint list | grep &lt;pod-ip&gt;
+
+# Check policy on endpoint
+cilium endpoint get &lt;endpoint-id&gt;
+
+# Test connectivity
+cilium connectivity test --test pod-to-pod
+
+# View policy verdicts
+hubble observe --verdict DROPPED --namespace &lt;ns&gt;
+</code></pre>
+<h3 id="dns-resolution-issues">DNS resolution issues</h3>
+<pre><code class="language-bash"># Check Cilium DNS proxy
+cilium monitor --type drop | grep dns
+
+# Verify kube-dns is accessible
+hubble observe --protocol dns
+</code></pre>
+<h2 id="best-practices-20252026">Best Practices (2025/2026)</h2>
+<ol>
+<li>Enable <strong>kubeProxyReplacement</strong> for eBPF-based kube-proxy replacement</li>
+<li>Enable <strong>WireGuard encryption</strong> for zero-trust networking</li>
+<li>Use <strong>Hubble</strong> for network observability instead of tcpdump</li>
+<li>Use <strong>CiliumNetworkPolicy</strong> for L7 policies (HTTP/gRPC)</li>
+<li>Use standard <strong>NetworkPolicy</strong> for L4 policies (CNI-portable)</li>
+<li>Enable <strong>Gateway API</strong> instead of Ingress for new deployments</li>
+<li>Enable <strong>AdminNetworkPolicy</strong> for platform-level network control</li>
+<li>Monitor with Hubble + Prometheus + Grafana dashboards</li>
+<li>Use <strong>FQDN policies</strong> for external service allowlisting</li>
+<li>Regularly run <strong>cilium connectivity test</strong> after cluster changes</li>
+</ol>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://docs.cilium.io/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/cilium/cilium</li>
+<li><strong>Hubble</strong>: https://github.com/cilium/hubble</li>
+<li><strong>Cilium Blog</strong>: https://cilium.io/blog/</li>
+<li><strong>Interactive Lab</strong>: https://play.instruqt.com/isovalent/tracks/cilium-getting-started</li>
+<li><strong>Slack</strong>: https://slack.cilium.io/</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Cilium requires Linux kernel 4.19+ (5.15+ recommended for all features)</li>
+<li>K8s 1.34+ has excellent Cilium support</li>
+<li>eBPF programs are loaded as kernel extensions — no iptables rules created</li>
+<li>Hubble provides ServiceMap and network flow visualization out of the box</li>
+<li>Cilium Mesh supports multi-cluster connectivity (ClusterMesh)</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#overview">Overview</a><ul>
+<li><a href="#why-cilium-over-calico-in-2025">Why Cilium over Calico in 2025?</a></li>
+</ul>
+</li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#1-quick-install-new-cluster">1. Quick Install (new cluster)</a></li>
+<li><a href="#2-install-with-hubble-only-existing-cluster">2. Install with Hubble only (existing cluster)</a></li>
+<li><a href="#3-verify-installation">3. Verify Installation</a></li>
+</ul>
+</li>
+<li><a href="#install-cilium-cli">Install Cilium CLI</a></li>
+<li><a href="#hubble-observability">Hubble Observability</a><ul>
+<li><a href="#access-hubble-ui">Access Hubble UI</a></li>
+<li><a href="#hubble-cli">Hubble CLI</a></li>
+</ul>
+</li>
+<li><a href="#network-policy-examples">Network Policy Examples</a><ul>
+<li><a href="#1-basic-l4-policy-same-as-standard-networkpolicy">1. Basic L4 Policy (same as standard NetworkPolicy)</a></li>
+<li><a href="#2-l7-http-policy">2. L7 HTTP Policy</a></li>
+<li><a href="#3-fqdn-egress-policy">3. FQDN Egress Policy</a></li>
+</ul>
+</li>
+<li><a href="#gateway-api-with-cilium">Gateway API with Cilium</a></li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#metrics--monitoring">Metrics &amp; Monitoring</a></li>
+<li><a href="#migration-from-calico-to-cilium">Migration from Calico to Cilium</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a><ul>
+<li><a href="#pod-connectivity-issues">Pod connectivity issues</a></li>
+<li><a href="#dns-resolution-issues">DNS resolution issues</a></li>
+</ul>
+</li>
+<li><a href="#best-practices-20252026">Best Practices (2025/2026)</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

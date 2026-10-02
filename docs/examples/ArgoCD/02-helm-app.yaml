@@ -1,0 +1,26 @@
+# ArgoCD Application with Helm Chart
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/myrepo
+    targetRevision: main
+    path: helm/prometheus
+    helm:
+      releaseName: prometheus
+      values: |
+        prometheus:
+          retention: 30d
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cert-Manager Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Cert-Manager Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="cert-manager-setup-notes">Cert-Manager Setup Notes</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add Cert-Manager Helm repository
+helm repo add jetstack https://charts.jetstack.io
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="1-create-cert-manager-namespace">1. Create cert-manager namespace</h3>
+<pre><code class="language-bash">kubectl create namespace cert-manager
+</code></pre>
+<h3 id="2-install-cert-manager-crds">2. Install Cert-Manager CRDs</h3>
+<pre><code class="language-bash">kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.2/cert-manager.crds.yaml
+</code></pre>
+<h3 id="3-install-cert-manager-using-helm">3. Install Cert-Manager using Helm</h3>
+<pre><code class="language-bash">helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.21.2
+</code></pre>
+<blockquote>
+<p><strong>2026 update</strong>: <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2">v1.21.2</a> is stable as checked October 1, 2026, with security hardening and renewal/webhook fixes. If you're on v1.19.x/v1.20.x, upgrade at least to v1.19.6/v1.20.3 — those patch releases fix a HIGH severity RBAC issue (<a href="https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258">GHSA-8rvj-mm4h-c258</a>) where <code>cert-manager-edit</code> allowed direct creation of ACME <code>Challenge</code>/<code>Order</code> resources. See <a href="deprecations.html">DEPRECATIONS.md</a> for upgrade and security notes.</p>
+</blockquote>
+<h2 id="verify-installation">Verify Installation</h2>
+<pre><code class="language-bash"># Check cert-manager pods
+kubectl get pods -n cert-manager
+
+# Check cert-manager CRDs
+kubectl get crds | grep cert-manager
+
+# Verify webhook
+kubectl get validatingwebhookconfigurations | grep cert-manager
+</code></pre>
+<h2 id="issuer-setup">Issuer Setup</h2>
+<h3 id="1-self-signed-issuer-testing-only">1. Self-Signed Issuer (testing only)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: default
+spec:
+  selfSigned: {}
+EOF
+</code></pre>
+<h3 id="2-lets-encrypt-staging-issuer">2. Let's Encrypt Staging Issuer</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: default
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-staging-key
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx
+EOF
+</code></pre>
+<h3 id="3-lets-encrypt-production-issuer">3. Let's Encrypt Production Issuer</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-prod
+  namespace: default
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-key
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx
+EOF
+</code></pre>
+<h3 id="4-clusterissuer-cluster-wide">4. ClusterIssuer (cluster-wide)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod-cluster
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-key-cluster
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+EOF
+</code></pre>
+<h2 id="certificate-examples">Certificate Examples</h2>
+<h3 id="1-certificate-with-ingress-annotation-automatic">1. Certificate with Ingress annotation (automatic)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myapp-ingress
+  annotations:
+    cert-manager.io/issuer: &quot;letsencrypt-prod&quot;
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - myapp.example.com
+    secretName: myapp-tls
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: myapp
+            port:
+              number: 80
+EOF
+</code></pre>
+<h3 id="2-manual-certificate-resource">2. Manual Certificate resource</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: myapp-cert
+spec:
+  secretName: myapp-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - myapp.example.com
+  - www.myapp.example.com
+  duration: 2160h # 90d
+  renewBefore: 720h # 30d
+EOF
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># List issuers
+kubectl get issuer
+kubectl get clusterissuer
+
+# List certificates
+kubectl get certificate
+
+# Describe certificate status
+kubectl describe certificate &lt;cert-name&gt;
+
+# View certificate details
+kubectl get secret &lt;tls-secret-name&gt; -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -text -noout
+
+# Check cert-manager logs
+kubectl logs -n cert-manager -l app.kubernetes.io/instance=cert-manager -f
+
+# Force certificate renewal
+kubectl delete secret &lt;tls-secret-name&gt;
+
+# Verify certificate expiry
+kubectl get certificate -o wide
+</code></pre>
+<h2 id="debugging">Debugging</h2>
+<h3 id="check-certificate-status">Check Certificate Status</h3>
+<pre><code class="language-bash">kubectl describe certificate &lt;cert-name&gt;
+kubectl describe certificaterequest &lt;cert-request-name&gt;
+kubectl describe order &lt;order-name&gt;
+kubectl describe challenge &lt;challenge-name&gt;
+</code></pre>
+<h3 id="view-challenge-logs">View Challenge Logs</h3>
+<pre><code class="language-bash">kubectl describe challenge &lt;challenge-name&gt;
+kubectl logs -n cert-manager -l app=cert-manager --tail=100
+</code></pre>
+<h2 id="advanced-configurations">Advanced Configurations</h2>
+<h3 id="1-dns01-with-aws-route53">1. DNS01 with AWS Route53</h3>
+<pre><code class="language-bash">kubectl create secret generic aws-route53-credentials \
+  --from-literal=secret-access-key=$AWS_SECRET_ACCESS_KEY \
+  -n cert-manager
+</code></pre>
+<p>Then use in ClusterIssuer:</p>
+<pre><code class="language-bash">dns01:
+  route53:
+    region: us-east-1
+    accessKeyID: $AWS_ACCESS_KEY_ID
+    secretAccessKeySecretRef:
+      name: aws-route53-credentials
+      key: secret-access-key
+</code></pre>
+<h3 id="2-http01-with-multiple-ingress-classes">2. HTTP01 with multiple ingress classes</h3>
+<pre><code class="language-bash">solvers:
+- http01:
+    ingress:
+      ingressClassName: nginx
+- http01:
+    ingress:
+      ingressClassName: istio
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li>Use Let's Encrypt staging for testing</li>
+<li>Use production issuer only when confident</li>
+<li>Set appropriate renewal periods (30 days before expiry)</li>
+<li>Monitor certificate expiry dates</li>
+<li>Use ClusterIssuer for cluster-wide certificates</li>
+<li>Implement rate limiting to avoid Let's Encrypt limits</li>
+<li>Test DNS challenges in non-production environments first</li>
+<li>Keep cert-manager updated for security patches</li>
+</ol>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://cert-manager.io/</li>
+<li><strong>Installation Guide</strong>: https://cert-manager.io/docs/installation/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/cert-manager/cert-manager</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Cert-manager automates TLS certificate management</li>
+<li>Works with multiple issuers (Let's Encrypt, Vault, private CAs)</li>
+<li>Automatically renews certificates before expiry</li>
+<li>Integrates with Ingress controllers</li>
+<li>Essential for production Kubernetes clusters with HTTPS</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#1-create-cert-manager-namespace">1. Create cert-manager namespace</a></li>
+<li><a href="#2-install-cert-manager-crds">2. Install Cert-Manager CRDs</a></li>
+<li><a href="#3-install-cert-manager-using-helm">3. Install Cert-Manager using Helm</a></li>
+</ul>
+</li>
+<li><a href="#verify-installation">Verify Installation</a></li>
+<li><a href="#issuer-setup">Issuer Setup</a><ul>
+<li><a href="#1-self-signed-issuer-testing-only">1. Self-Signed Issuer (testing only)</a></li>
+<li><a href="#2-lets-encrypt-staging-issuer">2. Let's Encrypt Staging Issuer</a></li>
+<li><a href="#3-lets-encrypt-production-issuer">3. Let's Encrypt Production Issuer</a></li>
+<li><a href="#4-clusterissuer-cluster-wide">4. ClusterIssuer (cluster-wide)</a></li>
+</ul>
+</li>
+<li><a href="#certificate-examples">Certificate Examples</a><ul>
+<li><a href="#1-certificate-with-ingress-annotation-automatic">1. Certificate with Ingress annotation (automatic)</a></li>
+<li><a href="#2-manual-certificate-resource">2. Manual Certificate resource</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#debugging">Debugging</a><ul>
+<li><a href="#check-certificate-status">Check Certificate Status</a></li>
+<li><a href="#view-challenge-logs">View Challenge Logs</a></li>
+</ul>
+</li>
+<li><a href="#advanced-configurations">Advanced Configurations</a><ul>
+<li><a href="#1-dns01-with-aws-route53">1. DNS01 with AWS Route53</a></li>
+<li><a href="#2-http01-with-multiple-ingress-classes">2. HTTP01 with multiple ingress classes</a></li>
+</ul>
+</li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

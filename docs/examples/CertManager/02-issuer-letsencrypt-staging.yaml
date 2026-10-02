@@ -1,0 +1,18 @@
+# Cert-Manager Issuer - Let's Encrypt Staging
+# Use staging to avoid rate limits during testing
+# cert-manager v1.15+: ingressClassName replaces deprecated class field (still valid in v1.21)
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: default
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-staging-key
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx

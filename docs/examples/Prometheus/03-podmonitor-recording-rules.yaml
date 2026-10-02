@@ -1,0 +1,124 @@
+# Prometheus PodMonitor - Direct Pod Scraping (no Service required)
+# Use PodMonitor when pods expose metrics directly and you don't have/need a Service.
+# Complements ServiceMonitor (which scrapes via Services).
+# monitoring.coreos.com/v1 - stable in kube-prometheus-stack v0.75+
+---
+# Example 1: Basic PodMonitor for pods with metrics on a named port
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: myapp-pod-monitor
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack   # must match PrometheusName.podMonitorSelector
+spec:
+  # Namespaces to look for matching pods
+  namespaceSelector:
+    matchNames:
+    - default
+    - production
+  # Which pods to scrape
+  selector:
+    matchLabels:
+      app: myapp
+      metrics-enabled: "true"
+  podMetricsEndpoints:
+  - port: metrics         # named port in Pod spec
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /metrics
+    scheme: http
+    # Optional: relabeling to add custom labels to metrics
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_label_version]
+      targetLabel: version
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: kubernetes_namespace
+    metricRelabelings:
+    # Drop high-cardinality metrics to save storage
+    - sourceLabels: [__name__]
+      regex: 'go_gc_.*'
+      action: drop
+
+---
+# Example 2: PodMonitor with TLS and authentication (secure scraping)
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: secure-app-pod-monitor
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+    - secure-apps
+  selector:
+    matchLabels:
+      app: secure-service
+  podMetricsEndpoints:
+  - port: metrics-tls
+    interval: 30s
+    scheme: https
+    tlsConfig:
+      ca:
+        secret:
+          name: prometheus-scrape-ca
+          key: ca.crt
+      cert:
+        secret:
+          name: prometheus-scrape-cert
+          key: tls.crt
+      keySecret:
+        name: prometheus-scrape-cert
+        key: tls.key
+      insecureSkipVerify: false
+    authorization:
+      credentials:
+        name: prometheus-scrape-token
+        key: token
+
+---
+# Example 3: PrometheusRule with recording rules (performance optimization)
+# Recording rules precompute expensive queries for faster dashboard loads
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: myapp-recording-rules
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: myapp.recording
+    interval: 30s
+    rules:
+    # Precompute request rate per service
+    - record: job:http_requests_total:rate5m
+      expr: sum(rate(http_requests_total[5m])) by (job, namespace, service)
+    # Precompute p99 latency
+    - record: job:http_request_duration_seconds:p99
+      expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, service))
+    # Precompute error rate
+    - record: job:http_requests_errors:rate5m
+      expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (job, service) / sum(rate(http_requests_total[5m])) by (job, service)
+  - name: myapp.alerts
+    rules:
+    - alert: HighErrorRate
+      expr: job:http_requests_errors:rate5m > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        team: platform
+      annotations:
+        summary: "High error rate detected for {{ $labels.service }}"
+        description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.service }}"
+        runbook: "https://wiki.example.com/runbooks/high-error-rate"
+    - alert: HighP99Latency
+      expr: job:http_request_duration_seconds:p99 > 1.0
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High p99 latency for {{ $labels.service }}"
+        description: "p99 latency is {{ $value | humanizeDuration }}"

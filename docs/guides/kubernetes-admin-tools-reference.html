@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes Admin Tools Reference Guide · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kubernetes Admin Tools Reference Guide</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="kubernetes-admin-tools-reference-guide">Kubernetes Admin Tools Reference Guide</h1>
+<h2 id="essential-tools-overview">Essential Tools Overview</h2>
+<p>This guide provides an overview of recommended Kubernetes administration and monitoring tools for production clusters.</p>
+<h2 id="core-infrastructure-tools">Core Infrastructure Tools</h2>
+<h3 id="monitoring--observability">Monitoring &amp; Observability</h3>
+<ul>
+<li><strong>Prometheus</strong> (<a href="prometheus-grafana-setup.html"><code>prometheus-grafana-setup.md</code></a>) - Metrics collection and alerting</li>
+<li><strong>Grafana</strong> - Metrics visualization and dashboards</li>
+<li><strong>Kiali</strong> - Istio service mesh visualization (included with Istio)</li>
+<li><strong>Jaeger</strong> - Distributed tracing</li>
+</ul>
+<h3 id="service-mesh">Service Mesh</h3>
+<ul>
+<li><strong>Istio</strong> (<a href="istio-setup.html"><code>istio-setup.md</code></a>) - Advanced traffic management and observability</li>
+<li>Traffic splitting and canary deployments</li>
+<li>Advanced routing policies</li>
+<li>Mutual TLS between services</li>
+<li>Retry logic and circuit breaking</li>
+</ul>
+<h3 id="ingress--load-balancing">Ingress &amp; Load Balancing</h3>
+<ul>
+<li><strong>Nginx Ingress Controller</strong> (<a href="nginx-ingress-setup.html"><code>nginx-ingress-setup.md</code></a>) - HTTP(S) routing</li>
+<li>Virtual hosting</li>
+<li>TLS termination</li>
+<li>Rate limiting and authentication</li>
+</ul>
+<h3 id="certificate-management">Certificate Management</h3>
+<ul>
+<li><strong>Cert-Manager</strong> (<a href="cert-manager-setup.html"><code>cert-manager-setup.md</code></a>) - Automated TLS certificate management</li>
+<li>Let's Encrypt integration</li>
+<li>Certificate renewal automation</li>
+</ul>
+<h3 id="network-policies">Network Policies</h3>
+<ul>
+<li><strong>Calico</strong> (<a href="calico-setup.html"><code>calico-setup.md</code></a>) - Network security policies</li>
+<li>Pod-to-pod communication control</li>
+<li>Cluster-wide policies</li>
+</ul>
+<h3 id="auto-scaling">Auto-scaling</h3>
+<ul>
+<li><strong>KEDA</strong> (<a href="keda-setup.html"><code>keda-setup.md</code></a>) - Event-driven autoscaling</li>
+<li>CPU/Memory scaling</li>
+<li>Queue-based scaling (Kafka, RabbitMQ, AWS SQS)</li>
+<li>Custom metrics scaling</li>
+</ul>
+<h3 id="gitops--deployment">GitOps &amp; Deployment</h3>
+<ul>
+<li><strong>ArgoCD</strong> (<a href="argocd-setup.html"><code>argocd-setup.md</code></a>) - Continuous deployment</li>
+<li>Git-based deployment workflows</li>
+<li>Application lifecycle management</li>
+<li>Multi-environment support</li>
+</ul>
+<h2 id="installation-priority-for-production-cluster">Installation Priority for Production Cluster</h2>
+<h3 id="phase-1-foundation-required">Phase 1: Foundation (Required)</h3>
+<ol>
+<li><strong>Prometheus + Grafana</strong> - Observability is critical for operations</li>
+<li><strong>Nginx Ingress Controller</strong> - Essential for external traffic routing</li>
+<li><strong>Cert-Manager</strong> - Required for HTTPS in production</li>
+</ol>
+<h3 id="phase-2-advanced-highly-recommended">Phase 2: Advanced (Highly Recommended)</h3>
+<ol start="4">
+<li><strong>Calico</strong> - Network security (especially for multi-tenant clusters)</li>
+<li><strong>ArgoCD</strong> - GitOps workflow automation</li>
+<li><strong>KEDA</strong> - Application auto-scaling</li>
+</ol>
+<h3 id="phase-3-optional-situational">Phase 3: Optional (Situational)</h3>
+<ol start="7">
+<li><strong>Istio</strong> - Service mesh (complex, use only if needed for advanced features)</li>
+</ol>
+<h2 id="quick-reference-tool-selection-matrix">Quick Reference: Tool Selection Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Tool</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Real-time metrics &amp; dashboards</td>
+<td>Prometheus + Grafana</td>
+<td>prometheus-grafana-setup.md</td>
+</tr>
+<tr>
+<td>External HTTP/HTTPS routing</td>
+<td>Nginx Ingress</td>
+<td>nginx-ingress-setup.md</td>
+</tr>
+<tr>
+<td>TLS certificate automation</td>
+<td>Cert-Manager</td>
+<td>cert-manager-setup.md</td>
+</tr>
+<tr>
+<td>Pod-level network security</td>
+<td>Calico</td>
+<td>calico-setup.md</td>
+</tr>
+<tr>
+<td>Event-driven auto-scaling</td>
+<td>KEDA</td>
+<td>keda-setup.md</td>
+</tr>
+<tr>
+<td>Service-to-service traffic control</td>
+<td>Istio</td>
+<td>istio-setup.md</td>
+</tr>
+<tr>
+<td>GitOps deployments</td>
+<td>ArgoCD</td>
+<td>argocd-setup.md</td>
+</tr>
+</tbody>
+</table>
+<h2 id="common-admin-tasks">Common Admin Tasks</h2>
+<h3 id="1-monitor-cluster-health">1. Monitor Cluster Health</h3>
+<pre><code class="language-bash"># Check node status
+kubectl get nodes -o wide
+
+# Check cluster resources
+kubectl top nodes
+kubectl top pods --all-namespaces
+
+# Access Grafana for dashboard view
+kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
+# Visit http://localhost:3000
+</code></pre>
+<h3 id="2-deploy-application-with-gitops">2. Deploy Application with GitOps</h3>
+<pre><code class="language-bash"># Create ArgoCD application
+# See argocd-setup.md for examples
+
+# Manage with Nginx Ingress
+# See nginx-ingress-setup.md for examples
+
+# Secure with auto-generated TLS
+# See cert-manager-setup.md for examples
+</code></pre>
+<h3 id="3-setup-auto-scaling">3. Setup Auto-scaling</h3>
+<pre><code class="language-bash"># Configure KEDA for event-based scaling
+# See keda-setup.md for examples
+
+# Monitor with Prometheus metrics
+kubectl port-forward -n monitoring svc/prometheus-server 9090:80
+</code></pre>
+<h3 id="4-implement-network-policies">4. Implement Network Policies</h3>
+<pre><code class="language-bash"># Create Calico policies for security
+# See calico-setup.md for examples
+
+# Test connectivity
+kubectl run debug --image=busybox -it -- sh
+</code></pre>
+<h3 id="5-advanced-traffic-management">5. Advanced Traffic Management</h3>
+<pre><code class="language-bash"># Use Istio for advanced routing
+# See istio-setup.md for examples
+
+# View with Kiali dashboard
+kubectl port-forward -n istio-system svc/kiali 20000:20000
+</code></pre>
+<h2 id="namespace-organization-best-practices">Namespace Organization Best Practices</h2>
+<pre><code class="language-bash"># Monitoring namespace
+kubectl create namespace monitoring
+
+# GitOps namespace
+kubectl create namespace argocd
+
+# Ingress namespace
+kubectl create namespace ingress-nginx
+
+# Service mesh namespace
+kubectl create namespace istio-system
+
+# Application namespaces
+kubectl create namespace production
+kubectl create namespace staging
+kubectl create namespace development
+</code></pre>
+<h2 id="useful-helm-commands">Useful Helm Commands</h2>
+<pre><code class="language-bash"># Add all recommended repositories
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add jetstack https://charts.jetstack.io
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add projectcalico https://projectcalico.docs.tigera.io/charts
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm repo add argo https://argoproj.github.io/argo-helm
+
+# Update all repositories
+helm repo update
+
+# List all installed releases
+helm list --all-namespaces
+
+# Check for chart updates
+helm repo update &amp;&amp; helm outdated
+</code></pre>
+<h2 id="monitoring-commands">Monitoring Commands</h2>
+<pre><code class="language-bash"># Check pod status across all namespaces
+kubectl get pods --all-namespaces --sort-by=.metadata.creationTimestamp
+
+# Monitor pod events
+kubectl get events --all-namespaces --sort-by='.lastTimestamp'
+
+# Check resource requests vs actual usage
+kubectl top pod --all-namespaces
+
+# Find pods with issues
+kubectl get pods --all-namespaces --field-selector=status.phase!=Running
+</code></pre>
+<h2 id="troubleshooting-commands">Troubleshooting Commands</h2>
+<pre><code class="language-bash"># Get cluster info
+kubectl cluster-info
+
+# Describe cluster status
+kubectl get componentstatuses
+
+# Check kubelet status on nodes
+kubectl describe node &lt;node-name&gt;
+
+# View API server logs (if self-hosted)
+kubectl logs -n kube-system -l component=kube-apiserver
+
+# Debug network connectivity
+kubectl run -it --rm debug --image=nicolaka/netshoot --restart=Never -- bash
+
+# Check service endpoints
+kubectl get endpoints --all-namespaces
+</code></pre>
+<h2 id="backup--disaster-recovery">Backup &amp; Disaster Recovery</h2>
+<h3 id="backup-configuration">Backup Configuration</h3>
+<pre><code class="language-bash"># Backup all manifests
+kubectl get all --all-namespaces -o yaml &gt; cluster-backup.yaml
+
+# Backup persistent data
+kubectl get pvc --all-namespaces -o yaml &gt; pvc-backup.yaml
+
+# Backup secrets (be careful!)
+kubectl get secrets --all-namespaces -o yaml &gt; secrets-backup.yaml
+
+# Backup ArgoCD applications
+kubectl get applications -n argocd -o yaml &gt; argocd-apps-backup.yaml
+</code></pre>
+<h3 id="restore-configuration">Restore Configuration</h3>
+<pre><code class="language-bash"># Restore from backup
+kubectl apply -f cluster-backup.yaml
+</code></pre>
+<h2 id="security-best-practices">Security Best Practices</h2>
+<ol>
+<li><strong>Enable RBAC</strong>: Implement role-based access control</li>
+<li><strong>Use Network Policies</strong>: Deploy Calico for pod-level security</li>
+<li><strong>Enable Pod Security Policies</strong>: Control pod capabilities</li>
+<li><strong>Use Secrets Management</strong>: Never commit secrets to Git</li>
+<li><strong>Enable Audit Logging</strong>: Track API access</li>
+<li><strong>Use HTTPS</strong>: Deploy Cert-Manager for TLS</li>
+<li><strong>Implement Service Mesh Security</strong>: Use Istio for mTLS</li>
+<li><strong>Regular Updates</strong>: Keep all tools updated</li>
+</ol>
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><strong>Kubernetes Official Docs</strong>: https://kubernetes.io/docs/</li>
+<li><strong>Helm Hub</strong>: https://hub.helm.sh/</li>
+<li><strong>CNCF Landscape</strong>: https://landscape.cncf.io/</li>
+<li><strong>Kubernetes Best Practices</strong>: https://kubernetes.io/docs/concepts/cluster-administration/</li>
+</ul>
+<h2 id="tool-combination-recipes">Tool Combination Recipes</h2>
+<h3 id="minimal-production-setup">Minimal Production Setup</h3>
+<ul>
+<li>Prometheus + Grafana (monitoring)</li>
+<li>Nginx Ingress + Cert-Manager (ingress &amp; TLS)</li>
+<li>Calico (network security)</li>
+</ul>
+<h3 id="full-featured-production-setup">Full-Featured Production Setup</h3>
+<ul>
+<li>All tools from Minimal setup, plus:</li>
+<li>KEDA (auto-scaling)</li>
+<li>ArgoCD (GitOps)</li>
+</ul>
+<h3 id="advanced-enterprise-setup">Advanced Enterprise Setup</h3>
+<ul>
+<li>All tools above, plus:</li>
+<li>Istio (service mesh)</li>
+<li>Kiali (mesh visualization)</li>
+<li>Jaeger (distributed tracing)</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Start with essential tools, add others as needed</li>
+<li>Each tool solves specific problems - evaluate your needs</li>
+<li>All listed tools are open-source and widely adopted</li>
+<li>Combine tools for comprehensive cluster management</li>
+<li>Regular training and documentation is essential for teams</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#essential-tools-overview">Essential Tools Overview</a></li>
+<li><a href="#core-infrastructure-tools">Core Infrastructure Tools</a><ul>
+<li><a href="#monitoring--observability">Monitoring &amp; Observability</a></li>
+<li><a href="#service-mesh">Service Mesh</a></li>
+<li><a href="#ingress--load-balancing">Ingress &amp; Load Balancing</a></li>
+<li><a href="#certificate-management">Certificate Management</a></li>
+<li><a href="#network-policies">Network Policies</a></li>
+<li><a href="#auto-scaling">Auto-scaling</a></li>
+<li><a href="#gitops--deployment">GitOps &amp; Deployment</a></li>
+</ul>
+</li>
+<li><a href="#installation-priority-for-production-cluster">Installation Priority for Production Cluster</a><ul>
+<li><a href="#phase-1-foundation-required">Phase 1: Foundation (Required)</a></li>
+<li><a href="#phase-2-advanced-highly-recommended">Phase 2: Advanced (Highly Recommended)</a></li>
+<li><a href="#phase-3-optional-situational">Phase 3: Optional (Situational)</a></li>
+</ul>
+</li>
+<li><a href="#quick-reference-tool-selection-matrix">Quick Reference: Tool Selection Matrix</a></li>
+<li><a href="#common-admin-tasks">Common Admin Tasks</a><ul>
+<li><a href="#1-monitor-cluster-health">1. Monitor Cluster Health</a></li>
+<li><a href="#2-deploy-application-with-gitops">2. Deploy Application with GitOps</a></li>
+<li><a href="#3-setup-auto-scaling">3. Setup Auto-scaling</a></li>
+<li><a href="#4-implement-network-policies">4. Implement Network Policies</a></li>
+<li><a href="#5-advanced-traffic-management">5. Advanced Traffic Management</a></li>
+</ul>
+</li>
+<li><a href="#namespace-organization-best-practices">Namespace Organization Best Practices</a></li>
+<li><a href="#useful-helm-commands">Useful Helm Commands</a></li>
+<li><a href="#monitoring-commands">Monitoring Commands</a></li>
+<li><a href="#troubleshooting-commands">Troubleshooting Commands</a></li>
+<li><a href="#backup--disaster-recovery">Backup &amp; Disaster Recovery</a><ul>
+<li><a href="#backup-configuration">Backup Configuration</a></li>
+<li><a href="#restore-configuration">Restore Configuration</a></li>
+</ul>
+</li>
+<li><a href="#security-best-practices">Security Best Practices</a></li>
+<li><a href="#additional-resources">Additional Resources</a></li>
+<li><a href="#tool-combination-recipes">Tool Combination Recipes</a><ul>
+<li><a href="#minimal-production-setup">Minimal Production Setup</a></li>
+<li><a href="#full-featured-production-setup">Full-Featured Production Setup</a></li>
+<li><a href="#advanced-enterprise-setup">Advanced Enterprise Setup</a></li>
+</ul>
+</li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

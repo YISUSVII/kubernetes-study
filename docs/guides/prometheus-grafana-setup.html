@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prometheus &amp; Grafana Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Prometheus &amp; Grafana Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="prometheus--grafana-setup-notes">Prometheus &amp; Grafana Setup Notes</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add Prometheus community Helm repository
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation-command">Installation Command</h2>
+<pre><code class="language-bash">helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 91.8.2
+</code></pre>
+<h2 id="example-installation-details">Example Installation Details</h2>
+<ul>
+<li><strong>Chart Version</strong>: 91.8.2 (stable snapshot checked October 1, 2026)</li>
+<li><strong>Release Name</strong>: prometheus</li>
+<li><strong>Namespace</strong>: monitoring</li>
+<li><strong>Status</strong>: verify in your cluster using the commands below</li>
+</ul>
+<blockquote>
+<p><strong>October 2026 update</strong>: <a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2">chart 91.8.2</a> replaces the July 87.21.0 pin. Review the <a href="https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.8.2/charts/kube-prometheus-stack/README.md">chart upgrade notes</a> before upgrading across major chart versions.</p>
+</blockquote>
+<h2 id="post-installation-commands">Post-Installation Commands</h2>
+<h3 id="check-installation-status">Check Installation Status</h3>
+<pre><code class="language-bash">kubectl --namespace monitoring get pods -l &quot;release=prometheus&quot;
+</code></pre>
+<h3 id="get-grafana-admin-password">Get Grafana Admin Password</h3>
+<p>Two methods available:</p>
+<p><strong>Method 1:</strong></p>
+<pre><code class="language-bash">kubectl --namespace monitoring get secrets prometheus-grafana -o jsonpath=&quot;{.data.admin-password}&quot; | base64 -d ; echo
+</code></pre>
+<p><strong>Method 2:</strong></p>
+<pre><code class="language-bash">kubectl get secret --namespace monitoring -l app.kubernetes.io/component=admin-secret -o jsonpath=&quot;{.items[0].data.admin-password}&quot; | base64 --decode ; echo
+</code></pre>
+<p><strong>Current Admin Password</strong>: <code>gILP1wJ0jsWaonYKV4n3ghQflQlp86RzKN74tZdp</code></p>
+<h3 id="access-grafana-locally">Access Grafana Locally</h3>
+<pre><code class="language-bash"># Export pod name
+export POD_NAME=$(kubectl --namespace monitoring get pod -l &quot;app.kubernetes.io/name=grafana,app.kubernetes.io/instance=prometheus&quot; -oname)
+
+# Start port forwarding
+kubectl --namespace monitoring port-forward $POD_NAME 3000
+</code></pre>
+<p><strong>Access URL</strong>: http://localhost:3000
+- <strong>Username</strong>: admin
+- <strong>Password</strong>: gILP1wJ0jsWaonYKV4n3ghQflQlp86RzKN74tZdp</p>
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><strong>Prometheus Operator Documentation</strong>: https://github.com/prometheus-operator/kube-prometheus</li>
+<li>Use the above link for instructions on creating &amp; configuring Alertmanager and Prometheus instances using the Operator</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Port forwarding runs on <code>127.0.0.1:3000</code> and <code>[::1]:3000</code></li>
+<li>Use <code>Ctrl+C</code> to stop port forwarding</li>
+<li>The setup includes the complete kube-prometheus-stack with Grafana, Prometheus, and Alertmanager</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li>If pods are not running, check status with the status command above</li>
+<li>Ensure the monitoring namespace exists and is active</li>
+<li>Verify Helm chart repository is added: <code>helm repo add prometheus-community https://prometheus-community.github.io/helm-charts</code></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation-command">Installation Command</a></li>
+<li><a href="#example-installation-details">Example Installation Details</a></li>
+<li><a href="#post-installation-commands">Post-Installation Commands</a><ul>
+<li><a href="#check-installation-status">Check Installation Status</a></li>
+<li><a href="#get-grafana-admin-password">Get Grafana Admin Password</a></li>
+<li><a href="#access-grafana-locally">Access Grafana Locally</a></li>
+</ul>
+</li>
+<li><a href="#additional-resources">Additional Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

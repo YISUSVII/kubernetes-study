@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>04-scaledobject-kafka.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>04-scaledobject-kafka.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>04-scaledobject-kafka.yaml</h1><p><a href="index.html">← KEDA examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="04-scaledobject-kafka.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># KEDA ScaledObject - Kafka-based Scaling
+# Scales based on Kafka consumer group lag
+# KEDA v2.15+ compatible with SASL/TLS authentication support
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kafka-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kafka-consumer
+  pollingInterval: 10
+  cooldownPeriod: 30
+  minReplicaCount: 1
+  maxReplicaCount: 30
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: kafka-broker.kafka.svc.cluster.local:9092
+      consumerGroup: mygroup
+      topic: mytopic
+      lagThreshold: &quot;10&quot;
+      offsetResetPolicy: latest  # earliest | latest
+      # For SASL auth, reference a TriggerAuthentication:
+      # authenticationRef:
+      #   name: kafka-trigger-auth
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

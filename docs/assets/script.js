@@ -2,8 +2,8 @@
    Kubernetes Study Repository — 2026 site logic
    ========================================================================== */
 
-const REPO = "https://github.com/YISUSVII/kubernetes-study/blob/main";
-const REPO_TREE = "https://github.com/YISUSVII/kubernetes-study/tree/main";
+const GUIDES = "guides";
+const EXAMPLES = "examples";
 
 /* ---------------- Data ---------------- */
 
@@ -12,67 +12,67 @@ const TECHNOLOGIES = [
     id: "argocd", icon: "🔄", name: "ArgoCD", tagline: "Declarative GitOps continuous delivery for Kubernetes.",
     version: "v3.5.3", note: "Helm 4; review upgrade guide", status: "major-update", statusLabel: "Major update from v2.14",
     install: "kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml",
-    setup: `${REPO}/argocd-setup.md`, examples: `${REPO_TREE}/examples/ArgoCD`,
+    setup: `${GUIDES}/argocd-setup.html`, examples: `${EXAMPLES}/ArgoCD/index.html`,
   },
   {
     id: "calico", icon: "🛡️", name: "Calico", tagline: "Network policy enforcement, including AdminNetworkPolicy.",
     version: "v3.32.2", note: "current stable", status: "stable", statusLabel: "Stable",
     install: "helm install calico projectcalico/tigera-operator -n tigera-operator --version v3.32.2",
-    setup: `${REPO}/calico-setup.md`, examples: `${REPO_TREE}/examples/Calico`,
+    setup: `${GUIDES}/calico-setup.html`, examples: `${EXAMPLES}/Calico/index.html`,
   },
   {
     id: "cert-manager", icon: "🔐", name: "cert-manager", tagline: "Automated TLS certificate issuance and renewal.",
     version: "v1.21.2", note: "security hardening and renewal fixes", status: "attention", statusLabel: "Security fix — upgrade",
     install: "helm install cert-manager jetstack/cert-manager -n cert-manager --version v1.21.2",
-    setup: `${REPO}/cert-manager-setup.md`, examples: `${REPO_TREE}/examples/CertManager`,
+    setup: `${GUIDES}/cert-manager-setup.html`, examples: `${EXAMPLES}/CertManager/index.html`,
   },
   {
     id: "cilium", icon: "⚡", name: "Cilium", tagline: "eBPF-based CNI with native Gateway API and Hubble observability.",
     version: "v1.20.2", note: "1.20 stable", status: "stable", statusLabel: "Stable",
     install: "helm install cilium cilium/cilium --version 1.20.2 -n kube-system",
-    setup: `${REPO}/cilium-setup.md`, examples: `${REPO_TREE}/examples/Cilium`,
+    setup: `${GUIDES}/cilium-setup.html`, examples: `${EXAMPLES}/Cilium/index.html`,
   },
   {
     id: "gateway-api", icon: "🌐", name: "Gateway API", tagline: "The role-oriented successor to Ingress: HTTPRoute, GRPCRoute, TCPRoute/UDPRoute.",
     version: "v1.6.2", note: "TCPRoute/UDPRoute now GA", status: "stable", statusLabel: "Stable",
     install: "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml",
-    setup: `${REPO}/gateway-api-setup.md`, examples: `${REPO_TREE}/examples/GatewayAPI`,
+    setup: `${GUIDES}/gateway-api-setup.html`, examples: `${EXAMPLES}/GatewayAPI/index.html`,
   },
   {
     id: "istio", icon: "🕸️", name: "Istio", tagline: "Full-featured service mesh: mTLS, traffic shaping, observability.",
     version: "v1.31.1", note: "was 1.24 (past EOL)", status: "major-update", statusLabel: "Multiple releases behind",
     install: "helm install istiod istio/istiod -n istio-system --version 1.31.1",
-    setup: `${REPO}/istio-setup.md`, examples: `${REPO_TREE}/examples/Istio`,
+    setup: `${GUIDES}/istio-setup.html`, examples: `${EXAMPLES}/Istio/index.html`,
   },
   {
     id: "keda", icon: "📈", name: "KEDA", tagline: "Event-driven autoscaling for Kubernetes workloads.",
     version: "v2.21.0", note: "critical token-audience fix", status: "attention", statusLabel: "Security and breaking changes",
     install: "helm install keda kedacore/keda -n keda --version 2.21.0",
-    setup: `${REPO}/keda-setup.md`, examples: `${REPO_TREE}/examples/KEDA`,
+    setup: `${GUIDES}/keda-setup.html`, examples: `${EXAMPLES}/KEDA/index.html`,
   },
   {
     id: "nginx-ingress", icon: "🪦", name: "NGINX Ingress", tagline: "Classic Ingress controller — kept for historical/study reference.",
     version: "controller-v1.15.1", note: "final release", status: "retired", statusLabel: "Retired March 2026",
     install: "# Do not deploy for new projects — migrate to Gateway API",
-    setup: `${REPO}/nginx-ingress-setup.md`, examples: `${REPO_TREE}/examples/NginxIngress`,
+    setup: `${GUIDES}/nginx-ingress-setup.html`, examples: `${EXAMPLES}/NginxIngress/index.html`,
   },
   {
     id: "prometheus", icon: "📊", name: "Prometheus & Grafana", tagline: "Metrics, alerting, and dashboards via kube-prometheus-stack.",
     version: "chart 91.8.2", note: "was chart 79.9.0", status: "stable", statusLabel: "Stable",
     install: "helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --version 91.8.2",
-    setup: `${REPO}/prometheus-grafana-setup.md`, examples: `${REPO_TREE}/examples/Prometheus`,
+    setup: `${GUIDES}/prometheus-grafana-setup.html`, examples: `${EXAMPLES}/Prometheus/index.html`,
   },
   {
     id: "crossplane", icon: "🧩", name: "Crossplane", tagline: "Build platform APIs using namespaced composite Kubernetes resources.",
     version: "v2.4.2", note: "CNCF Graduated; ConfigMap composition lab", status: "stable", statusLabel: "CNCF Graduated",
     install: "helm install crossplane crossplane-stable/crossplane -n crossplane-system --create-namespace --version 2.4.2 --wait",
-    setup: `${REPO}/crossplane-setup.md`, examples: `${REPO_TREE}/examples/Crossplane`,
+    setup: `${GUIDES}/crossplane-setup.html`, examples: `${EXAMPLES}/Crossplane/index.html`,
   },
   {
     id: "karmada", icon: "🌍", name: "Karmada", tagline: "Multi-cluster scheduling, workload propagation, and replica placement.",
     version: "v1.19.0", note: "CNCF Graduated September 2026", status: "stable", statusLabel: "CNCF Graduated",
     install: "# Follow the setup guide: host cluster, two members, and karmadactl v1.19.0",
-    setup: `${REPO}/karmada-setup.md`, examples: `${REPO_TREE}/examples/Karmada`,
+    setup: `${GUIDES}/karmada-setup.html`, examples: `${EXAMPLES}/Karmada/index.html`,
   },
 ];
 
@@ -103,17 +103,17 @@ const DEPRECATIONS = [
 ];
 
 const EXAMPLE_FOLDERS = [
-  { name: "Crossplane", emoji: "🧩", count: "4 manifests", link: `${REPO_TREE}/examples/Crossplane` },
-  { name: "Karmada", emoji: "🌍", count: "3 manifests", link: `${REPO_TREE}/examples/Karmada` },
-  { name: "ArgoCD", emoji: "🔄", count: "8 manifests", link: `${REPO_TREE}/examples/ArgoCD` },
-  { name: "Calico", emoji: "🛡️", count: "7 manifests", link: `${REPO_TREE}/examples/Calico` },
-  { name: "CertManager", emoji: "🔐", count: "4 manifests", link: `${REPO_TREE}/examples/CertManager` },
-  { name: "Cilium", emoji: "⚡", count: "3 manifests", link: `${REPO_TREE}/examples/Cilium` },
-  { name: "GatewayAPI", emoji: "🌐", count: "11 manifests", link: `${REPO_TREE}/examples/GatewayAPI` },
-  { name: "Istio", emoji: "🕸️", count: "4 manifests", link: `${REPO_TREE}/examples/Istio` },
-  { name: "KEDA", emoji: "📈", count: "6 manifests", link: `${REPO_TREE}/examples/KEDA` },
-  { name: "NginxIngress", emoji: "🪦", count: "5 manifests (retired)", link: `${REPO_TREE}/examples/NginxIngress` },
-  { name: "Prometheus", emoji: "📊", count: "3 manifests", link: `${REPO_TREE}/examples/Prometheus` },
+  { name: "Crossplane", emoji: "🧩", count: "4 manifests", link: `${EXAMPLES}/Crossplane/index.html` },
+  { name: "Karmada", emoji: "🌍", count: "3 manifests", link: `${EXAMPLES}/Karmada/index.html` },
+  { name: "ArgoCD", emoji: "🔄", count: "8 manifests", link: `${EXAMPLES}/ArgoCD/index.html` },
+  { name: "Calico", emoji: "🛡️", count: "7 manifests", link: `${EXAMPLES}/Calico/index.html` },
+  { name: "CertManager", emoji: "🔐", count: "4 manifests", link: `${EXAMPLES}/CertManager/index.html` },
+  { name: "Cilium", emoji: "⚡", count: "3 manifests", link: `${EXAMPLES}/Cilium/index.html` },
+  { name: "GatewayAPI", emoji: "🌐", count: "11 manifests", link: `${EXAMPLES}/GatewayAPI/index.html` },
+  { name: "Istio", emoji: "🕸️", count: "4 manifests", link: `${EXAMPLES}/Istio/index.html` },
+  { name: "KEDA", emoji: "📈", count: "6 manifests", link: `${EXAMPLES}/KEDA/index.html` },
+  { name: "NginxIngress", emoji: "🪦", count: "5 manifests (retired)", link: `${EXAMPLES}/NginxIngress/index.html` },
+  { name: "Prometheus", emoji: "📊", count: "3 manifests", link: `${EXAMPLES}/Prometheus/index.html` },
 ];
 
 /* ---------------- Renderers ---------------- */
@@ -134,8 +134,8 @@ function renderTechGrid() {
         <button class="copy-btn" data-copy="${encodeURIComponent(t.install)}" title="Copy command" aria-label="Copy install command">⧉</button>
       </div>
       <div class="tech-links">
-        <a href="${t.setup}" target="_blank" rel="noopener">Setup guide</a>
-        <a href="${t.examples}" target="_blank" rel="noopener">Examples</a>
+        <a href="${t.setup}">Setup guide</a>
+        <a href="${t.examples}">Examples</a>
       </div>
     </article>
   `).join("");
@@ -145,7 +145,7 @@ function renderTechGrid() {
 function renderPaths() {
   const list = document.getElementById("pathList");
   list.innerHTML = PATHS.map((p) => `
-    <div class="path-item reveal">
+    <a class="path-item reveal" href="guides/study-guide.html#path-${p.n}">
       <div class="path-num">${String(p.n).padStart(2, "0")}</div>
       <div>
         <h3>${p.title}</h3>
@@ -154,8 +154,9 @@ function renderPaths() {
       <div class="path-meta">
         <span class="path-difficulty">${"★".repeat(p.diff)}${"☆".repeat(3 - p.diff)}</span>
         <span class="path-time">${p.time}</span>
+        <span class="path-open">Open study path →</span>
       </div>
-    </div>
+    </a>
   `).join("");
   observeReveal(list.querySelectorAll(".reveal"));
 }
@@ -166,7 +167,7 @@ function renderVersionTable() {
     <tr>
       <td>${v.tool}</td>
       <td><code>${v.version}</code></td>
-      <td><a href="${v.source}" target="_blank" rel="noopener">Release / upgrade notes</a></td>
+      <td><a href="${v.source}">Release / upgrade notes</a></td>
       <td><span class="${v.status === "ok" ? "ok-dot" : "warn-dot"}"></span> ${v.note || "&nbsp;"}</td>
     </tr>
   `).join("");
@@ -186,7 +187,7 @@ function renderDeprecations() {
 function renderExamples() {
   const grid = document.getElementById("exampleGrid");
   grid.innerHTML = EXAMPLE_FOLDERS.map((e) => `
-    <a class="example-card reveal" href="${e.link}" target="_blank" rel="noopener">
+    <a class="example-card reveal" href="${e.link}">
       <span class="emoji">${e.emoji}</span>
       <div><strong>${e.name}</strong><small>${e.count}</small></div>
     </a>

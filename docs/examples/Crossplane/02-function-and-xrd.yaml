@@ -1,0 +1,33 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Function
+metadata:
+  name: function-patch-and-transform
+spec:
+  package: xpkg.crossplane.io/crossplane-contrib/function-patch-and-transform:v0.10.8
+---
+# Crossplane v2 namespaced API; no cloud provider or credentials required.
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: appconfigs.study.example.org
+spec:
+  scope: Namespaced
+  group: study.example.org
+  names:
+    kind: AppConfig
+    plural: appconfigs
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  minLength: 1

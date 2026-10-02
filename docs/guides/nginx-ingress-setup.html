@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nginx Ingress Controller Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Nginx Ingress Controller Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="nginx-ingress-controller-setup-notes">Nginx Ingress Controller Setup Notes</h1>
+<blockquote>
+<p>⚠️ <strong>RETIRED PROJECT (March 24, 2026)</strong>: <code>kubernetes/ingress-nginx</code> has been archived and is now read-only. The final releases are <code>controller-v1.15.1</code> / <code>helm-chart-4.15.1</code>. Do <strong>not</strong> start new projects on ingress-nginx — migrate to <strong>Gateway API</strong> (see <a href="gateway-api-setup.html">gateway-api-setup.md</a>) with a maintained implementation (e.g. Envoy Gateway, Cilium Gateway API, or Istio Gateway). Kubernetes SIG-Network provides an <a href="https://github.com/kubernetes-sigs/ingress2gateway">ingress2gateway</a> migration tool. See <a href="deprecations.html">DEPRECATIONS.md</a> for full details. This guide is kept for historical/study reference only.</p>
+</blockquote>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add Nginx Helm repository
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="1-create-ingress-nginx-namespace">1. Create ingress-nginx namespace</h3>
+<pre><code class="language-bash">kubectl create namespace ingress-nginx
+</code></pre>
+<h3 id="2-install-nginx-ingress-controller">2. Install Nginx Ingress Controller</h3>
+<pre><code class="language-bash">helm install nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --version 4.15.1 \
+  --set controller.service.type=LoadBalancer
+</code></pre>
+<h3 id="alternative-install-with-nodeport-for-development">Alternative: Install with NodePort (for development)</h3>
+<pre><code class="language-bash">helm install nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --set controller.service.type=NodePort \
+  --set controller.service.nodePort.http=30080 \
+  --set controller.service.nodePort.https=30443
+</code></pre>
+<h2 id="verify-installation">Verify Installation</h2>
+<pre><code class="language-bash"># Check Nginx Ingress pods
+kubectl get pods -n ingress-nginx
+
+# Check service
+kubectl get svc -n ingress-nginx
+
+# Get external IP (LoadBalancer)
+kubectl get svc -n ingress-nginx ingress-nginx-controller
+</code></pre>
+<h2 id="basic-ingress-examples">Basic Ingress Examples</h2>
+<h3 id="1-simple-http-ingress">1. Simple HTTP Ingress</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: simple-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: myapp
+            port:
+              number: 80
+EOF
+</code></pre>
+<h3 id="2-https-ingress-with-tls">2. HTTPS Ingress with TLS</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: secure-ingress
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - myapp.example.com
+    secretName: myapp-tls
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: myapp
+            port:
+              number: 8080
+EOF
+</code></pre>
+<h3 id="3-multiple-backends-with-path-based-routing">3. Multiple backends with path-based routing</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multi-backend-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 8080
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-service
+            port:
+              number: 3000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-service
+            port:
+              number: 80
+EOF
+</code></pre>
+<h3 id="4-multiple-hosts-virtual-hosting">4. Multiple hosts (virtual hosting)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multi-host-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app1.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app1-service
+            port:
+              number: 80
+  - host: app2.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app2-service
+            port:
+              number: 80
+EOF
+</code></pre>
+<h2 id="advanced-annotations">Advanced Annotations</h2>
+<h3 id="1-rate-limiting">1. Rate limiting</h3>
+<pre><code class="language-bash">annotations:
+  nginx.ingress.kubernetes.io/limit-rps: &quot;10&quot;
+  nginx.ingress.kubernetes.io/limit-connections: &quot;5&quot;
+</code></pre>
+<h3 id="2-authentication">2. Authentication</h3>
+<pre><code class="language-bash">annotations:
+  nginx.ingress.kubernetes.io/auth-type: basic
+  nginx.ingress.kubernetes.io/auth-secret: basic-auth
+  nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+</code></pre>
+<h3 id="3-cors">3. CORS</h3>
+<pre><code class="language-bash">annotations:
+  nginx.ingress.kubernetes.io/enable-cors: &quot;true&quot;
+  nginx.ingress.kubernetes.io/cors-allow-origin: &quot;*&quot;
+  nginx.ingress.kubernetes.io/cors-allow-credentials: &quot;true&quot;
+</code></pre>
+<h3 id="4-rewrite-url">4. Rewrite URL</h3>
+<pre><code class="language-bash">annotations:
+  nginx.ingress.kubernetes.io/rewrite-target: /$2
+</code></pre>
+<h3 id="5-redirect-http-to-https">5. Redirect HTTP to HTTPS</h3>
+<pre><code class="language-bash">annotations:
+  nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;
+  nginx.ingress.kubernetes.io/ssl-protocols: &quot;TLSv1.2 TLSv1.3&quot;
+</code></pre>
+<h3 id="6-custom-headers">6. Custom headers</h3>
+<pre><code class="language-bash">annotations:
+  nginx.ingress.kubernetes.io/configuration-snippet: |
+    more_set_headers &quot;Server: My Custom Server&quot;;
+    more_set_headers &quot;X-Frame-Options: DENY&quot;;
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># List ingresses
+kubectl get ingress --all-namespaces
+
+# Describe ingress
+kubectl describe ingress &lt;ingress-name&gt;
+
+# Check ingress details with verbose output
+kubectl get ingress &lt;ingress-name&gt; -o yaml
+
+# Check Nginx controller logs
+kubectl logs -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx -f
+
+# Access Nginx metrics
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 10254:10254
+# Access at http://localhost:10254/metrics
+
+# Test ingress routing
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -H &quot;Host: myapp.example.com&quot; http://&lt;ingress-ip&gt;/
+</code></pre>
+<h2 id="monitoring">Monitoring</h2>
+<h3 id="1-expose-metrics-for-prometheus">1. Expose metrics for Prometheus</h3>
+<pre><code class="language-bash"># Metrics are available at :10254/metrics
+# Add to Prometheus scrape config:
+- job_name: 'nginx-ingress'
+  static_configs:
+  - targets: ['ingress-nginx-controller.ingress-nginx:10254']
+</code></pre>
+<h3 id="2-view-controller-status">2. View controller status</h3>
+<pre><code class="language-bash">kubectl get deployment -n ingress-nginx
+kubectl top pod -n ingress-nginx
+</code></pre>
+<h2 id="configuration-examples">Configuration Examples</h2>
+<h3 id="example-full-featured-ingress-with-cert-manager">Example: Full-featured Ingress with Cert-Manager</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: production-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;
+    nginx.ingress.kubernetes.io/limit-rps: &quot;100&quot;
+    nginx.ingress.kubernetes.io/enable-cors: &quot;true&quot;
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.example.com
+    secretName: api-tls
+  rules:
+  - host: api.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api
+            port:
+              number: 8080
+EOF
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="ingress-not-routing-traffic">Ingress not routing traffic</h3>
+<pre><code class="language-bash"># Check ingress status
+kubectl describe ingress &lt;name&gt;
+
+# Check if endpoints are available
+kubectl get endpoints &lt;service-name&gt;
+
+# Check Nginx config
+kubectl exec -it -n ingress-nginx &lt;nginx-pod&gt; -- cat /etc/nginx/nginx.conf
+
+# Test service connectivity from Nginx pod
+kubectl exec -it -n ingress-nginx &lt;nginx-pod&gt; -- curl &lt;service-name&gt;:&lt;port&gt;
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li>Use ingressClassName: nginx for clarity</li>
+<li>Always use TLS in production (with cert-manager)</li>
+<li>Implement rate limiting for public endpoints</li>
+<li>Use namespaced ingresses for multi-tenancy</li>
+<li>Monitor ingress controller metrics</li>
+<li>Regularly update Nginx ingress controller</li>
+<li>Test ingress rules in development first</li>
+<li>Document ingress routing architecture</li>
+</ol>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://kubernetes.github.io/ingress-nginx/</li>
+<li><strong>Annotations Reference</strong>: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/kubernetes/ingress-nginx</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Nginx Ingress Controller is most popular ingress solution</li>
+<li>Supports both L7 (HTTP) and L4 (TCP/UDP) routing</li>
+<li>Can be scaled horizontally</li>
+<li>Integrates well with cert-manager for TLS</li>
+<li>Provides detailed metrics for monitoring</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#1-create-ingress-nginx-namespace">1. Create ingress-nginx namespace</a></li>
+<li><a href="#2-install-nginx-ingress-controller">2. Install Nginx Ingress Controller</a></li>
+<li><a href="#alternative-install-with-nodeport-for-development">Alternative: Install with NodePort (for development)</a></li>
+</ul>
+</li>
+<li><a href="#verify-installation">Verify Installation</a></li>
+<li><a href="#basic-ingress-examples">Basic Ingress Examples</a><ul>
+<li><a href="#1-simple-http-ingress">1. Simple HTTP Ingress</a></li>
+<li><a href="#2-https-ingress-with-tls">2. HTTPS Ingress with TLS</a></li>
+<li><a href="#3-multiple-backends-with-path-based-routing">3. Multiple backends with path-based routing</a></li>
+<li><a href="#4-multiple-hosts-virtual-hosting">4. Multiple hosts (virtual hosting)</a></li>
+</ul>
+</li>
+<li><a href="#advanced-annotations">Advanced Annotations</a><ul>
+<li><a href="#1-rate-limiting">1. Rate limiting</a></li>
+<li><a href="#2-authentication">2. Authentication</a></li>
+<li><a href="#3-cors">3. CORS</a></li>
+<li><a href="#4-rewrite-url">4. Rewrite URL</a></li>
+<li><a href="#5-redirect-http-to-https">5. Redirect HTTP to HTTPS</a></li>
+<li><a href="#6-custom-headers">6. Custom headers</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#monitoring">Monitoring</a><ul>
+<li><a href="#1-expose-metrics-for-prometheus">1. Expose metrics for Prometheus</a></li>
+<li><a href="#2-view-controller-status">2. View controller status</a></li>
+</ul>
+</li>
+<li><a href="#configuration-examples">Configuration Examples</a><ul>
+<li><a href="#example-full-featured-ingress-with-cert-manager">Example: Full-featured Ingress with Cert-Manager</a></li>
+</ul>
+</li>
+<li><a href="#troubleshooting">Troubleshooting</a><ul>
+<li><a href="#ingress-not-routing-traffic">Ingress not routing traffic</a></li>
+</ul>
+</li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

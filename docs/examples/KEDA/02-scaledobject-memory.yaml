@@ -1,0 +1,25 @@
+# KEDA ScaledObject - Memory-based Scaling
+# Requires: metrics-server installed in cluster
+# KEDA v2.15+ compatible
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: memory-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: myapp
+  pollingInterval: 15
+  cooldownPeriod: 60
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  triggers:
+  - type: memory
+    metricType: Utilization
+    metadata:
+      value: "70"

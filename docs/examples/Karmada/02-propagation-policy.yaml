@@ -1,0 +1,23 @@
+# Replace member1/member2 with the registered Karmada cluster names.
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: web-placement
+  namespace: karmada-study
+spec:
+  resourceSelectors:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: web
+    - apiVersion: v1
+      kind: Service
+      name: web
+  placement:
+    clusterAffinity:
+      clusterNames: [member1, member2]
+    spreadConstraints:
+      - spreadByField: cluster
+        minGroups: 2
+        maxGroups: 2
+    replicaScheduling:
+      replicaSchedulingType: Duplicated

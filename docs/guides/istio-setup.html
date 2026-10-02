@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Istio Service Mesh Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Istio Service Mesh Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="istio-service-mesh-setup-notes">Istio Service Mesh Setup Notes</h1>
+<blockquote>
+<p><strong>October 2026 update</strong>: stable is <a href="https://github.com/istio/istio/releases/tag/1.31.1">Istio 1.31.1</a>. Supported branches are 1.29, 1.30, and 1.31; 1.29 reaches its expected end of support on October 12, 2026. Istio 1.31 supports Kubernetes 1.32–1.36 according to the <a href="https://istio.io/latest/docs/releases/supported-releases/">official matrix</a>. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+</blockquote>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add Istio Helm repository
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation-steps">Installation Steps</h2>
+<h3 id="1-create-istio-namespace">1. Create Istio namespace</h3>
+<pre><code class="language-bash">kubectl create namespace istio-system
+</code></pre>
+<h3 id="2-install-istio-base-chart-crds-and-operators">2. Install Istio base chart (CRDs and operators)</h3>
+<pre><code class="language-bash">helm install istio-base istio/base -n istio-system --version 1.31.1 --set defaultRevision=default
+</code></pre>
+<h3 id="3-install-istio-discovery-control-plane">3. Install Istio discovery (control plane)</h3>
+<pre><code class="language-bash">helm install istiod istio/istiod -n istio-system --version 1.31.1
+</code></pre>
+<h3 id="4-install-istio-ingress-gateway">4. Install Istio ingress gateway</h3>
+<pre><code class="language-bash">kubectl create namespace istio-ingress
+helm install istio-ingressgateway istio/gateway -n istio-ingress --version 1.31.1
+</code></pre>
+<h2 id="enable-sidecar-injection">Enable Sidecar Injection</h2>
+<h3 id="inject-istio-sidecar-for-entire-namespace">Inject Istio sidecar for entire namespace</h3>
+<pre><code class="language-bash">kubectl label namespace default istio-injection=enabled
+</code></pre>
+<h2 id="verify-installation">Verify Installation</h2>
+<pre><code class="language-bash"># Check Istio components
+kubectl get pods -n istio-system
+
+# Check ingress gateway
+kubectl get pods -n istio-ingress
+
+# Verify CRDs
+kubectl get crds | grep istio
+</code></pre>
+<h2 id="access-kiali-dashboard-istio-visualization">Access Kiali Dashboard (Istio Visualization)</h2>
+<pre><code class="language-bash"># Install Kiali add-on (use the version matching your Istio release)
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/kiali.yaml
+
+# Port forward to Kiali
+kubectl port-forward -n istio-system svc/kiali 20001:20001
+
+# Access at http://localhost:20001
+</code></pre>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<blockquote>
+<p><strong>API Note (Istio 1.22+)</strong>: The <code>networking.istio.io/v1</code> API is now GA.
+<code>v1beta1</code> is <strong>deprecated</strong> and will be removed in a future release.
+Always use <code>networking.istio.io/v1</code> for new manifests targeting K8s 1.34+.</p>
+</blockquote>
+<h3 id="create-a-virtualservice">Create a VirtualService</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: myapp
+spec:
+  hosts:
+  - myapp
+  http:
+  - route:
+    - destination:
+        host: myapp
+        port:
+          number: 8080
+EOF
+</code></pre>
+<h3 id="create-a-gateway">Create a Gateway</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: myapp-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - &quot;myapp.example.com&quot;
+EOF
+</code></pre>
+<h3 id="enable-ambient-mode-istio-122-sidecar-free">Enable Ambient Mode (Istio 1.22+, sidecar-free)</h3>
+<pre><code class="language-bash"># Install Istio with ambient mode enabled (K8s 1.28+ required)
+helm install istiod istio/istiod -n istio-system --set profile=ambient
+
+# Install ztunnel (per-node proxy replacing sidecars)
+helm install istio-cni istio/cni -n istio-system --set profile=ambient
+helm install ztunnel istio/ztunnel -n istio-system
+
+# Enable ambient mode for a namespace (no pod restart needed)
+kubectl label namespace default istio.io/dataplane-mode=ambient
+
+# Verify
+kubectl get pods -n default  # No sidecar containers injected
+istioctl ztunnel-config
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># Check Istio version
+istioctl version
+
+# Verify configuration
+istioctl analyze
+
+# Get sidecar injection status
+kubectl get namespaces --show-labels | grep istio
+
+# Uninstall Istio
+helm uninstall istiod -n istio-system
+helm uninstall istio-base -n istio-system
+helm uninstall istio-ingressgateway -n istio-ingress
+</code></pre>
+<h2 id="recommended-add-ons">Recommended Add-ons</h2>
+<ul>
+<li><strong>Kiali</strong>: Service mesh visualization and troubleshooting</li>
+<li><strong>Jaeger</strong>: Distributed tracing</li>
+<li><strong>Prometheus</strong>: Metrics collection (already installed via kube-prometheus-stack)</li>
+<li><strong>Grafana</strong>: Metrics visualization (already installed via kube-prometheus-stack)</li>
+</ul>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://istio.io/latest/docs/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/istio/istio</li>
+<li><strong>Samples</strong>: https://github.com/istio/istio/tree/master/samples</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Istio adds sidecar containers to pods for traffic management</li>
+<li>Requires sufficient cluster resources (CRDs, controllers, gateways)</li>
+<li>Integrates well with Prometheus and Grafana for observability</li>
+<li>Can impact network latency - monitor performance</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation-steps">Installation Steps</a><ul>
+<li><a href="#1-create-istio-namespace">1. Create Istio namespace</a></li>
+<li><a href="#2-install-istio-base-chart-crds-and-operators">2. Install Istio base chart (CRDs and operators)</a></li>
+<li><a href="#3-install-istio-discovery-control-plane">3. Install Istio discovery (control plane)</a></li>
+<li><a href="#4-install-istio-ingress-gateway">4. Install Istio ingress gateway</a></li>
+</ul>
+</li>
+<li><a href="#enable-sidecar-injection">Enable Sidecar Injection</a><ul>
+<li><a href="#inject-istio-sidecar-for-entire-namespace">Inject Istio sidecar for entire namespace</a></li>
+</ul>
+</li>
+<li><a href="#verify-installation">Verify Installation</a></li>
+<li><a href="#access-kiali-dashboard-istio-visualization">Access Kiali Dashboard (Istio Visualization)</a></li>
+<li><a href="#common-use-cases">Common Use Cases</a><ul>
+<li><a href="#create-a-virtualservice">Create a VirtualService</a></li>
+<li><a href="#create-a-gateway">Create a Gateway</a></li>
+<li><a href="#enable-ambient-mode-istio-122-sidecar-free">Enable Ambient Mode (Istio 1.22+, sidecar-free)</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#recommended-add-ons">Recommended Add-ons</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

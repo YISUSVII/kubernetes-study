@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes Learning Journey: Complete Study Guide · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kubernetes Learning Journey: Complete Study Guide</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="kubernetes-learning-journey-complete-study-guide">Kubernetes Learning Journey: Complete Study Guide</h1>
+<p>Welcome to your comprehensive Kubernetes study guide! This resource is designed to help you learn Kubernetes administration, networking, and deployment patterns at your own pace. All examples reference actual YAML files in the <a href="../examples/index.html"><code>examples/</code></a> directory.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#learning-paths">Learning Paths</a></li>
+<li><a href="#core-concepts">Core Concepts</a></li>
+<li><a href="#technologies-deep-dive">Technologies Deep Dive</a></li>
+<li><a href="#practical-exercises">Practical Exercises</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#troubleshooting-guide">Troubleshooting Guide</a></li>
+<li><a href="#resources">Resources</a></li>
+</ol>
+<hr />
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Kubernetes cluster (v1.35/v1.36 study baseline; check add-on support before using v1.37)</li>
+<li><code>kubectl</code> installed and configured (use the same minor as your cluster)</li>
+<li>Docker or container runtime knowledge</li>
+<li>Basic understanding of networking concepts</li>
+</ul>
+<h3 id="your-learning-environment">Your Learning Environment</h3>
+<pre><code>Kubernetes/
+├── setup guides/          # Detailed installation guides
+├── examples/              # Practical YAML examples
+│   ├── ArgoCD/           # GitOps examples
+│   ├── CertManager/      # TLS certificate examples
+│   ├── Calico/           # Network security examples
+│   ├── GatewayAPI/       # Modern ingress examples
+│   ├── Istio/            # Service mesh examples
+│   ├── KEDA/             # Auto-scaling examples
+│   ├── NginxIngress/     # Traditional ingress examples
+│   ├── Prometheus/       # Monitoring examples
+│   └── README.md         # Quick reference
+└── kubernetes-admin-tools-reference.md
+</code></pre>
+<h3 id="how-to-use-this-guide">How to Use This Guide</h3>
+<ul>
+<li><strong>Reading Phase</strong>: Start with the concept explanations below</li>
+<li><strong>Reference Phase</strong>: Refer to setup guides for detailed information</li>
+<li><strong>Hands-On Phase</strong>: Apply examples from the <a href="../examples/index.html"><code>examples/</code></a> directory</li>
+<li><strong>Practice Phase</strong>: Complete exercises at the end of each section</li>
+<li><strong>Review Phase</strong>: Revisit concepts periodically</li>
+</ul>
+<hr />
+<h2 id="learning-paths">Learning Paths</h2>
+<h3 id="path-1-web-application-deployment-beginner">Path 1: Web Application Deployment (Beginner)<span aria-hidden="true" class="path-anchor" id="path-1"></span></h3>
+<p><strong>Time: 2-3 weeks | Difficulty: ⭐</strong></p>
+<p>This path teaches you to deploy a web application with external access.</p>
+<ol>
+<li>
+<p><strong>Week 1: Ingress &amp; Networking</strong>
+   - Study: <a href="../examples/NginxIngress/index.html"><code>NginxIngress/</code></a> examples
+   - Learn: <a href="nginx-ingress-setup.html"><code>nginx-ingress-setup.md</code></a>
+   - Practice: Deploy a simple web app with Nginx Ingress
+   - Reference: <a href="../examples/NginxIngress/01-ingress-simple-http.html"><code>NginxIngress/01-ingress-simple-http.yaml</code></a></p>
+</li>
+<li>
+<p><strong>Week 2: TLS &amp; Security</strong>
+   - Study: <a href="../examples/CertManager/index.html"><code>CertManager/</code></a> examples
+   - Learn: <a href="cert-manager-setup.html"><code>cert-manager-setup.md</code></a>
+   - Practice: Add HTTPS to your deployment
+   - Reference: <a href="../examples/CertManager/03-clusterissuer-letsencrypt-prod.html"><code>CertManager/03-clusterissuer-letsencrypt-prod.yaml</code></a></p>
+</li>
+<li>
+<p><strong>Week 3: Review &amp; Polish</strong>
+   - Combine concepts
+   - Add monitoring basics
+   - Deploy production-ready application</p>
+</li>
+</ol>
+<hr />
+<h3 id="path-2-continuous-deployment--gitops-intermediate">Path 2: Continuous Deployment &amp; GitOps (Intermediate)<span aria-hidden="true" class="path-anchor" id="path-2"></span></h3>
+<p><strong>Time: 3-4 weeks | Difficulty: ⭐⭐</strong></p>
+<p>This path teaches you to automate deployments using Git.</p>
+<ol>
+<li>
+<p><strong>Week 1-2: ArgoCD Fundamentals</strong>
+   - Study: <a href="../examples/ArgoCD/index.html"><code>ArgoCD/</code></a> examples starting with <a href="../examples/ArgoCD/01-basic-app.html"><code>01-basic-app.yaml</code></a>
+   - Learn: <a href="argocd-setup.html"><code>argocd-setup.md</code></a>
+   - Practice: Deploy an application via ArgoCD
+   - Reference: Follow <code>01</code> → <code>02</code> → <code>03</code> progression</p>
+</li>
+<li>
+<p><strong>Week 2-3: Multi-Environment GitOps</strong>
+   - Study: <a href="../examples/ArgoCD/04-appproject-team-a.html"><code>ArgoCD/04-appproject-team-a.yaml</code></a>
+   - Practice: Manage staging and production
+   - Reference: <a href="argocd-setup.html"><code>argocd-setup.md</code></a> - AppProject section</p>
+</li>
+<li>
+<p><strong>Week 3-4: Integration &amp; Monitoring</strong>
+   - Study: <a href="../examples/ArgoCD/05-notifications-cm.html"><code>ArgoCD/05-notifications-cm.yaml</code></a> and <a href="../examples/ArgoCD/06-servicemonitor-metrics.html"><code>06-servicemonitor-metrics.yaml</code></a>
+   - Practice: Add alerting and monitoring
+   - Reference: Combine with Prometheus examples</p>
+</li>
+</ol>
+<hr />
+<h3 id="path-3-advanced-networking--service-mesh-advanced">Path 3: Advanced Networking &amp; Service Mesh (Advanced)<span aria-hidden="true" class="path-anchor" id="path-3"></span></h3>
+<p><strong>Time: 4-6 weeks | Difficulty: ⭐⭐⭐</strong></p>
+<p>This path teaches you service mesh and advanced traffic management.</p>
+<ol>
+<li>
+<p><strong>Week 1: Gateway API (Modern Ingress)</strong>
+   - Study: <a href="../examples/GatewayAPI/01-gatewayclass.html"><code>GatewayAPI/01-gatewayclass.yaml</code></a> → <a href="../examples/GatewayAPI/03-httproute-basic.html"><code>03-httproute-basic.yaml</code></a>
+   - Learn: <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - Core concepts
+   - Practice: Migrate from Ingress to Gateway API
+   - Reference: Compare with <a href="../examples/NginxIngress/index.html"><code>NginxIngress/</code></a> examples</p>
+</li>
+<li>
+<p><strong>Week 2: Advanced Routing</strong>
+   - Study: <a href="../examples/GatewayAPI/04-httproute-header-matching.html"><code>GatewayAPI/04-httproute-header-matching.yaml</code></a>
+   - Study: <a href="../examples/GatewayAPI/05-httproute-traffic-splitting.html"><code>GatewayAPI/05-httproute-traffic-splitting.yaml</code></a>
+   - Practice: Implement canary deployments
+   - Reference: Header matching and traffic splitting sections</p>
+</li>
+<li>
+<p><strong>Week 3-4: Service Mesh (Istio)</strong>
+   - Study: <a href="../examples/Istio/01-virtualservice-basic.html"><code>Istio/01-virtualservice-basic.yaml</code></a> and <code>02-gateway-basic.yaml</code>
+   - Learn: <a href="istio-setup.html"><code>istio-setup.md</code></a> - VirtualService and Gateway sections
+   - Practice: Deploy services with traffic policies
+   - Reference: Kiali dashboard visualization</p>
+</li>
+<li>
+<p><strong>Week 5-6: Network Security</strong>
+   - Study: <a href="../examples/Calico/index.html"><code>Calico/</code></a> examples (start with <a href="../examples/Calico/01-networkpolicy-deny-all.html"><code>01-networkpolicy-deny-all.yaml</code></a>)
+   - Learn: <a href="calico-setup.html"><code>calico-setup.md</code></a> - Network policies section
+   - Practice: Implement zero-trust networking
+   - Reference: Build from deny-all → allow specific traffic</p>
+</li>
+</ol>
+<hr />
+<h3 id="path-4-observability--monitoring-intermediate">Path 4: Observability &amp; Monitoring (Intermediate)<span aria-hidden="true" class="path-anchor" id="path-4"></span></h3>
+<p><strong>Time: 2-3 weeks | Difficulty: ⭐⭐</strong></p>
+<p>This path teaches you to monitor your cluster.</p>
+<ol>
+<li>
+<p><strong>Week 1: Prometheus &amp; Grafana</strong>
+   - Study: <a href="../examples/Prometheus/index.html"><code>Prometheus/</code></a> examples
+   - Learn: <a href="prometheus-grafana-setup.html"><code>prometheus-grafana-setup.md</code></a>
+   - Practice: Monitor a sample application
+   - Reference: <a href="../examples/Prometheus/01-servicemonitor-basic.html"><code>Prometheus/01-servicemonitor-basic.yaml</code></a></p>
+</li>
+<li>
+<p><strong>Week 2: Alerting</strong>
+   - Study: <a href="../examples/Prometheus/02-prometheusrule-alerts.html"><code>Prometheus/02-prometheusrule-alerts.yaml</code></a>
+   - Practice: Create and test alerts
+   - Reference: Alert rules section in setup guide</p>
+</li>
+<li>
+<p><strong>Week 3: Integration</strong>
+   - Combine with ArgoCD metrics: <a href="../examples/ArgoCD/06-servicemonitor-metrics.html"><code>ArgoCD/06-servicemonitor-metrics.yaml</code></a>
+   - Monitor your deployments
+   - Create custom dashboards</p>
+</li>
+</ol>
+<hr />
+<h3 id="path-5-auto-scaling--high-availability-intermediate">Path 5: Auto-scaling &amp; High Availability (Intermediate)<span aria-hidden="true" class="path-anchor" id="path-5"></span></h3>
+<p><strong>Time: 2-3 weeks | Difficulty: ⭐⭐</strong></p>
+<p>This path teaches you to scale applications automatically.</p>
+<ol>
+<li>
+<p><strong>Week 1: KEDA Basics</strong>
+   - Study: <a href="../examples/KEDA/01-scaledobject-cpu.html"><code>KEDA/01-scaledobject-cpu.yaml</code></a> and <a href="../examples/KEDA/02-scaledobject-memory.html"><code>02-scaledobject-memory.yaml</code></a>
+   - Learn: <a href="keda-setup.html"><code>keda-setup.md</code></a> - Scalers section
+   - Practice: Scale based on CPU/Memory
+   - Reference: Start with basic scalers</p>
+</li>
+<li>
+<p><strong>Week 2: Event-Driven Scaling</strong>
+   - Study: <a href="../examples/KEDA/03-scaledobject-prometheus.html"><code>KEDA/03-scaledobject-prometheus.yaml</code></a>
+   - Study: <a href="../examples/KEDA/04-scaledobject-kafka.html"><code>KEDA/04-scaledobject-kafka.yaml</code></a>
+   - Practice: Scale based on custom metrics
+   - Reference: Advanced scalers section</p>
+</li>
+<li>
+<p><strong>Week 3: Production Patterns</strong>
+   - Combine with Istio canary deployments
+   - Reference: <a href="../examples/GatewayAPI/05-httproute-traffic-splitting.html"><code>GatewayAPI/05-httproute-traffic-splitting.yaml</code></a>
+   - Practice: Blue-green and canary deployments</p>
+</li>
+</ol>
+<hr />
+<h3 id="path-6-platform-apis--multi-cluster-orchestration-advanced">Path 6: Platform APIs &amp; Multi-cluster Orchestration (Advanced)<span aria-hidden="true" class="path-anchor" id="path-6"></span></h3>
+<p><strong>Prerequisites:</strong> Kubernetes CRDs/RBAC, Helm, and basic GitOps. Start with the single-cluster Crossplane lab, then prepare a Karmada host and two member clusters.</p>
+<ol>
+<li>Follow <a href="crossplane-setup.html">Crossplane setup</a> to install the controller and Function, define a namespaced AppConfig API, and compose a ConfigMap.</li>
+<li>Change the request's message and verify reconciliation. Explain the roles of the XRD, Composition, Function, and composite resource.</li>
+<li>Follow <a href="karmada-setup.html">Karmada setup</a> to register members and propagate a Deployment and Service.</li>
+<li>Replace duplicated replica scheduling with divided scheduling and compare desired replica counts in both members.</li>
+<li>Explain how ArgoCD can deliver declarations to these control planes and why placement alone does not provide global traffic routing.</li>
+</ol>
+<p><strong>Success criteria:</strong> a reconciled ConfigMap, two Ready Karmada members, and observed replica counts matching both placement policies. Delete lab requests before removing their controllers or permissions.</p>
+<hr />
+<h2 id="core-concepts">Core Concepts</h2>
+<h3 id="1-kubernetes-networking-fundamentals">1. Kubernetes Networking Fundamentals</h3>
+<h4 id="the-osi-model-in-kubernetes">The OSI Model in Kubernetes</h4>
+<pre><code>Layer 7 (Application)      ← HTTPRoute, GRPCRoute (Gateway API)
+Layer 6 (Presentation)     ← TLS/mTLS (Cert-Manager, Istio)
+Layer 5 (Session)          ← Connection management
+Layer 4 (Transport)        ← TCP/UDP (Service, Ingress)
+Layer 3 (Network)          ← IP routing (CNI, Calico)
+Layer 2 (Data Link)        ← MAC addresses
+Layer 1 (Physical)         ← Network hardware
+</code></pre>
+<p><strong>Study Exercise</strong>: 
+- Read: <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - "Core Concepts"
+- Compare: How Ingress (L7) differs from Gateway API (L7 enhanced)
+- Reference: <a href="../examples/NginxIngress/01-ingress-simple-http.html"><code>NginxIngress/01-ingress-simple-http.yaml</code></a> vs <a href="../examples/GatewayAPI/03-httproute-basic.html"><code>GatewayAPI/03-httproute-basic.yaml</code></a></p>
+<h4 id="traffic-flow-patterns">Traffic Flow Patterns</h4>
+<p><strong>North-South Traffic</strong> (External → Internal)
+- What: Traffic from outside cluster to services inside
+- How: Ingress, Gateway API, or Service LoadBalancer
+- Examples: <a href="../examples/NginxIngress/index.html"><code>NginxIngress/</code></a>, <a href="../examples/GatewayAPI/index.html"><code>GatewayAPI/</code></a>, <a href="../examples/Istio/02-gateway-basic.html"><code>Istio/02-gateway-basic.yaml</code></a>
+- Study: Trace the request path in <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - "Request flow"</p>
+<p><strong>East-West Traffic</strong> (Service → Service)
+- What: Inter-service communication within cluster
+- How: Service DNS, service mesh (Istio), network policies
+- Examples: <a href="../examples/Istio/01-virtualservice-basic.html"><code>Istio/01-virtualservice-basic.yaml</code></a>, <a href="../examples/Calico/index.html"><code>Calico/</code></a>
+- Study: Compare direct calls vs service mesh in <a href="istio-setup.html"><code>istio-setup.md</code></a></p>
+<hr />
+<h3 id="2-ingress-evolution">2. Ingress Evolution</h3>
+<h4 id="generation-1-traditional-ingress">Generation 1: Traditional Ingress</h4>
+<p><strong>Status</strong>: Stable but limited<br />
+<strong>Best for</strong>: Simple HTTP/HTTPS routing  </p>
+<pre><code class="language-yaml"># Legacy approach - Ingress with annotations
+# See: NginxIngress/01-ingress-simple-http.yaml
+# Limitation: Complex features need annotations
+</code></pre>
+<p><strong>Key limitations</strong>:
+- No native traffic splitting
+- No header matching beyond regex
+- Flat resource model
+- Rate limiting via annotations</p>
+<p><strong>Study</strong>: 
+- Read: <a href="nginx-ingress-setup.html"><code>nginx-ingress-setup.md</code></a> - First section
+- Example: <a href="../examples/NginxIngress/05-ingress-advanced.html"><code>NginxIngress/05-ingress-advanced.yaml</code></a> - Shows annotation complexity</p>
+<h4 id="generation-2-gateway-api-current-best-practice">Generation 2: Gateway API (Current Best Practice)</h4>
+<p><strong>Status</strong>: Stable and recommended<br />
+<strong>Best for</strong>: Production Kubernetes clusters  </p>
+<pre><code class="language-yaml"># Modern approach - Role-oriented, expressive
+# See: GatewayAPI/01-gatewayclass.yaml → 03-httproute-basic.yaml
+# Advantages: No annotations, native features, role-based
+</code></pre>
+<p><strong>Key improvements</strong>:
+- Native traffic splitting
+- Header and query param matching
+- Role-oriented (Infrastructure Provider, Operator, Developer)
+- Protocol-aware (HTTP, HTTPS, gRPC, TCP, UDP)
+- Cross-namespace with ReferenceGrant</p>
+<p><strong>Study</strong>:
+- Read: <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - "Key Differences from Ingress"
+- Example: Progression from <a href="../examples/GatewayAPI/03-httproute-basic.html"><code>GatewayAPI/03-httproute-basic.yaml</code></a> to <a href="../examples/GatewayAPI/05-httproute-traffic-splitting.html"><code>05-httproute-traffic-splitting.yaml</code></a>
+- Compare: See both approaches side-by-side in <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - "Migrating from Ingress"</p>
+<p><strong>Exercise</strong>:
+1. Deploy using Ingress: <a href="../examples/NginxIngress/01-ingress-simple-http.html"><code>NginxIngress/01-ingress-simple-http.yaml</code></a>
+2. Deploy using Gateway API: <a href="../examples/GatewayAPI/03-httproute-basic.html"><code>GatewayAPI/03-httproute-basic.yaml</code></a>
+3. Notice the differences in resource structure and capabilities</p>
+<hr />
+<h3 id="3-security-layers">3. Security Layers</h3>
+<h4 id="layer-1-network-policies-firewall">Layer 1: Network Policies (Firewall)</h4>
+<p><strong>Purpose</strong>: Control traffic at Pod level<br />
+<strong>Tool</strong>: Calico (or any CNI with NetworkPolicy support)  </p>
+<pre><code class="language-yaml"># Start: Deny all traffic
+# See: Calico/01-networkpolicy-deny-all.yaml
+
+# Then: Selectively allow
+# See: Calico/02-networkpolicy-allow-namespace.yaml
+</code></pre>
+<p><strong>Learning sequence</strong>:
+1. Understand concept: Read <a href="calico-setup.html"><code>calico-setup.md</code></a> - "Network Policy Examples"
+2. Apply deny-all: <a href="../examples/Calico/01-networkpolicy-deny-all.html"><code>Calico/01-networkpolicy-deny-all.yaml</code></a>
+3. Test with pods: See troubleshooting section
+4. Add allow rules: <a href="../examples/Calico/02-networkpolicy-allow-namespace.html"><code>Calico/02-networkpolicy-allow-namespace.yaml</code></a>
+5. Advanced: <a href="../examples/Calico/05-globalnetworkpolicy.html"><code>Calico/05-globalnetworkpolicy.yaml</code></a> - Cluster-wide policies</p>
+<p><strong>Key concepts</strong>:
+- <strong>podSelector</strong>: Which pods this policy applies to
+- <strong>policyTypes</strong>: Ingress (incoming) or Egress (outgoing)
+- <strong>from/to</strong>: Source/destination selectors
+- <strong>ports</strong>: Protocol and port numbers</p>
+<p><strong>Study Exercise</strong>:
+- Create a test deployment
+- Apply <a href="../examples/Calico/01-networkpolicy-deny-all.html"><code>Calico/01-networkpolicy-deny-all.yaml</code></a>
+- Observe that nothing can reach the pod
+- Gradually add allow rules
+- Understand the principle of least privilege</p>
+<h4 id="layer-2-mtls-encryption">Layer 2: mTLS (Encryption)</h4>
+<p><strong>Purpose</strong>: Encrypt and authenticate service-to-service communication<br />
+<strong>Tool</strong>: Istio or Cert-Manager + Istio  </p>
+<pre><code class="language-yaml"># See: istio-setup.md - &quot;Advanced&quot; section
+# Istio automatically handles certificate rotation
+</code></pre>
+<p><strong>Learning sequence</strong>:
+1. Understand certificate management: <a href="cert-manager-setup.html"><code>cert-manager-setup.md</code></a> - Introduction
+2. See how Istio uses certificates: <a href="istio-setup.html"><code>istio-setup.md</code></a> - Encryption section
+3. Compare Istio mTLS vs manual cert management</p>
+<h4 id="layer-3-rbac-authorization">Layer 3: RBAC (Authorization)</h4>
+<p><strong>Purpose</strong>: Control who can do what<br />
+<strong>Tool</strong>: Kubernetes native RBAC  </p>
+<pre><code class="language-yaml"># See: gateway-api-setup.md - &quot;Role-Based Access Control&quot;
+# Infrastructure Provider, Cluster Operator, Developer roles
+</code></pre>
+<hr />
+<h3 id="4-deployment-patterns">4. Deployment Patterns</h3>
+<h4 id="pattern-1-blue-green-deployment">Pattern 1: Blue-Green Deployment</h4>
+<p><strong>Purpose</strong>: Zero-downtime deployments<br />
+<strong>How it works</strong>: Keep two identical production environments, switch traffic</p>
+<pre><code class="language-yaml"># See: GatewayAPI/05-httproute-traffic-splitting.yaml
+# Set weights: stable=100, canary=0 initially
+# Then: stable=0, canary=100 after verification
+</code></pre>
+<p><strong>Learning steps</strong>:
+1. Read: <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - "Traffic Splitting" section
+2. Study: <a href="../examples/GatewayAPI/05-httproute-traffic-splitting.html"><code>GatewayAPI/05-httproute-traffic-splitting.yaml</code></a> - Understand weight field
+3. Practice: Deploy v1 and v2, switch traffic 100→0 and 0→100</p>
+<h4 id="pattern-2-canary-deployment">Pattern 2: Canary Deployment</h4>
+<p><strong>Purpose</strong>: Gradual rollout to catch issues early<br />
+<strong>How it works</strong>: Send small percentage of traffic to new version</p>
+<pre><code class="language-yaml"># See: GatewayAPI/05-httproute-traffic-splitting.yaml
+# Example: stable=90%, canary=10%
+# Gradually increase: 90→80, 80→70, etc.
+</code></pre>
+<p><strong>Learning steps</strong>:
+1. Read: <a href="keda-setup.html"><code>keda-setup.md</code></a> - Monitor canary deployment health
+2. Study: Combine <code>GatewayAPI/05</code> with <a href="../examples/Prometheus/02-prometheusrule-alerts.html"><code>Prometheus/02-prometheusrule-alerts.yaml</code></a>
+3. Practice: Set up alerts for canary health metrics</p>
+<h4 id="pattern-3-rolling-deployment">Pattern 3: Rolling Deployment</h4>
+<p><strong>Purpose</strong>: Update one pod at a time<br />
+<strong>How it works</strong>: Native Kubernetes - updates pods in sequence</p>
+<pre><code class="language-yaml"># See: ArgoCD examples
+# ArgoCD can manage rolling updates through Git
+</code></pre>
+<p><strong>Learning steps</strong>:
+1. Read: <a href="argocd-setup.html"><code>argocd-setup.md</code></a> - Sync policies section
+2. Understand: How ArgoCD manages progressive deployments</p>
+<hr />
+<h3 id="5-gitops-philosophy">5. GitOps Philosophy</h3>
+<h4 id="core-principles">Core Principles</h4>
+<p><strong>Principle 1: Git as Single Source of Truth</strong>
+- What: All infrastructure described in Git
+- Why: Auditable, version-controlled, reproducible
+- How: ArgoCD watches Git, applies changes automatically</p>
+<p><strong>Principle 2: Declarative Configuration</strong>
+- What: Describe desired state, not how to achieve it
+- Why: Kubernetes handles the "how"
+- How: Use YAML manifests</p>
+<p><strong>Principle 3: Continuous Reconciliation</strong>
+- What: System constantly ensures actual state matches desired state
+- Why: Self-healing, automatic recovery
+- How: ArgoCD continuously compares Git vs cluster</p>
+<p><strong>Study Exercise</strong>:</p>
+<pre><code class="language-bash">1. Study: ArgoCD/01-basic-app.yaml (basic structure)
+2. Read: argocd-setup.md - &quot;Best Practices&quot; section
+3. Understand: syncPolicy.automated fields
+   - prune: true (delete resources not in Git)
+   - selfHeal: true (revert manual changes)
+</code></pre>
+<h4 id="implementing-gitops">Implementing GitOps</h4>
+<p><strong>Repository Structure</strong>:</p>
+<pre><code>myrepo/
+├── base/                    # Shared configurations
+│   ├── deployment.yaml
+│   └── service.yaml
+├── overlays/
+│   ├── dev/
+│   │   └── kustomization.yaml
+│   ├── staging/
+│   │   └── kustomization.yaml
+│   └── production/
+│       └── kustomization.yaml
+└── argocd/
+    ├── dev-app.yaml         # ArgoCD Application resource
+    ├── staging-app.yaml
+    └── prod-app.yaml
+</code></pre>
+<p><strong>Study</strong>:
+- Read: <a href="argocd-setup.html"><code>argocd-setup.md</code></a> - "Application Examples" section
+- Compare: <a href="../examples/ArgoCD/01-basic-app.html"><code>ArgoCD/01-basic-app.yaml</code></a> (simple) vs <a href="../examples/ArgoCD/03-kustomize-app.html"><code>03-kustomize-app.yaml</code></a> (complex)
+- Understand: How Kustomize overlays work</p>
+<hr />
+<h2 id="technologies-deep-dive">Technologies Deep Dive</h2>
+<h3 id="gateway-api---modern-ingress-recommended-for-new-projects">Gateway API - Modern Ingress (Recommended for New Projects)</h3>
+<h4 id="why-gateway-api">Why Gateway API?</h4>
+<p><strong>Comparison Table</strong>:</p>
+<pre><code>Feature                  Ingress    Gateway API
+─────────────────────────────────────────────────
+Traffic Splitting        Via code   Native ✓
+Header Matching          Via regex  Native ✓
+Rate Limiting            Via anno   Via policies ✓
+Role-Oriented Design     No         Yes ✓
+Cross-Namespace Support  Limited    Full ✓
+Protocol Support         HTTP/HTTPS HTTP/HTTPS/gRPC/TCP/UDP ✓
+</code></pre>
+<h4 id="learning-progression">Learning Progression</h4>
+<p><strong>Level 1: Basic Routing</strong></p>
+<pre><code class="language-yaml"># Learn: How traffic flows from outside to service
+# Study: GatewayAPI/01-gatewayclass.yaml
+#        GatewayAPI/02-gateway-basic.yaml
+#        GatewayAPI/03-httproute-basic.yaml
+# Understand: 3 resources, 3 roles, hierarchical
+</code></pre>
+<p><strong>Level 2: Advanced Matching</strong></p>
+<pre><code class="language-yaml"># Learn: Route based on headers, paths, hostnames
+# Study: GatewayAPI/04-httproute-header-matching.yaml
+# Practice: Deploy with multiple routing rules
+</code></pre>
+<p><strong>Level 3: Traffic Control</strong></p>
+<pre><code class="language-yaml"># Learn: Split traffic for canary deployments
+# Study: GatewayAPI/05-httproute-traffic-splitting.yaml
+# Learn: Redirect traffic between domains
+# Study: GatewayAPI/06-httproute-redirects.yaml
+</code></pre>
+<p><strong>Level 4: Advanced Features</strong></p>
+<pre><code class="language-yaml"># Learn: Modify headers, implement gRPC
+# Study: GatewayAPI/07-httproute-header-modifications.yaml
+#        GatewayAPI/08-grpcroute.yaml
+# Learn: Cross-namespace routing
+# Study: GatewayAPI/09-referencegrant.yaml
+</code></pre>
+<h4 id="implementation-example">Implementation Example</h4>
+<p><strong>Scenario</strong>: Deploy a web app with multiple services</p>
+<pre><code class="language-yaml"># Step 1: Define Gateway (who controls the traffic handler)
+# File: GatewayAPI/02-gateway-basic.yaml
+# Concepts: Class, listeners, TLS
+
+# Step 2: Define Routes (who gets to use the gateway)
+# File: GatewayAPI/03-httproute-basic.yaml
+# Concepts: Parent refs, host matching, backend services
+
+# Step 3: Add advanced features
+# File: GatewayAPI/04-httproute-header-matching.yaml
+# Concepts: Match rules, conditional routing
+
+# Step 4: Deploy and test
+# Commands: kubectl apply -f, kubectl get gateway/httproute
+</code></pre>
+<hr />
+<h3 id="argocd---gitops-continuous-deployment">ArgoCD - GitOps Continuous Deployment</h3>
+<h4 id="why-argocd">Why ArgoCD?</h4>
+<p><strong>Traditional Deployment Flow</strong> ❌</p>
+<pre><code>Developer → Git Push → CI/CD Pipeline → Kubectl Apply
+                       ↑
+                  Separate system
+</code></pre>
+<p><strong>GitOps Flow with ArgoCD</strong> ✓</p>
+<pre><code>Developer → Git Push → ArgoCD Watches Git → Kubectl Apply
+                       ↑                     ↑
+                    In-cluster          Automated
+</code></pre>
+<h4 id="learning-progression_1">Learning Progression</h4>
+<p><strong>Level 1: Basic Deployment</strong></p>
+<pre><code class="language-yaml"># Learn: Deploy application from Git repository
+# Study: ArgoCD/01-basic-app.yaml
+# Concepts: Project, source, destination, sync policy
+</code></pre>
+<p><strong>Level 2: Helm Integration</strong></p>
+<pre><code class="language-yaml"># Learn: Deploy Helm charts via ArgoCD
+# Study: ArgoCD/02-helm-app.yaml
+# Concepts: Release name, values, Helm integration
+</code></pre>
+<p><strong>Level 3: Kustomize Overlays</strong></p>
+<pre><code class="language-yaml"># Learn: Manage multiple environments
+# Study: ArgoCD/03-kustomize-app.yaml
+# Concepts: Environment-specific configurations
+</code></pre>
+<p><strong>Level 4: Multi-Tenancy</strong></p>
+<pre><code class="language-yaml"># Learn: Manage multiple teams
+# Study: ArgoCD/04-appproject-team-a.yaml
+# Concepts: AppProject, namespace restrictions, source repos
+</code></pre>
+<p><strong>Level 5: Observability</strong></p>
+<pre><code class="language-yaml"># Learn: Monitor ArgoCD and applications
+# Study: ArgoCD/05-notifications-cm.yaml
+#        ArgoCD/06-servicemonitor-metrics.yaml
+# Concepts: Notifications, Prometheus integration
+</code></pre>
+<h4 id="implementation-example_1">Implementation Example</h4>
+<p><strong>Scenario</strong>: Deploy 3 environments (dev, staging, prod) using GitOps</p>
+<pre><code class="language-yaml"># Step 1: Install ArgoCD
+# Read: argocd-setup.md - Installation section
+
+# Step 2: Create repository secret
+# Read: argocd-setup.md - Repository Credentials section
+
+# Step 3: Create applications for each environment
+# Deploy: ArgoCD/01-basic-app.yaml (dev)
+#         ArgoCD/02-helm-app.yaml (staging)
+#         ArgoCD/03-kustomize-app.yaml (prod)
+
+# Step 4: Add monitoring
+# Deploy: ArgoCD/06-servicemonitor-metrics.yaml
+
+# Step 5: Monitor via Prometheus/Grafana
+# See: prometheus-grafana-setup.md
+</code></pre>
+<hr />
+<h3 id="certificate-management---tls-automation">Certificate Management - TLS Automation</h3>
+<h4 id="why-cert-manager">Why Cert-Manager?</h4>
+<p><strong>Problem</strong>: Manual TLS certificate management is error-prone
+- Expires without warning
+- Manual renewal process
+- Hard to track across services</p>
+<p><strong>Solution</strong>: Cert-Manager automates everything</p>
+<h4 id="learning-progression_2">Learning Progression</h4>
+<p><strong>Level 1: Self-Signed Certificates (Testing)</strong></p>
+<pre><code class="language-yaml"># Learn: Create certificates for testing
+# Study: CertManager/01-issuer-selfsigned.yaml
+# Use: Development environments only
+</code></pre>
+<p><strong>Level 2: Let's Encrypt (Free, Real Certificates)</strong></p>
+<pre><code class="language-yaml"># Learn: Get real certificates from Let's Encrypt
+# Study: CertManager/02-issuer-letsencrypt-staging.yaml
+# Use: Test with staging first, then production
+</code></pre>
+<p><strong>Level 3: Production Certificates</strong></p>
+<pre><code class="language-yaml"># Learn: Automatic production certificates
+# Study: CertManager/03-clusterissuer-letsencrypt-prod.yaml
+# Use: Production workloads
+</code></pre>
+<p><strong>Level 4: Certificate Management</strong></p>
+<pre><code class="language-yaml"># Learn: Explicit certificate resources
+# Study: CertManager/04-certificate.yaml
+# Concepts: Duration, renewal periods, DNS names
+</code></pre>
+<h4 id="integration-points">Integration Points</h4>
+<pre><code class="language-yaml"># Cert-Manager integrates with:
+# 1. Ingress - via annotations
+#    See: nginx-ingress-setup.md - &quot;Cert-Manager integration&quot;
+#    Example: cert-manager.io/cluster-issuer annotation
+
+# 2. Gateway API - via certificateRefs
+#    See: GatewayAPI/02-gateway-basic.yaml
+#    Example: spec.listeners[].tls.certificateRefs
+
+# 3. Service accounts - for mTLS
+#    See: istio-setup.md - &quot;mTLS&quot; section
+</code></pre>
+<hr />
+<h3 id="networking-security---calico-network-policies">Networking Security - Calico Network Policies</h3>
+<h4 id="why-network-policies">Why Network Policies?</h4>
+<p><strong>Principle</strong>: Zero-Trust Networking
+- Deny all by default
+- Allow only necessary traffic
+- Treat internal network like external internet</p>
+<h4 id="learning-progression_3">Learning Progression</h4>
+<p><strong>Level 1: Deny All (Foundation)</strong></p>
+<pre><code class="language-yaml"># Learn: Block all traffic by default
+# Study: Calico/01-networkpolicy-deny-all.yaml
+# Concepts: podSelector, policyTypes, Ingress
+# Practice: Apply and see everything blocked
+</code></pre>
+<p><strong>Level 2: Allow Specific Sources</strong></p>
+<pre><code class="language-yaml"># Learn: Allow traffic from specific namespaces
+# Study: Calico/02-networkpolicy-allow-namespace.yaml
+# Concepts: namespaceSelector, from rules
+# Practice: Gradually allow necessary traffic
+</code></pre>
+<p><strong>Level 3: Pod-to-Pod Communication</strong></p>
+<pre><code class="language-yaml"># Learn: Allow specific pod-to-pod connections
+# Study: Calico/03-networkpolicy-pod-to-pod.yaml (referenced)
+# Concepts: podSelector in ingress rules
+</code></pre>
+<p><strong>Level 4: Egress Control</strong></p>
+<pre><code class="language-yaml"># Learn: Control outgoing traffic
+# Study: Calico/04-networkpolicy-egress-dns.yaml
+# Concepts: Egress policies, DNS access control
+# Practice: Allow DNS but restrict other outbound
+</code></pre>
+<p><strong>Level 5: Cluster-Wide Policies</strong></p>
+<pre><code class="language-yaml"># Learn: GlobalNetworkPolicy for cluster admin control
+# Study: Calico/05-globalnetworkpolicy.yaml
+# Concepts: Global scope, priority-based rules
+</code></pre>
+<h4 id="implementation-strategy">Implementation Strategy</h4>
+<p><strong>Step 1: Audit Current Traffic</strong></p>
+<pre><code class="language-bash"># What traffic currently flows?
+# Use Kubernetes events and logs
+</code></pre>
+<p><strong>Step 2: Implement Deny-All</strong></p>
+<pre><code class="language-bash"># Deploy: Calico/01-networkpolicy-deny-all.yaml
+# Result: Nothing works initially (expected)
+</code></pre>
+<p><strong>Step 3: Whitelist Traffic</strong></p>
+<pre><code class="language-bash"># For each needed connection, create allow rule
+# Use: Calico/02-networkpolicy-allow-namespace.yaml as template
+</code></pre>
+<p><strong>Step 4: Test and Iterate</strong></p>
+<pre><code class="language-bash"># Test connectivity between pods
+# Adjust rules as needed
+# Document each rule's purpose
+</code></pre>
+<hr />
+<h3 id="keda---event-driven-auto-scaling">KEDA - Event-Driven Auto-Scaling</h3>
+<h4 id="why-keda">Why KEDA?</h4>
+<p><strong>Limitation of Default HPA</strong>: Only CPU and Memory</p>
+<pre><code>Default HPA:
+  If CPU &gt; 70%
+    → Add more pods
+
+KEDA:
+  If Kafka lag &gt; 1000 messages
+    → Add more consumers
+  If HTTP requests/sec &gt; 100
+    → Add more pods
+  If RabbitMQ queue depth &gt; 50
+    → Add more workers
+</code></pre>
+<h4 id="learning-progression_4">Learning Progression</h4>
+<p><strong>Level 1: CPU-Based Scaling</strong></p>
+<pre><code class="language-yaml"># Learn: Scale based on CPU (like default HPA, but via KEDA)
+# Study: KEDA/01-scaledobject-cpu.yaml
+# Concepts: ScaledObject, trigger types, min/max replicas
+</code></pre>
+<p><strong>Level 2: Memory-Based Scaling</strong></p>
+<pre><code class="language-yaml"># Learn: Scale based on memory usage
+# Study: KEDA/02-scaledobject-memory.yaml
+# Concepts: Different metric, same pattern
+</code></pre>
+<p><strong>Level 3: Custom Metrics (Prometheus)</strong></p>
+<pre><code class="language-yaml"># Learn: Scale based on application metrics
+# Study: KEDA/03-scaledobject-prometheus.yaml
+# Concepts: Query-based scaling, custom thresholds
+# Example: Scale on HTTP requests per second
+</code></pre>
+<p><strong>Level 4: Event-Driven (Kafka)</strong></p>
+<pre><code class="language-yaml"># Learn: Scale based on external events
+# Study: KEDA/04-scaledobject-kafka.yaml
+# Concepts: Message lag, consumer groups
+# Use Case: Handle message queue backlogs
+</code></pre>
+<h4 id="implementation-example_2">Implementation Example</h4>
+<p><strong>Scenario</strong>: Auto-scale API based on request rate</p>
+<pre><code class="language-yaml"># Step 1: Install KEDA and Prometheus
+# Read: keda-setup.md - Installation
+
+# Step 2: Create Prometheus metric
+# Deploy: Prometheus/01-servicemonitor-basic.yaml
+
+# Step 3: Create scaling policy
+# Deploy: KEDA/03-scaledobject-prometheus.yaml
+# Customize: Query for your application
+
+# Step 4: Test
+# Generate load
+# Watch pods scale up/down
+</code></pre>
+<hr />
+<h3 id="monitoring--observability---prometheus--grafana">Monitoring &amp; Observability - Prometheus &amp; Grafana</h3>
+<h4 id="why-monitoring">Why Monitoring?</h4>
+<p><strong>The Four Golden Signals</strong> (Google SRE):
+1. <strong>Latency</strong> - How long does a request take?
+2. <strong>Traffic</strong> - How many requests?
+3. <strong>Errors</strong> - What percentage fail?
+4. <strong>Saturation</strong> - How full is the system?</p>
+<h4 id="learning-progression_5">Learning Progression</h4>
+<p><strong>Level 1: Metrics Collection</strong></p>
+<pre><code class="language-yaml"># Learn: Scrape metrics from applications
+# Study: Prometheus/01-servicemonitor-basic.yaml
+# Concepts: ServiceMonitor, scrape intervals, endpoints
+</code></pre>
+<p><strong>Level 2: Alerting Rules</strong></p>
+<pre><code class="language-yaml"># Learn: Define alerts based on metrics
+# Study: Prometheus/02-prometheusrule-alerts.yaml
+# Concepts: Alert expressions, thresholds, annotations
+# Example: Alert if memory &gt; 90%
+</code></pre>
+<p><strong>Level 3: Visualization</strong></p>
+<pre><code class="language-yaml"># Learn: Create dashboards in Grafana
+# Read: prometheus-grafana-setup.md - Access Grafana section
+# Practice: Create dashboard showing your application health
+</code></pre>
+<p><strong>Level 4: Integration</strong></p>
+<pre><code class="language-yaml"># Learn: Monitor the monitoring stack itself
+# Study: ArgoCD/06-servicemonitor-metrics.yaml
+# Concepts: Monitor ArgoCD health and performance
+</code></pre>
+<h4 id="key-metrics-to-monitor">Key Metrics to Monitor</h4>
+<pre><code class="language-yaml"># Application Metrics
+- http_requests_total         # Request count
+- http_request_duration_seconds # Latency
+- container_memory_usage_bytes # Memory usage
+- container_cpu_usage_seconds # CPU usage
+
+# Infrastructure Metrics
+- node_cpu_usage              # Node CPU
+- node_memory_free            # Node memory
+- disk_usage_percent          # Disk space
+- network_bytes_received      # Network I/O
+
+# Custom Metrics
+- business_metric (defined by app)
+</code></pre>
+<hr />
+<h2 id="practical-exercises">Practical Exercises</h2>
+<h3 id="exercise-set-1-web-application-deployment">Exercise Set 1: Web Application Deployment</h3>
+<p><strong>Objective</strong>: Deploy a web app accessible from the internet with HTTPS</p>
+<p><strong>Time</strong>: 2-3 hours | <strong>Difficulty</strong>: Beginner</p>
+<p><strong>Step 1: Deploy Application</strong></p>
+<pre><code class="language-bash"># Create namespace
+kubectl create namespace webapp
+
+# Deploy simple web server
+kubectl run web-server --image=nginx:latest \
+  --labels=app=web \
+  -n webapp
+
+# Expose as service
+kubectl expose pod web-server --port=80 --type=ClusterIP -n webapp
+</code></pre>
+<p><strong>Step 2: Expose via Ingress (Traditional Approach)</strong></p>
+<pre><code class="language-bash"># Apply example
+kubectl apply -f examples/NginxIngress/01-ingress-simple-http.yaml
+
+# Verify
+kubectl get ingress -n default
+</code></pre>
+<p><strong>Step 3: Add HTTPS with Cert-Manager</strong></p>
+<pre><code class="language-bash"># Apply certificate issuer
+kubectl apply -f examples/CertManager/03-clusterissuer-letsencrypt-prod.yaml
+
+# Update ingress to use TLS (create new manifest based on 02-ingress-https.yaml)
+</code></pre>
+<p><strong>Step 4: Verify</strong></p>
+<pre><code class="language-bash"># Check certificate
+kubectl get certificate -A
+
+# Check ingress status
+kubectl describe ingress &lt;name&gt;
+
+# Test access
+curl -k https://your-domain.com
+</code></pre>
+<p><strong>Learning Outcomes</strong>:
+- ✓ Understand Ingress resource structure
+- ✓ Know how Cert-Manager integrates with Ingress
+- ✓ Can troubleshoot certificate issues
+- ✓ Familiar with TLS configuration</p>
+<hr />
+<h3 id="exercise-set-2-gitops-deployment">Exercise Set 2: GitOps Deployment</h3>
+<p><strong>Objective</strong>: Deploy and manage applications using ArgoCD</p>
+<p><strong>Time</strong>: 3-4 hours | <strong>Difficulty</strong>: Intermediate</p>
+<p><strong>Step 1: Install ArgoCD</strong></p>
+<pre><code class="language-bash"># Follow: argocd-setup.md - Installation section
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+</code></pre>
+<p><strong>Step 2: Create Git Repository</strong></p>
+<pre><code class="language-bash"># Create Git repo with structure:
+# manifests/
+#   ├── deployment.yaml
+#   ├── service.yaml
+#   └── ingress.yaml
+
+# Push to GitHub
+</code></pre>
+<p><strong>Step 3: Create ArgoCD Application</strong></p>
+<pre><code class="language-bash"># Apply: examples/ArgoCD/01-basic-app.yaml
+# Customize:
+# - repoURL: Your GitHub repo
+# - targetRevision: Your branch
+# - path: manifests/
+
+kubectl apply -f custom-app.yaml
+</code></pre>
+<p><strong>Step 4: Test GitOps Workflow</strong></p>
+<pre><code class="language-bash"># Modify manifest in Git
+git push
+
+# ArgoCD should sync automatically (or manually: argocd app sync &lt;name&gt;)
+
+# Verify pod updated
+kubectl get pods -w
+</code></pre>
+<p><strong>Step 5: Add Multi-Environment</strong></p>
+<pre><code class="language-bash"># Create staging and production overlays
+# Deploy separate applications for each
+
+# Reference: ArgoCD/03-kustomize-app.yaml
+</code></pre>
+<p><strong>Learning Outcomes</strong>:
+- ✓ Understand GitOps principles
+- ✓ Can manage multiple environments
+- ✓ Know how to structure Git repos
+- ✓ Comfortable with ArgoCD workflows</p>
+<hr />
+<h3 id="exercise-set-3-network-policies">Exercise Set 3: Network Policies</h3>
+<p><strong>Objective</strong>: Implement zero-trust networking with Calico</p>
+<p><strong>Time</strong>: 2-3 hours | <strong>Difficulty</strong>: Intermediate</p>
+<p><strong>Step 1: Install Calico (if not already installed)</strong></p>
+<pre><code class="language-bash"># Follow: calico-setup.md - Installation section
+</code></pre>
+<p><strong>Step 2: Create Test Namespace</strong></p>
+<pre><code class="language-bash">kubectl create namespace policy-test
+kubectl label namespace policy-test name=policy-test
+</code></pre>
+<p><strong>Step 3: Deny All</strong></p>
+<pre><code class="language-bash"># Apply: examples/Calico/01-networkpolicy-deny-all.yaml
+kubectl apply -f examples/Calico/01-networkpolicy-deny-all.yaml
+</code></pre>
+<p><strong>Step 4: Test - Verify Blocked</strong></p>
+<pre><code class="language-bash"># Deploy test pods
+kubectl run client --image=nicolaka/netshoot -n policy-test
+kubectl run server --image=nginx -n policy-test
+
+# Try to connect (should fail)
+kubectl exec -it client -n policy-test -- curl server:80
+# Result: timeout (connection blocked) ✓
+</code></pre>
+<p><strong>Step 5: Allow Specific Traffic</strong></p>
+<pre><code class="language-bash"># Deploy: examples/Calico/02-networkpolicy-allow-namespace.yaml
+# Customize for your setup
+
+# Test again (should work now)
+kubectl exec -it client -n policy-test -- curl server:80
+# Result: HTML response ✓
+</code></pre>
+<p><strong>Step 6: Advanced Policies</strong></p>
+<pre><code class="language-bash"># Add egress policies: examples/Calico/04-networkpolicy-egress-dns.yaml
+# Test DNS works but other outbound doesn't
+</code></pre>
+<p><strong>Learning Outcomes</strong>:
+- ✓ Understand network policy structure
+- ✓ Know how to implement zero-trust
+- ✓ Can troubleshoot connectivity issues
+- ✓ Comfortable with selectors and matchers</p>
+<hr />
+<h3 id="exercise-set-4-canary-deployment">Exercise Set 4: Canary Deployment</h3>
+<p><strong>Objective</strong>: Deploy new version to small percentage of users</p>
+<p><strong>Time</strong>: 2-3 hours | <strong>Difficulty</strong>: Advanced</p>
+<p><strong>Step 1: Deploy Stable Version</strong></p>
+<pre><code class="language-bash"># Deploy application version 1.0
+kubectl create deployment myapp-stable --image=myapp:1.0
+kubectl expose deployment myapp-stable --port=8080 --type=ClusterIP
+</code></pre>
+<p><strong>Step 2: Deploy Canary Version</strong></p>
+<pre><code class="language-bash"># Deploy application version 2.0
+kubectl create deployment myapp-canary --image=myapp:2.0
+kubectl expose deployment myapp-canary --port=8080 --type=ClusterIP
+</code></pre>
+<p><strong>Step 3: Create Traffic Split</strong></p>
+<pre><code class="language-bash"># Apply: examples/GatewayAPI/05-httproute-traffic-splitting.yaml
+# Customize:
+# - stable service: myapp-stable:8080 (weight: 90)
+# - canary service: myapp-canary:8080 (weight: 10)
+
+kubectl apply -f custom-traffic-split.yaml
+</code></pre>
+<p><strong>Step 4: Monitor</strong></p>
+<pre><code class="language-bash"># Generate traffic
+# Watch for errors in canary deployment
+
+# View current traffic split
+kubectl describe httproute myapp-route
+</code></pre>
+<p><strong>Step 5: Gradual Rollout</strong></p>
+<pre><code class="language-bash"># Monitor metrics for 30 minutes
+# If healthy: canary-weight 10 → 25
+# If healthy: canary-weight 25 → 50
+# If healthy: canary-weight 50 → 75
+# If healthy: canary-weight 75 → 100
+# Finally: Remove stable deployment
+</code></pre>
+<p><strong>Learning Outcomes</strong>:
+- ✓ Understand traffic splitting
+- ✓ Know how to implement canary deployments
+- ✓ Can monitor deployment health
+- ✓ Comfortable with gradual rollouts</p>
+<hr />
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-namespace-organization">1. Namespace Organization</h3>
+<p><strong>Pattern</strong>:</p>
+<pre><code>Platform Namespaces (Cluster Admin)
+├── kube-system          # Kubernetes core
+├── kube-public          # Public resources
+├── ingress-nginx        # Ingress controller
+├── cert-manager         # Certificate management
+├── monitoring           # Prometheus + Grafana
+├── argocd              # GitOps deployment
+└── istio-system        # Service mesh (optional)
+
+Application Namespaces (Teams)
+├── team-a-dev
+├── team-a-staging
+├── team-a-production
+├── team-b-dev
+└── team-b-production
+</code></pre>
+<p><strong>Benefits</strong>:
+- Clear separation of concerns
+- Easier RBAC implementation
+- Simplified resource quotas</p>
+<hr />
+<h3 id="2-rbac-implementation">2. RBAC Implementation</h3>
+<p><strong>Pattern</strong>:</p>
+<pre><code class="language-yaml"># Infrastructure Provider Role
+ClusterRole: gateway-admin
+  - Create GatewayClass
+  - Create Gateway (in specific namespaces)
+
+# Cluster Operator Role
+ClusterRole: gateway-operator
+  - Get/List Gateway
+  - Create/Update HTTPRoute
+  - Create NetworkPolicy
+
+# Application Developer Role
+ClusterRole: gateway-developer
+  - Get/List Gateway
+  - Create/Update HTTPRoute (in own namespace only)
+</code></pre>
+<p><strong>See</strong>: <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - "RBAC Examples"</p>
+<hr />
+<h3 id="3-gitops-workflow">3. GitOps Workflow</h3>
+<p><strong>Pattern</strong>:</p>
+<pre><code>1. Developer creates feature branch
+   git checkout -b feature/new-api
+
+2. Developer modifies manifests
+   vim manifests/deployment.yaml
+
+3. Developer opens pull request
+   Reviewers check changes
+
+4. After approval, merge to main
+   git merge feature/new-api
+
+5. ArgoCD detects Git change
+   Automatically syncs to cluster
+
+6. Application updated
+   kubectl get pods -w (shows new version)
+</code></pre>
+<p><strong>See</strong>: <a href="argocd-setup.html"><code>argocd-setup.md</code></a> - "Best Practices"</p>
+<hr />
+<h3 id="4-monitoring-strategy">4. Monitoring Strategy</h3>
+<p><strong>Pattern</strong>:</p>
+<pre><code class="language-yaml">Level 1: Infrastructure
+  - Node metrics (CPU, Memory, Disk)
+  - Pod resource usage
+  - Network I/O
+
+Level 2: Application
+  - HTTP request latency
+  - Error rate
+  - Custom business metrics
+
+Level 3: Platform
+  - ArgoCD sync success rate
+  - Certificate expiry dates
+  - Ingress status
+</code></pre>
+<p><strong>See</strong>: <a href="prometheus-grafana-setup.html"><code>prometheus-grafana-setup.md</code></a> - "Monitoring" section</p>
+<hr />
+<h3 id="5-security-layers">5. Security Layers</h3>
+<p><strong>Pattern</strong>:</p>
+<pre><code>Layer 1: Network Policies (Calico)
+  ↓
+Layer 2: TLS/mTLS (Cert-Manager + Istio)
+  ↓
+Layer 3: RBAC (Kubernetes native)
+  ↓
+Layer 4: Pod Security (Network policies + RBAC)
+</code></pre>
+<p><strong>Never skip</strong>: Start with network policies (deny-all)</p>
+<hr />
+<h2 id="troubleshooting-guide">Troubleshooting Guide</h2>
+<h3 id="common-issues--solutions">Common Issues &amp; Solutions</h3>
+<h4 id="issue-1-ingressgateway-not-getting-ip">Issue 1: Ingress/Gateway Not Getting IP</h4>
+<p><strong>Symptoms</strong>:</p>
+<pre><code class="language-bash">kubectl get ingress
+NAME         HOSTS              ADDRESS       PORTS   AGE
+myingress    example.com        &lt;pending&gt;     80      5m
+</code></pre>
+<p><strong>Diagnosis</strong>:</p>
+<pre><code class="language-bash"># Check ingress controller status
+kubectl get pods -n ingress-nginx
+
+# Check service
+kubectl get svc -n ingress-nginx
+
+# Check logs
+kubectl logs -n ingress-nginx -l app=ingress-nginx --tail=50
+</code></pre>
+<p><strong>Solutions</strong>:
+1. <strong>LoadBalancer pending</strong>: Cloud provider not responding
+   - Check cloud account permissions
+   - Verify quotas aren't exceeded</p>
+<ol start="2">
+<li>
+<p><strong>Ingress controller not running</strong>: 
+   - Reinstall: <a href="nginx-ingress-setup.html"><code>nginx-ingress-setup.md</code></a>
+   - Check: <code>kubectl describe deployment -n ingress-nginx</code></p>
+</li>
+<li>
+<p><strong>For Gateway API</strong>: Ensure correct GatewayClass
+   - Check: <code>kubectl get gatewayclass -o yaml</code>
+   - Verify: GatewayClass controller is running</p>
+</li>
+</ol>
+<hr />
+<h4 id="issue-2-certificate-not-issuing">Issue 2: Certificate Not Issuing</h4>
+<p><strong>Symptoms</strong>:</p>
+<pre><code class="language-bash">kubectl describe certificate myapp-cert
+Status:  False
+Reason:  WaitingForIssuance
+</code></pre>
+<p><strong>Diagnosis</strong>:</p>
+<pre><code class="language-bash"># Check certificate status
+kubectl describe certificate &lt;name&gt;
+
+# Check order
+kubectl get order -A
+
+# Check challenge
+kubectl get challenge -A
+
+# Check cert-manager logs
+kubectl logs -n cert-manager -l app=cert-manager -f
+</code></pre>
+<p><strong>Solutions</strong>:
+1. <strong>DNS validation failing</strong>: 
+   - Verify DNS record exists
+   - Check propagation: <code>nslookup your-domain.com</code></p>
+<ol start="2">
+<li>
+<p><strong>Rate limits hit</strong>:
+   - Use staging issuer first: <a href="../examples/CertManager/02-issuer-letsencrypt-staging.html"><code>CertManager/02-issuer-letsencrypt-staging.yaml</code></a>
+   - Wait 1 hour before retry</p>
+</li>
+<li>
+<p><strong>Issuer configuration wrong</strong>:
+   - Verify email in issuer
+   - Check private key secret exists</p>
+</li>
+</ol>
+<hr />
+<h4 id="issue-3-pods-cant-communicate-network-policies">Issue 3: Pods Can't Communicate (Network Policies)</h4>
+<p><strong>Symptoms</strong>:</p>
+<pre><code class="language-bash">kubectl exec pod1 -- curl pod2:8080
+curl: (28) Connection timed out
+</code></pre>
+<p><strong>Diagnosis</strong>:</p>
+<pre><code class="language-bash"># Check network policies
+kubectl get networkpolicy -A
+
+# Describe the policy
+kubectl describe networkpolicy &lt;name&gt;
+
+# Check pod labels
+kubectl get pod --show-labels
+
+# Test without policies
+kubectl delete networkpolicy --all
+# If works, then policy is issue
+</code></pre>
+<p><strong>Solutions</strong>:
+1. <strong>Policy too restrictive</strong>:
+   - Start with: <a href="../examples/Calico/01-networkpolicy-deny-all.html"><code>Calico/01-networkpolicy-deny-all.yaml</code></a>
+   - Then add: <a href="../examples/Calico/02-networkpolicy-allow-namespace.html"><code>Calico/02-networkpolicy-allow-namespace.yaml</code></a></p>
+<ol start="2">
+<li>
+<p><strong>Pod labels don't match</strong>:
+   - Check labels: <code>kubectl get pod --show-labels</code>
+   - Update policy selectors</p>
+</li>
+<li>
+<p><strong>Wrong protocol/port</strong>:
+   - Verify application listens on declared port
+   - Check: <code>kubectl port-forward pod1 8080</code></p>
+</li>
+</ol>
+<hr />
+<h4 id="issue-4-argocd-not-syncing">Issue 4: ArgoCD Not Syncing</h4>
+<p><strong>Symptoms</strong>:</p>
+<pre><code class="language-bash">argocd app get myapp
+STATUS: OutOfSync
+SYNC STATUS: Unknown
+</code></pre>
+<p><strong>Diagnosis</strong>:</p>
+<pre><code class="language-bash"># Check application status
+kubectl get app myapp -n argocd -o yaml
+
+# Check ArgoCD logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller -f
+
+# Check Git access
+kubectl get secret git-credentials -n argocd -o yaml
+</code></pre>
+<p><strong>Solutions</strong>:
+1. <strong>Git credentials wrong</strong>:
+   - Recreate secret: <a href="argocd-setup.html"><code>argocd-setup.md</code></a> - Repository section
+   - Test: <code>kubectl exec -it argocd-repo-server -- git clone &lt;url&gt;</code></p>
+<ol start="2">
+<li>
+<p><strong>Application CRDs missing</strong>:
+   - Ensure source CRDs exist
+   - Check: <code>kubectl get crd | grep &lt;source-kind&gt;</code></p>
+</li>
+<li>
+<p><strong>Destination cluster unreachable</strong>:
+   - Verify: <code>kubectl cluster-info</code>
+   - Check: ArgoCD cluster settings</p>
+</li>
+</ol>
+<hr />
+<h4 id="issue-5-keda-not-scaling">Issue 5: KEDA Not Scaling</h4>
+<p><strong>Symptoms</strong>:</p>
+<pre><code class="language-bash">kubectl get hpa
+NAME       REFERENCE          TARGETS      MINPODS  MAXPODS  REPLICAS  AGE
+myapp-hpa  Deployment/myapp   &lt;unknown&gt;/60 1        10       1         5m
+</code></pre>
+<p><strong>Diagnosis</strong>:</p>
+<pre><code class="language-bash"># Check ScaledObject
+kubectl describe scaledobject &lt;name&gt;
+
+# Check KEDA scaler status
+kubectl logs -n keda -l app=keda-operator
+
+# Test metric availability
+kubectl top pod  # For CPU/memory
+curl prometheus:9090/api/v1/query?query=http_requests_total  # For Prometheus
+</code></pre>
+<p><strong>Solutions</strong>:
+1. <strong>Metrics server missing</strong> (for CPU/memory):
+   - Install: <code>kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml</code></p>
+<ol start="2">
+<li>
+<p><strong>Prometheus query wrong</strong>:
+   - Test query in Prometheus UI
+   - Ensure metrics exist: <code>curl prometheus:9090/api/v1/labels</code></p>
+</li>
+<li>
+<p><strong>Scaler configuration error</strong>:
+   - Check: Metadata fields match scaler spec
+   - Verify: Service account has permissions</p>
+</li>
+</ol>
+<hr />
+<h3 id="debugging-commands-toolkit">Debugging Commands Toolkit</h3>
+<p><strong>Universal debugging</strong>:</p>
+<pre><code class="language-bash"># Get all resources
+kubectl get all -n &lt;namespace&gt;
+
+# Describe problematic resource
+kubectl describe &lt;kind&gt; &lt;name&gt; -n &lt;namespace&gt;
+
+# View logs
+kubectl logs &lt;pod&gt; -n &lt;namespace&gt;
+kubectl logs &lt;pod&gt; -n &lt;namespace&gt; --previous  # Crashed pod
+
+# Execute commands in pod
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- bash
+
+# Port forward for debugging
+kubectl port-forward &lt;pod&gt; 8080:8080 -n &lt;namespace&gt;
+
+# Check events
+kubectl get events -n &lt;namespace&gt; --sort-by='.lastTimestamp'
+
+# Dry-run to validate
+kubectl apply -f manifest.yaml --dry-run=client
+</code></pre>
+<p><strong>Networking debugging</strong>:</p>
+<pre><code class="language-bash"># Launch debug pod
+kubectl run debug --image=nicolaka/netshoot -it --rm -- bash
+
+# Test DNS
+nslookup service-name
+nslookup service-name.namespace.svc.cluster.local
+
+# Test connectivity
+curl http://service-ip:port
+telnet ip port
+
+# View network policies
+kubectl get networkpolicy -A
+kubectl describe networkpolicy &lt;name&gt;
+</code></pre>
+<hr />
+<h2 id="resources">Resources</h2>
+<h3 id="official-documentation">Official Documentation</h3>
+<ul>
+<li><strong>Kubernetes</strong>: https://kubernetes.io/docs/</li>
+<li><strong>Gateway API</strong>: https://gateway-api.sigs.k8s.io/</li>
+<li><strong>ArgoCD</strong>: https://argo-cd.readthedocs.io/</li>
+<li><strong>Istio</strong>: https://istio.io/latest/docs/</li>
+<li><strong>Cert-Manager</strong>: https://cert-manager.io/</li>
+<li><strong>KEDA</strong>: https://keda.sh/</li>
+<li><strong>Calico</strong>: https://docs.tigera.io/</li>
+<li><strong>Prometheus</strong>: https://prometheus.io/docs/</li>
+<li><strong>Nginx Ingress</strong>: https://kubernetes.github.io/ingress-nginx/</li>
+</ul>
+<h3 id="setup-guides-in-this-repository">Setup Guides (In This Repository)</h3>
+<ul>
+<li><a href="prometheus-grafana-setup.html"><code>prometheus-grafana-setup.md</code></a> - Monitoring</li>
+<li><a href="istio-setup.html"><code>istio-setup.md</code></a> - Service mesh</li>
+<li><a href="keda-setup.html"><code>keda-setup.md</code></a> - Auto-scaling</li>
+<li><a href="calico-setup.html"><code>calico-setup.md</code></a> - Network policies</li>
+<li><a href="cert-manager-setup.html"><code>cert-manager-setup.md</code></a> - TLS certificates</li>
+<li><a href="nginx-ingress-setup.html"><code>nginx-ingress-setup.md</code></a> - Traditional ingress</li>
+<li><a href="argocd-setup.html"><code>argocd-setup.md</code></a> - GitOps</li>
+<li><a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> - Modern ingress</li>
+<li><a href="kubernetes-admin-tools-reference.html"><code>kubernetes-admin-tools-reference.md</code></a> - Tool overview</li>
+</ul>
+<h3 id="example-files">Example Files</h3>
+<p>All YAML examples are in: <code>/examples/</code>
+- Organized by technology
+- Numbered for learning progression
+- Fully commented for understanding</p>
+<h3 id="learning-resources">Learning Resources</h3>
+<ul>
+<li><strong>Linux Academy</strong>: Kubernetes courses</li>
+<li><strong>A Cloud Guru</strong>: Hands-on labs</li>
+<li><strong>Kubernetes the Hard Way</strong>: Deep dive setup</li>
+<li><strong>CKA Exam Prep</strong>: Certification study</li>
+</ul>
+<h3 id="community">Community</h3>
+<ul>
+<li><strong>Kubernetes Slack</strong>: #general, #help</li>
+<li><strong>Stack Overflow</strong>: [kubernetes] tag</li>
+<li><strong>Reddit</strong>: r/kubernetes</li>
+<li><strong>GitHub Issues</strong>: Tool-specific repos</li>
+</ul>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<h3 id="for-beginners">For Beginners</h3>
+<ol>
+<li>Start with <strong>Path 1: Web Application Deployment</strong></li>
+<li>Complete <strong>Exercise Set 1</strong></li>
+<li>Study <strong>Gateway API</strong> section</li>
+<li>Practice deploying real applications</li>
+</ol>
+<h3 id="for-intermediate-users">For Intermediate Users</h3>
+<ol>
+<li>Choose <strong>Path 2 or 3</strong> based on interest</li>
+<li>Complete corresponding exercise sets</li>
+<li>Implement in your own cluster</li>
+<li>Document your setup</li>
+</ol>
+<h3 id="for-advanced-users">For Advanced Users</h3>
+<ol>
+<li>Combine multiple technologies</li>
+<li>Optimize for your use case</li>
+<li>Contribute back to community</li>
+<li>Mentor others</li>
+</ol>
+<hr />
+<h2 id="continuous-learning">Continuous Learning</h2>
+<h3 id="weekly-reviews">Weekly Reviews</h3>
+<ul>
+<li><strong>Monday</strong>: Review setup guide for chosen technology</li>
+<li><strong>Tuesday</strong>: Study examples and implementation patterns</li>
+<li><strong>Wednesday</strong>: Complete practical exercise</li>
+<li><strong>Thursday</strong>: Implement in test environment</li>
+<li><strong>Friday</strong>: Document learnings and troubleshoot issues</li>
+</ul>
+<h3 id="monthly-projects">Monthly Projects</h3>
+<ul>
+<li><strong>Month 1</strong>: Deploy application with Ingress + TLS</li>
+<li><strong>Month 2</strong>: Implement GitOps with ArgoCD</li>
+<li><strong>Month 3</strong>: Add network policies with Calico</li>
+<li><strong>Month 4</strong>: Implement monitoring with Prometheus</li>
+<li><strong>Month 5</strong>: Add auto-scaling with KEDA</li>
+<li><strong>Month 6</strong>: Consolidate learning in production setup</li>
+</ul>
+<hr />
+<h2 id="study-checklist">Study Checklist</h2>
+<h3 id="foundational-knowledge">Foundational Knowledge</h3>
+<ul>
+<li>[ ] Understand Kubernetes resource model (Pods, Deployments, Services)</li>
+<li>[ ] Know Kubernetes networking basics</li>
+<li>[ ] Familiar with kubectl commands</li>
+<li>[ ] Can read and write basic YAML</li>
+</ul>
+<h3 id="ingress--networking">Ingress &amp; Networking</h3>
+<ul>
+<li>[ ] Understand Ingress concepts</li>
+<li>[ ] Can deploy Nginx Ingress Controller</li>
+<li>[ ] Know Gateway API advantages</li>
+<li>[ ] Can deploy Gateway and HTTPRoute</li>
+</ul>
+<h3 id="security">Security</h3>
+<ul>
+<li>[ ] Can implement network policies</li>
+<li>[ ] Understand TLS certificates</li>
+<li>[ ] Can set up Cert-Manager</li>
+<li>[ ] Know RBAC basics</li>
+</ul>
+<h3 id="deployment">Deployment</h3>
+<ul>
+<li>[ ] Can write Kubernetes manifests</li>
+<li>[ ] Understand GitOps principles</li>
+<li>[ ] Can use ArgoCD</li>
+<li>[ ] Know canary deployment patterns</li>
+</ul>
+<h3 id="observability">Observability</h3>
+<ul>
+<li>[ ] Can write Prometheus queries</li>
+<li>[ ] Understand metrics and alerting</li>
+<li>[ ] Can create Grafana dashboards</li>
+<li>[ ] Know the four golden signals</li>
+</ul>
+<h3 id="advanced-topics">Advanced Topics</h3>
+<ul>
+<li>[ ] Understand service mesh concepts</li>
+<li>[ ] Can configure Istio policies</li>
+<li>[ ] Know auto-scaling triggers</li>
+<li>[ ] Can troubleshoot complex issues</li>
+</ul>
+<hr />
+<p><strong>Last Updated</strong>: October 1, 2026
+<strong>Next Review</strong>: 1 month<br />
+<strong>Status</strong>: Study Material Ready ✓ — Updated for K8s 1.35/1.36 study baseline</p>
+<hr />
+<h2 id="quick-links-by-use-case">Quick Links by Use Case</h2>
+<p><strong>I want to expose my app to the internet</strong>
+→ <a href="gateway-api-setup.html"><code>gateway-api-setup.md</code></a> (recommended) or <a href="nginx-ingress-setup.html"><code>nginx-ingress-setup.md</code></a>
+→ <a href="../examples/GatewayAPI/index.html"><code>examples/GatewayAPI/</code></a> or <a href="../examples/NginxIngress/index.html"><code>examples/NginxIngress/</code></a></p>
+<p><strong>I want to add HTTPS to my app</strong>
+→ <a href="cert-manager-setup.html"><code>cert-manager-setup.md</code></a>
+→ <a href="../examples/CertManager/03-clusterissuer-letsencrypt-prod.html"><code>examples/CertManager/03-clusterissuer-letsencrypt-prod.yaml</code></a></p>
+<p><strong>I want to secure my cluster network</strong>
+→ <a href="calico-setup.html"><code>calico-setup.md</code></a>
+→ <a href="../examples/Calico/01-networkpolicy-deny-all.html"><code>examples/Calico/01-networkpolicy-deny-all.yaml</code></a></p>
+<p><strong>I want to automate deployments</strong>
+→ <a href="argocd-setup.html"><code>argocd-setup.md</code></a>
+→ <a href="../examples/ArgoCD/01-basic-app.html"><code>examples/ArgoCD/01-basic-app.yaml</code></a></p>
+<p><strong>I want to monitor my cluster</strong>
+→ <a href="prometheus-grafana-setup.html"><code>prometheus-grafana-setup.md</code></a>
+→ <a href="../examples/Prometheus/index.html"><code>examples/Prometheus/</code></a></p>
+<p><strong>I want to scale applications automatically</strong>
+→ <a href="keda-setup.html"><code>keda-setup.md</code></a>
+→ <a href="../examples/KEDA/01-scaledobject-cpu.html"><code>examples/KEDA/01-scaledobject-cpu.yaml</code></a></p>
+<p><strong>I want advanced traffic management</strong>
+→ <a href="istio-setup.html"><code>istio-setup.md</code></a>
+→ <a href="../examples/Istio/index.html"><code>examples/Istio/</code></a></p>
+<hr />
+<p>Happy Learning! 🚀</p></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#getting-started">Getting Started</a><ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#your-learning-environment">Your Learning Environment</a></li>
+<li><a href="#how-to-use-this-guide">How to Use This Guide</a></li>
+</ul>
+</li>
+<li><a href="#learning-paths">Learning Paths</a><ul>
+<li><a href="#path-1-web-application-deployment-beginner">Path 1: Web Application Deployment (Beginner)</a></li>
+<li><a href="#path-2-continuous-deployment--gitops-intermediate">Path 2: Continuous Deployment &amp; GitOps (Intermediate)</a></li>
+<li><a href="#path-3-advanced-networking--service-mesh-advanced">Path 3: Advanced Networking &amp; Service Mesh (Advanced)</a></li>
+<li><a href="#path-4-observability--monitoring-intermediate">Path 4: Observability &amp; Monitoring (Intermediate)</a></li>
+<li><a href="#path-5-auto-scaling--high-availability-intermediate">Path 5: Auto-scaling &amp; High Availability (Intermediate)</a></li>
+<li><a href="#path-6-platform-apis--multi-cluster-orchestration-advanced">Path 6: Platform APIs &amp; Multi-cluster Orchestration (Advanced)</a></li>
+</ul>
+</li>
+<li><a href="#core-concepts">Core Concepts</a><ul>
+<li><a href="#1-kubernetes-networking-fundamentals">1. Kubernetes Networking Fundamentals</a></li>
+<li><a href="#2-ingress-evolution">2. Ingress Evolution</a></li>
+<li><a href="#3-security-layers">3. Security Layers</a></li>
+<li><a href="#4-deployment-patterns">4. Deployment Patterns</a></li>
+<li><a href="#5-gitops-philosophy">5. GitOps Philosophy</a></li>
+</ul>
+</li>
+<li><a href="#technologies-deep-dive">Technologies Deep Dive</a><ul>
+<li><a href="#gateway-api---modern-ingress-recommended-for-new-projects">Gateway API - Modern Ingress (Recommended for New Projects)</a></li>
+<li><a href="#argocd---gitops-continuous-deployment">ArgoCD - GitOps Continuous Deployment</a></li>
+<li><a href="#certificate-management---tls-automation">Certificate Management - TLS Automation</a></li>
+<li><a href="#networking-security---calico-network-policies">Networking Security - Calico Network Policies</a></li>
+<li><a href="#keda---event-driven-auto-scaling">KEDA - Event-Driven Auto-Scaling</a></li>
+<li><a href="#monitoring--observability---prometheus--grafana">Monitoring &amp; Observability - Prometheus &amp; Grafana</a></li>
+</ul>
+</li>
+<li><a href="#practical-exercises">Practical Exercises</a><ul>
+<li><a href="#exercise-set-1-web-application-deployment">Exercise Set 1: Web Application Deployment</a></li>
+<li><a href="#exercise-set-2-gitops-deployment">Exercise Set 2: GitOps Deployment</a></li>
+<li><a href="#exercise-set-3-network-policies">Exercise Set 3: Network Policies</a></li>
+<li><a href="#exercise-set-4-canary-deployment">Exercise Set 4: Canary Deployment</a></li>
+</ul>
+</li>
+<li><a href="#best-practices">Best Practices</a><ul>
+<li><a href="#1-namespace-organization">1. Namespace Organization</a></li>
+<li><a href="#2-rbac-implementation">2. RBAC Implementation</a></li>
+<li><a href="#3-gitops-workflow">3. GitOps Workflow</a></li>
+<li><a href="#4-monitoring-strategy">4. Monitoring Strategy</a></li>
+<li><a href="#5-security-layers">5. Security Layers</a></li>
+</ul>
+</li>
+<li><a href="#troubleshooting-guide">Troubleshooting Guide</a><ul>
+<li><a href="#common-issues--solutions">Common Issues &amp; Solutions</a></li>
+<li><a href="#debugging-commands-toolkit">Debugging Commands Toolkit</a></li>
+</ul>
+</li>
+<li><a href="#resources">Resources</a><ul>
+<li><a href="#official-documentation">Official Documentation</a></li>
+<li><a href="#setup-guides-in-this-repository">Setup Guides (In This Repository)</a></li>
+<li><a href="#example-files">Example Files</a></li>
+<li><a href="#learning-resources">Learning Resources</a></li>
+<li><a href="#community">Community</a></li>
+</ul>
+</li>
+<li><a href="#next-steps">Next Steps</a><ul>
+<li><a href="#for-beginners">For Beginners</a></li>
+<li><a href="#for-intermediate-users">For Intermediate Users</a></li>
+<li><a href="#for-advanced-users">For Advanced Users</a></li>
+</ul>
+</li>
+<li><a href="#continuous-learning">Continuous Learning</a><ul>
+<li><a href="#weekly-reviews">Weekly Reviews</a></li>
+<li><a href="#monthly-projects">Monthly Projects</a></li>
+</ul>
+</li>
+<li><a href="#study-checklist">Study Checklist</a><ul>
+<li><a href="#foundational-knowledge">Foundational Knowledge</a></li>
+<li><a href="#ingress--networking">Ingress &amp; Networking</a></li>
+<li><a href="#security">Security</a></li>
+<li><a href="#deployment">Deployment</a></li>
+<li><a href="#observability">Observability</a></li>
+<li><a href="#advanced-topics">Advanced Topics</a></li>
+</ul>
+</li>
+<li><a href="#quick-links-by-use-case">Quick Links by Use Case</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

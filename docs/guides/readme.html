@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes Study Repository · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kubernetes Study Repository</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="kubernetes-study-repository">Kubernetes Study Repository</h1>
+<blockquote>
+<p>A structured study guide covering production-grade Kubernetes tooling, updated for <strong>October 1, 2026</strong>.
+Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains <strong>1.37</strong>; check each add-on's support matrix before upgrading.</p>
+<p>🌐 <strong>Website</strong>: browse this repo as a visual, searchable site at <strong>https://yisusvii.github.io/kubernetes-study/</strong> (source in <a href="../index.html"><code>docs/</code></a>). To enable it on your own fork: repo <strong>Settings → Pages → Source: Deploy from a branch → Branch: <code>main</code> / folder: <code>/docs</code></strong>.</p>
+<p>⚠️ <strong>Deprecation notice</strong>: <code>ingress-nginx</code> (the project used in <a href="nginx-ingress-setup.html">nginx-ingress-setup.md</a>) was <strong>archived/retired by Kubernetes on March 24, 2026</strong>. See <a href="deprecations.html">DEPRECATIONS.md</a> for details and migration guidance before using it in new projects.</p>
+</blockquote>
+<h2 id="contents">Contents</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="study-guide.html">STUDY_GUIDE.md</a></td>
+<td>Main learning paths, exercises, and best practices</td>
+</tr>
+<tr>
+<td><a href="deprecations.html">DEPRECATIONS.md</a></td>
+<td><strong>2026 update</strong>: deprecated/retired/outdated resources and migration notes</td>
+</tr>
+<tr>
+<td><a href="argocd-setup.html">argocd-setup.md</a></td>
+<td>GitOps with ArgoCD v3.5+</td>
+</tr>
+<tr>
+<td><a href="calico-setup.html">calico-setup.md</a></td>
+<td>Network policies with Calico v3.32+</td>
+</tr>
+<tr>
+<td><a href="cert-manager-setup.html">cert-manager-setup.md</a></td>
+<td>TLS automation with cert-manager v1.21+</td>
+</tr>
+<tr>
+<td><a href="cilium-setup.html">cilium-setup.md</a></td>
+<td>eBPF networking with Cilium v1.20+ (standard CNI)</td>
+</tr>
+<tr>
+<td><a href="gateway-api-setup.html">gateway-api-setup.md</a></td>
+<td>Gateway API v1.6+</td>
+</tr>
+<tr>
+<td><a href="istio-setup.html">istio-setup.md</a></td>
+<td>Service mesh with Istio 1.31+</td>
+</tr>
+<tr>
+<td><a href="keda-setup.html">keda-setup.md</a></td>
+<td>Event-driven autoscaling with KEDA v2.21+</td>
+</tr>
+<tr>
+<td><a href="kubernetes-admin-tools-reference.html">kubernetes-admin-tools-reference.md</a></td>
+<td>kubectl, Helm, k9s, and more</td>
+</tr>
+<tr>
+<td><a href="nginx-ingress-setup.html">nginx-ingress-setup.md</a></td>
+<td>NGINX Ingress Controller ⚠️ <strong>retired, see DEPRECATIONS.md</strong></td>
+</tr>
+<tr>
+<td><a href="prometheus-grafana-setup.html">prometheus-grafana-setup.md</a></td>
+<td>Monitoring stack (kube-prometheus-stack chart v91+)</td>
+</tr>
+<tr>
+<td><a href="crossplane-setup.html">crossplane-setup.md</a></td>
+<td>Platform APIs with Crossplane v2.4.2 (CNCF Graduated)</td>
+</tr>
+<tr>
+<td><a href="karmada-setup.html">karmada-setup.md</a></td>
+<td>Multi-cluster orchestration with Karmada v1.19.0 (CNCF Graduated)</td>
+</tr>
+<tr>
+<td><a href="../examples/index.html">examples/</a></td>
+<td>Ready-to-use YAML manifests for all technologies</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="graduated-cncf-orchestration-projects">Graduated CNCF orchestration projects</h2>
+<p>Added from <a href="https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration">Scheduling &amp; Orchestration</a>, with category membership checked against the <a href="https://github.com/cncf/landscape/blob/master/landscape.yml">landscape source</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>What to study</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.cncf.io/projects/crossplane/">Crossplane</a></td>
+<td>Define a platform API and reconcile composed Kubernetes resources</td>
+<td><a href="crossplane-setup.html">ConfigMap composition</a> — no cloud account required</td>
+</tr>
+<tr>
+<td><a href="https://www.cncf.io/projects/karmada/">Karmada</a></td>
+<td>Place workloads across member clusters; duplicate or divide replicas</td>
+<td><a href="karmada-setup.html">Two-member placement</a> — requires a host and two member clusters</td>
+</tr>
+</tbody>
+</table>
+<p>Kubernetes and KEDA from this category were already covered. Graduation describes project maturity; each guide documents separate lab prerequisites.</p>
+<h2 id="stay-updated--kubernetes-news--community">Stay Updated — Kubernetes News &amp; Community</h2>
+<h3 id="official-sources">Official Sources</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>URL</th>
+<th>What you get</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kubernetes Blog</strong></td>
+<td>https://kubernetes.io/blog/</td>
+<td>Release notes, SIGs updates, deprecation notices</td>
+</tr>
+<tr>
+<td><strong>Kubernetes Changelog</strong></td>
+<td>https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/</td>
+<td>Every API change per release</td>
+</tr>
+<tr>
+<td><strong>CNCF Blog</strong></td>
+<td>https://www.cncf.io/blog/</td>
+<td>Ecosystem project news and case studies</td>
+</tr>
+<tr>
+<td><strong>CNCF Landscape</strong></td>
+<td>https://landscape.cncf.io/</td>
+<td>Track graduated/incubating projects</td>
+</tr>
+</tbody>
+</table>
+<h3 id="newsletters-weekly">Newsletters (Weekly)</h3>
+<table>
+<thead>
+<tr>
+<th>Newsletter</th>
+<th>URL</th>
+<th>Why subscribe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>KubeWeekly</strong></td>
+<td>https://kubeweekly.io/</td>
+<td>Curated K8s links every Friday (official CNCF newsletter)</td>
+</tr>
+<tr>
+<td><strong>Last Week in Kubernetes Development</strong></td>
+<td>https://lwkd.info/</td>
+<td>Deep-dive into merged PRs and upstream changes</td>
+</tr>
+<tr>
+<td><strong>DevOps Bulletin</strong></td>
+<td>https://devopsbulletin.com/</td>
+<td>Broader platform engineering news</td>
+</tr>
+<tr>
+<td><strong>Cloud Native News</strong></td>
+<td>https://cloudnative.news/</td>
+<td>CNCF-focused, daily updates</td>
+</tr>
+</tbody>
+</table>
+<h3 id="podcasts">Podcasts</h3>
+<table>
+<thead>
+<tr>
+<th>Podcast</th>
+<th>URL</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kubernetes Podcast (Google)</strong></td>
+<td>https://kubernetespodcast.com/</td>
+<td>Official Google K8s podcast; interviews with SIG leads</td>
+</tr>
+<tr>
+<td><strong>Ship It! (changelog.fm)</strong></td>
+<td>https://changelog.com/shipit</td>
+<td>Platform engineering, GitOps, K8s war stories</td>
+</tr>
+<tr>
+<td><strong>Cloud Native Podcast</strong></td>
+<td>https://cloudnativepodcast.com/</td>
+<td>CNCF project deep dives</td>
+</tr>
+<tr>
+<td><strong>The Kubelist Podcast</strong></td>
+<td>https://www.heavybit.com/library/podcasts/the-kubelist-podcast</td>
+<td>K8s ecosystem startups and tools</td>
+</tr>
+</tbody>
+</table>
+<h3 id="youtube-channels">YouTube Channels</h3>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>URL</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CNCF (official)</strong></td>
+<td>https://www.youtube.com/@cncf</td>
+<td>KubeCon talks, project intros</td>
+</tr>
+<tr>
+<td><strong>TechWorld with Nana</strong></td>
+<td>https://www.youtube.com/@TechWorldwithNana</td>
+<td>Beginner-friendly K8s tutorials</td>
+</tr>
+<tr>
+<td><strong>KodeKloud</strong></td>
+<td>https://www.youtube.com/@KodeKloud</td>
+<td>CKA/CKAD exam prep</td>
+</tr>
+<tr>
+<td><strong>Rawkode Academy</strong></td>
+<td>https://www.youtube.com/@RawkodeAcademy</td>
+<td>Cilium, OpenTelemetry, cloud-native deep dives</td>
+</tr>
+</tbody>
+</table>
+<h3 id="community-forums--discussions">Community Forums &amp; Discussions</h3>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>URL</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kubernetes Slack</strong></td>
+<td>https://slack.k8s.io/</td>
+<td><code>#sig-network</code>, <code>#sig-argo</code>, <code>#cilium</code>, <code>#keda</code></td>
+</tr>
+<tr>
+<td><strong>CNCF Slack</strong></td>
+<td>https://cloud-native.slack.com/</td>
+<td>Cross-project community discussions</td>
+</tr>
+<tr>
+<td><strong>Reddit: r/kubernetes</strong></td>
+<td>https://www.reddit.com/r/kubernetes/</td>
+<td>Q&amp;A, career advice, tool comparisons</td>
+</tr>
+<tr>
+<td><strong>GitHub Discussions</strong></td>
+<td>https://github.com/kubernetes/kubernetes/discussions</td>
+<td>Upstream design discussions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="release-trackers">Release Trackers</h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>URL</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>endoflife.date/kubernetes</strong></td>
+<td>https://endoflife.date/kubernetes</td>
+<td>K8s version support windows</td>
+</tr>
+<tr>
+<td><strong>ArtifactHub</strong></td>
+<td>https://artifacthub.io/</td>
+<td>Find and track Helm chart versions</td>
+</tr>
+<tr>
+<td><strong>Renovate / Dependabot</strong></td>
+<td>GitHub Apps</td>
+<td>Automate dependency updates in your repos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="top-blogs-to-follow">Top Blogs to Follow</h3>
+<table>
+<thead>
+<tr>
+<th>Blog</th>
+<th>URL</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Learnk8s</strong></td>
+<td>https://learnk8s.io/blog</td>
+<td>In-depth K8s architecture articles</td>
+</tr>
+<tr>
+<td><strong>Iximiuz Labs</strong></td>
+<td>https://iximiuz.com/en/</td>
+<td>Low-level container &amp; K8s internals</td>
+</tr>
+<tr>
+<td><strong>Containerized Me</strong></td>
+<td>https://containerized.me/</td>
+<td>Practical K8s guides</td>
+</tr>
+<tr>
+<td><strong>The New Stack</strong></td>
+<td>https://thenewstack.io/kubernetes/</td>
+<td>Industry news and trends</td>
+</tr>
+<tr>
+<td><strong>Cilium Blog</strong></td>
+<td>https://cilium.io/blog/</td>
+<td>eBPF, CNI, network security</td>
+</tr>
+<tr>
+<td><strong>ArgoCD Blog</strong></td>
+<td>https://blog.argoproj.io/</td>
+<td>GitOps patterns and releases</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="release-snapshot--october-1-2026">Release Snapshot — October 1, 2026</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Verified stable release</th>
+<th>Official source</th>
+<th>Upgrade notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes</td>
+<td>1.37.1</td>
+<td><a href="https://kubernetes.io/releases/">Supported releases</a></td>
+<td>Maintained branches: 1.35, 1.36, 1.37</td>
+</tr>
+<tr>
+<td>ArgoCD</td>
+<td>v3.5.3</td>
+<td><a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.3">Release</a></td>
+<td>Helm 4 and Source Integrity migration</td>
+</tr>
+<tr>
+<td>Calico</td>
+<td>v3.32.2</td>
+<td><a href="https://github.com/projectcalico/calico/releases/tag/v3.32.2">Release</a></td>
+<td>Patch update</td>
+</tr>
+<tr>
+<td>cert-manager</td>
+<td>v1.21.2</td>
+<td><a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2">Release</a></td>
+<td>Security hardening and renewal/webhook fixes</td>
+</tr>
+<tr>
+<td>Cilium</td>
+<td>v1.20.2</td>
+<td><a href="https://github.com/cilium/cilium/releases/tag/v1.20.2">Release</a></td>
+<td>1.20 is stable; review minor upgrade notes</td>
+</tr>
+<tr>
+<td>Gateway API</td>
+<td>v1.6.2</td>
+<td><a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2">Release</a></td>
+<td>Redirect conformance clarification</td>
+</tr>
+<tr>
+<td>Istio</td>
+<td>1.31.1</td>
+<td><a href="https://github.com/istio/istio/releases/tag/1.31.1">Release</a></td>
+<td>1.29 support expected to end October 12</td>
+</tr>
+<tr>
+<td>KEDA</td>
+<td>v2.21.0</td>
+<td><a href="https://github.com/kedacore/keda/releases/tag/v2.21.0">Release</a></td>
+<td>Critical token-audience fix; three breaking changes</td>
+</tr>
+<tr>
+<td>Crossplane</td>
+<td>v2.4.2</td>
+<td><a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.2">Release</a></td>
+<td>Namespaced v2 composite API lab</td>
+</tr>
+<tr>
+<td>Karmada</td>
+<td>v1.19.0</td>
+<td><a href="https://github.com/karmada-io/karmada/releases/tag/v1.19.0">Release</a></td>
+<td>Graduated September 2026; multi-cluster lab</td>
+</tr>
+<tr>
+<td>ingress-nginx</td>
+<td>controller-v1.15.1 (retired)</td>
+<td><a href="https://github.com/kubernetes/ingress-nginx">Archived repository</a></td>
+<td>Migrate to a maintained Gateway API implementation</td>
+</tr>
+<tr>
+<td>kube-prometheus-stack</td>
+<td>91.8.2 (chart)</td>
+<td><a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2">Release</a></td>
+<td>Review intervening major chart upgrade notes</td>
+</tr>
+</tbody>
+</table>
+<p>This snapshot records published versions, not cluster-tested compatibility. In particular, <a href="https://istio.io/latest/docs/releases/supported-releases/">Istio 1.31 lists Kubernetes 1.32–1.36 as supported</a>; do not assume Kubernetes 1.37 support across the stack.</p>
+<p>See <a href="deprecations.html">DEPRECATIONS.md</a> for the October security, deprecation, and ecosystem news update.</p>
+<hr />
+<p><strong>Last Updated</strong>: October 1, 2026</p>
+<h2 id="website-content">Website content</h2>
+<p>The website keeps setup guides, learning paths, admin references, and YAML examples on the site as styled HTML pages. Each learning path opens its section of the complete study guide. Manifest pages include copy and download controls.</p>
+<p>Markdown files and <a href="../examples/index.html"><code>examples/</code></a> remain the source of truth. After changing them, regenerate the website and commit the generated files in <a href="../index.html"><code>docs/</code></a>:</p>
+<pre><code class="language-bash">python3 -m pip install -r scripts/requirements.txt
+python3 scripts/build_site.py
+python3 scripts/check_site.py
+</code></pre>
+<p>Preview locally with <code>python3 -m http.server 8765 --directory docs</code>, then open <code>http://localhost:8765/</code>. GitHub Pages continues to serve <code>main</code> → <code>/docs</code>; no server or runtime Markdown dependency is needed.</p></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#contents">Contents</a></li>
+<li><a href="#graduated-cncf-orchestration-projects">Graduated CNCF orchestration projects</a></li>
+<li><a href="#stay-updated--kubernetes-news--community">Stay Updated — Kubernetes News &amp; Community</a><ul>
+<li><a href="#official-sources">Official Sources</a></li>
+<li><a href="#newsletters-weekly">Newsletters (Weekly)</a></li>
+<li><a href="#podcasts">Podcasts</a></li>
+<li><a href="#youtube-channels">YouTube Channels</a></li>
+<li><a href="#community-forums--discussions">Community Forums &amp; Discussions</a></li>
+<li><a href="#release-trackers">Release Trackers</a></li>
+<li><a href="#top-blogs-to-follow">Top Blogs to Follow</a></li>
+</ul>
+</li>
+<li><a href="#release-snapshot--october-1-2026">Release Snapshot — October 1, 2026</a></li>
+<li><a href="#website-content">Website content</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

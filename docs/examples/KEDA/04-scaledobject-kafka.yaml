@@ -1,0 +1,31 @@
+# KEDA ScaledObject - Kafka-based Scaling
+# Scales based on Kafka consumer group lag
+# KEDA v2.15+ compatible with SASL/TLS authentication support
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kafka-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kafka-consumer
+  pollingInterval: 10
+  cooldownPeriod: 30
+  minReplicaCount: 1
+  maxReplicaCount: 30
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  triggers:
+  - type: kafka
+    metadata:
+      bootstrapServers: kafka-broker.kafka.svc.cluster.local:9092
+      consumerGroup: mygroup
+      topic: mytopic
+      lagThreshold: "10"
+      offsetResetPolicy: latest  # earliest | latest
+      # For SASL auth, reference a TriggerAuthentication:
+      # authenticationRef:
+      #   name: kafka-trigger-auth

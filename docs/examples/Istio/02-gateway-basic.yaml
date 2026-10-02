@@ -1,0 +1,26 @@
+# Istio Gateway for Ingress Traffic
+# networking.istio.io/v1 is GA since Istio 1.22 (v1beta1 deprecated)
+# NOTE: Consider migrating to Kubernetes Gateway API with Istio - preferred in 2025/2026
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: myapp-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "myapp.example.com"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: myapp-tls
+    hosts:
+    - "myapp.example.com"

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>04-certificate.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>04-certificate.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>04-certificate.yaml</h1><p><a href="index.html">← CertManager examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="04-certificate.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Cert-Manager Certificate Resource
+# cert-manager v1.21.x compatible
+# usages field replaces deprecated keyUsage/extKeyUsage (v1.15+)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: myapp-cert
+  namespace: default
+spec:
+  secretName: myapp-tls
+  issuerRef:
+    name: letsencrypt-prod-cluster
+    kind: ClusterIssuer
+  dnsNames:
+  - myapp.example.com
+  - www.myapp.example.com
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d - cert-manager v1.15+ defaults to 1/3 of duration
+  # secretTemplate adds labels/annotations to the generated Secret
+  secretTemplate:
+    labels:
+      app: myapp
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: &quot;true&quot;
+  # privateKey options (v1.14+)
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

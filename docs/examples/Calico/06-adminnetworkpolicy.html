@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>06-adminnetworkpolicy.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>06-adminnetworkpolicy.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>06-adminnetworkpolicy.yaml</h1><p><a href="index.html">← Calico examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="06-adminnetworkpolicy.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Kubernetes AdminNetworkPolicy (ANP) - K8s 1.31+ Beta (policy.networking.k8s.io/v1alpha1)
+# AdminNetworkPolicy gives cluster admins a way to define network policies that
+# CANNOT be overridden by namespace/tenant NetworkPolicies.
+# Works alongside standard NetworkPolicy (complements, doesn&#x27;t replace).
+# Supported by: Cilium 1.16+, Calico 3.29+, OVN-Kubernetes 24.06+
+#
+# Key differences vs NetworkPolicy:
+# - Cluster-scoped (not namespaced)
+# - Priority-ordered (lower number = higher priority)
+# - Explicit Allow/Deny/Pass actions (NetworkPolicy only allows &quot;allow&quot;)
+# - &quot;Pass&quot; delegates decision to Namespace-scoped NetworkPolicies
+---
+# Example 1: Platform-level deny all egress to metadata endpoints
+# Prevents workloads from accessing cloud metadata APIs (security best practice)
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: deny-cloud-metadata
+spec:
+  priority: 10   # lower = evaluated first (0-1000)
+  subject:
+    namespaces:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values: [kube-system, kube-public]
+  egress:
+  - name: deny-aws-metadata
+    action: Deny
+    to:
+    - networks:
+      - cidr: 169.254.169.254/32   # AWS/GCP/Azure IMDS endpoint
+  - name: deny-azure-metadata
+    action: Deny
+    to:
+    - networks:
+      - cidr: 168.63.129.16/32    # Azure metadata endpoint
+
+---
+# Example 2: Allow monitoring namespace to scrape all pods
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: allow-monitoring-scrape
+spec:
+  priority: 20
+  subject:
+    # Apply to ALL namespaces (pods being scraped)
+    namespaces: {}
+  ingress:
+  - name: allow-prometheus-scrape
+    action: Allow
+    from:
+    - namespaces:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - portNumber:
+        port: 9090
+        protocol: TCP
+    - portNumber:
+        port: 8080
+        protocol: TCP
+
+---
+# Example 3: Baseline Namespace Isolation ANP
+# Pass (delegate) intra-namespace traffic to tenant NetworkPolicies
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: AdminNetworkPolicy
+metadata:
+  name: baseline-isolation
+spec:
+  priority: 50
+  subject:
+    namespaces:
+      matchExpressions:
+      - key: team
+        operator: Exists   # Only apply to namespaces with a &#x27;team&#x27; label
+  ingress:
+  - name: pass-same-namespace
+    action: Pass    # Let tenant NetworkPolicies decide same-namespace traffic
+    from:
+    - sameLabels:
+      - key: kubernetes.io/metadata.name   # same namespace
+  - name: deny-other-namespaces
+    action: Deny
+    from:
+    - namespaces: {}
+
+---
+# Example 4: BaselineAdminNetworkPolicy - lowest priority fallback
+# Applied AFTER all ANPs and NetworkPolicies have been evaluated
+apiVersion: policy.networking.k8s.io/v1alpha1
+kind: BaselineAdminNetworkPolicy
+metadata:
+  name: default-baseline
+spec:
+  subject:
+    namespaces: {}
+  ingress:
+  - name: deny-all-cross-namespace-ingress
+    action: Deny
+    from:
+    - namespaces: {}
+  egress:
+  - name: allow-dns
+    action: Allow
+    to:
+    - namespaces:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - portNumber:
+        port: 53
+        protocol: UDP
+    - portNumber:
+        port: 53
+        protocol: TCP
+  - name: deny-all-other-egress
+    action: Deny
+    to:
+    - networks:
+      - cidr: 0.0.0.0/0
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

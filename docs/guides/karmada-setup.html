@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Karmada Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Karmada Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="karmada-setup-notes">Karmada Setup Notes</h1>
+<p>Karmada schedules Kubernetes resources across member clusters. This lab compares duplicating a workload in two clusters with dividing its replicas between them. ArgoCD can deliver resources to the Karmada API; Karmada decides their placement.</p>
+<p><a href="https://www.cncf.io/projects/karmada/">CNCF graduated status</a> verified October 1, 2026: graduated September 3, 2026. It belongs to <a href="https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration">Scheduling &amp; Orchestration</a>. Release pin: <a href="https://github.com/karmada-io/karmada/releases/tag/v1.19.0">v1.19.0</a>.</p>
+<h2 id="prepare-the-control-plane">Prepare the control plane</h2>
+<p>Use a disposable host Kubernetes cluster and two member clusters. Their API endpoints must be reachable from the Karmada controllers. Prepare host/member kubeconfig files; verify version support using the release documentation. Download the matching <code>karmadactl</code> binary for your OS/architecture from the release assets and put it on PATH.</p>
+<p>On a Linux administration host with the host kubeconfig at <code>/absolute/path/host.config</code>:</p>
+<pre><code class="language-bash">sudo karmadactl init --kubeconfig /absolute/path/host.config \
+  --crds https://github.com/karmada-io/karmada/releases/download/v1.19.0/crds.tar.gz \
+  --karmada-controller-manager-image docker.io/karmada/karmada-controller-manager:v1.19.0 \
+  --karmada-scheduler-image docker.io/karmada/karmada-scheduler:v1.19.0 \
+  --karmada-webhook-image docker.io/karmada/karmada-webhook:v1.19.0 \
+  --karmada-aggregated-apiserver-image docker.io/karmada/karmada-aggregated-apiserver:v1.19.0
+</code></pre>
+<p>Sources: <a href="https://karmada.io/docs/installation/install-with-cli/">installation with CLI</a> and <a href="https://karmada.io/docs/reference/karmadactl/karmadactl-commands/karmadactl_init/">init flag reference</a>. The default data directory is <code>/etc/karmada</code>; protect the generated kubeconfig and certificates. This is a study setup with local etcd storage; use the upstream HA guidance for durable installations.</p>
+<h2 id="register-members">Register members</h2>
+<p>Use the generated <strong>Karmada API</strong> kubeconfig, rather than the host cluster kubeconfig, for joins and policy operations. Run on the administration host with access to the generated file:</p>
+<pre><code class="language-bash">export KARMADA_CONFIG=/etc/karmada/karmada-apiserver.config
+karmadactl --kubeconfig &quot;$KARMADA_CONFIG&quot; join member1 --cluster-kubeconfig /absolute/path/member1.config
+karmadactl --kubeconfig &quot;$KARMADA_CONFIG&quot; join member2 --cluster-kubeconfig /absolute/path/member2.config
+kubectl --kubeconfig &quot;$KARMADA_CONFIG&quot; get clusters
+</code></pre>
+<p>Wait until both members show Ready. Registration uses push mode; see <a href="https://karmada.io/docs/userguide/clustermanager/cluster-registration/">cluster registration</a> for other modes.</p>
+<h2 id="compare-replica-placement">Compare replica placement</h2>
+<p>Run from the repository root. The manifests name members <code>member1</code> and <code>member2</code>; change those names if needed.</p>
+<pre><code class="language-bash">kubectl --kubeconfig &quot;$KARMADA_CONFIG&quot; apply -f examples/Karmada/01-workload.yaml
+kubectl --kubeconfig &quot;$KARMADA_CONFIG&quot; apply -f examples/Karmada/02-propagation-policy.yaml
+kubectl --kubeconfig /absolute/path/member1.config get deployments,services -n karmada-study
+kubectl --kubeconfig /absolute/path/member2.config get deployments,services -n karmada-study
+</code></pre>
+<p>The policy duplicates the Deployment's two replicas in each member. Karmada propagates the namespace and selected Service as well. Services remain local to each member; this lab does not create cross-cluster networking or global traffic routing.</p>
+<pre><code class="language-bash"># Replace the existing policy to divide two total replicas with equal weights.
+kubectl --kubeconfig &quot;$KARMADA_CONFIG&quot; apply -f examples/Karmada/03-divided-replicas.yaml
+</code></pre>
+<p>Check both members again: with two healthy eligible clusters, each receives one replica. The third file updates the same policy; do not apply the entire example directory as one batch. Source: <a href="https://karmada.io/docs/userguide/scheduling/propagation-policy/">propagation and replica scheduling</a>.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>For missing workloads, check member Ready status, the policy's selectors, and <code>kubectl --kubeconfig "$KARMADA_CONFIG" get resourcebindings -n karmada-study</code>. Inspect host-cluster pods in <code>karmada-system</code> for controller errors. An unreachable member API cannot receive resources.</p>
+<pre><code class="language-bash"># Remove templates while placement policy and controllers still exist.
+kubectl --kubeconfig &quot;$KARMADA_CONFIG&quot; delete -f examples/Karmada/01-workload.yaml
+kubectl --kubeconfig &quot;$KARMADA_CONFIG&quot; delete -f examples/Karmada/02-propagation-policy.yaml --ignore-not-found
+</code></pre>
+<p>Confirm workload cleanup in each member. Keep the Karmada control plane and registrations if other workloads use them.</p></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prepare-the-control-plane">Prepare the control plane</a></li>
+<li><a href="#register-members">Register members</a></li>
+<li><a href="#compare-replica-placement">Compare replica placement</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

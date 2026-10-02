@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>03-hubble-observability.yaml · K8s Study</title>
+<link rel="stylesheet" href="../../assets/style.css" />
+<link rel="stylesheet" href="../../assets/reader.css" />
+<script src="../../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="../../guides/study-guide.html">Study guide</a><a href="../index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../../index.html">Home</a><span aria-hidden="true"> / </span><span>03-hubble-observability.yaml</span></div>
+<div class="container reader-layout">
+<main id="main" class="reader-content"><h1>03-hubble-observability.yaml</h1><p><a href="index.html">← Cilium examples</a></p><div class="manifest-actions"><a class="btn btn-outline" href="03-hubble-observability.yaml" download>Download YAML</a><button class="btn btn-outline" type="button" data-copy-code>Copy YAML</button><span role="status" id="copyStatus"></span></div><pre><code># Cilium Hubble - Network Observability
+# Hubble is Cilium&#x27;s built-in observability platform
+# Provides flow-level visibility into all network traffic in the cluster
+# No code changes needed - eBPF captures everything transparently
+---
+# HubbleUI Ingress - Expose Hubble UI via an Ingress controller (for local access)
+# NOTE: this example uses ingressClassName: nginx / nginx.ingress.kubernetes.io
+# annotations for kubernetes/ingress-nginx, which was retired in March 2026
+# (see ../../DEPRECATIONS.md). Prefer exposing Hubble UI via a Gateway API
+# HTTPRoute + a maintained Gateway API implementation (e.g. Cilium&#x27;s own Gateway
+# API support) instead of a new ingress-nginx deployment.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hubble-ui
+  namespace: kube-system
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: &quot;HTTP&quot;
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: hubble.internal.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hubble-ui
+            port:
+              number: 80
+
+---
+# Hubble metrics for Prometheus (ServiceMonitor)
+# Requires: Hubble installed with hubble.metrics.enabled=true
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: hubble-metrics
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+    - kube-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hubble
+  endpoints:
+  - port: hubble-metrics
+    interval: 30s
+    path: /metrics
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
+
+---
+# Example Flow Query (run with hubble CLI):
+# Monitor HTTP traffic in real time:
+#   hubble observe --namespace default --protocol http
+#
+# Watch all DNS queries:
+#   hubble observe --namespace default --protocol dns
+#
+# Check connectivity between pods:
+#   hubble observe --from-pod default/frontend --to-pod default/backend
+#
+# Export flows to file:
+#   hubble observe -o json &gt; flows.json
+</code></pre></main>
+
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

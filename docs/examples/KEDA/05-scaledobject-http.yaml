@@ -1,0 +1,30 @@
+# KEDA ScaledObject - HTTP Add-on Scaler
+# Requires: KEDA HTTP Add-on installed (https://github.com/kedacore/http-add-on)
+# Install: helm install keda-add-ons-http kedacore/keda-add-ons-http -n keda
+#
+# The HTTP add-on is the recommended way to scale HTTP workloads to/from 0
+# without needing a Prometheus-based setup. Very popular in 2025/2026.
+---
+# HTTPScaledObject tells KEDA/HTTP-add-on how to intercept & proxy requests
+apiVersion: http.keda.sh/v1alpha1
+kind: HTTPScaledObject
+metadata:
+  name: myapp-http-scaler
+  namespace: default
+spec:
+  hosts:
+  - myapp.example.com
+  pathPrefixes:
+  - /api
+  - /health
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: myapp
+    service: myapp-service
+    port: 8080
+  replicas:
+    min: 0    # scale to zero when no traffic
+    max: 20
+  scaledownPeriod: 300   # seconds before scaling down to 0
+  targetPendingRequests: 100  # concurrent requests per pod target

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ArgoCD Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>ArgoCD Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="argocd-setup-notes">ArgoCD Setup Notes</h1>
+<blockquote>
+<p><strong>October 2026 update</strong>: stable is <a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.3">ArgoCD v3.5.3</a>. Review the <a href="https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/">3.4 → 3.5 upgrade guide</a> for Helm 4, OCI registry settings, and Source Integrity migration before upgrading. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+</blockquote>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code class="language-bash"># Add ArgoCD Helm repository (optional - can use kubectl apply directly)
+helm repo add argo https://argoproj.github.io/argo-helm
+
+# Update Helm repositories
+helm repo update
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="1-create-argocd-namespace">1. Create argocd namespace</h3>
+<pre><code class="language-bash">kubectl create namespace argocd
+</code></pre>
+<h3 id="2-install-argocd-using-kubectl-recommended-for-simplicity">2. Install ArgoCD using kubectl (recommended for simplicity)</h3>
+<pre><code class="language-bash">kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml
+</code></pre>
+<h3 id="alternative-install-using-helm">Alternative: Install using Helm</h3>
+<pre><code class="language-bash"># Select a chart version whose appVersion matches v3.5.3 (chart and app versions differ).
+helm search repo argo/argo-cd --versions
+helm show chart argo/argo-cd --version &lt;CHART_VERSION&gt;
+helm install argocd argo/argo-cd --namespace argocd --version &lt;CHART_VERSION&gt;
+</code></pre>
+<h2 id="verify-installation">Verify Installation</h2>
+<pre><code class="language-bash"># Check ArgoCD pods
+kubectl get pods -n argocd
+
+# Check services
+kubectl get svc -n argocd
+
+# Check if all pods are running
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/part-of=argocd -n argocd --timeout=300s
+</code></pre>
+<h2 id="access-argocd-ui">Access ArgoCD UI</h2>
+<h3 id="1-get-initial-admin-password">1. Get initial admin password</h3>
+<pre><code class="language-bash"># Extract password from secret
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=&quot;{.data.password}&quot; | base64 -d; echo
+</code></pre>
+<h3 id="2-port-forward-to-argocd-api-server">2. Port-forward to ArgoCD API server</h3>
+<pre><code class="language-bash">kubectl port-forward svc/argocd-server -n argocd 8080:443
+</code></pre>
+<h3 id="3-access-the-ui">3. Access the UI</h3>
+<ul>
+<li>URL: <code>https://localhost:8080</code></li>
+<li>Username: <code>admin</code></li>
+<li>Password: (from step 1)</li>
+</ul>
+<h2 id="change-admin-password">Change Admin Password</h2>
+<pre><code class="language-bash"># First port-forward to ArgoCD server
+kubectl port-forward svc/argocd-server -n argocd 8080:443 &amp;
+
+# Login and change password via CLI
+argocd login localhost:8080 --insecure --username admin --password &lt;initial-password&gt;
+argocd account update-password --account admin --new-password &lt;new-password&gt;
+</code></pre>
+<h2 id="create-application-example">Create Application Example</h2>
+<h3 id="1-basic-application-from-git-repository">1. Basic Application (from Git repository)</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/myrepo
+    targetRevision: HEAD
+    path: manifests/
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+EOF
+</code></pre>
+<h3 id="2-application-with-helm-chart">2. Application with Helm chart</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/myrepo
+    targetRevision: main
+    path: helm/prometheus
+    helm:
+      releaseName: prometheus
+      values: |
+        prometheus:
+          retention: 30d
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+EOF
+</code></pre>
+<h3 id="3-application-with-kustomize">3. Application with Kustomize</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-kustomize-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/myrepo
+    targetRevision: main
+    path: kustomize/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - RespectIgnoreDifferences=true
+EOF
+</code></pre>
+<h2 id="useful-commands">Useful Commands</h2>
+<pre><code class="language-bash"># List applications
+kubectl get applications -n argocd
+
+# Describe application
+kubectl describe app &lt;app-name&gt; -n argocd
+
+# Get application status
+kubectl get app &lt;app-name&gt; -n argocd -o yaml
+
+# Sync application manually
+argocd app sync &lt;app-name&gt;
+
+# Rollback application
+argocd app rollback &lt;app-name&gt;
+
+# Get ArgoCD CLI version
+argocd version
+
+# View application history
+argocd app history &lt;app-name&gt;
+
+# Check logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server -f
+</code></pre>
+<h2 id="appproject-for-multi-tenancy">AppProject for Multi-tenancy</h2>
+<h3 id="create-separate-projects-for-teams">Create separate projects for teams</h3>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;EOF
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: team-a
+  namespace: argocd
+spec:
+  description: Team A project
+  sourceRepos:
+  - 'https://github.com/team-a/*'
+  destinations:
+  - namespace: 'team-a-*'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+EOF
+</code></pre>
+<h2 id="notifications-and-webhooks">Notifications and Webhooks</h2>
+<h3 id="1-configure-github-webhook">1. Configure GitHub webhook</h3>
+<pre><code class="language-bash"># Get ArgoCD server URL
+ARGOCD_URL=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+# Set webhook URL in GitHub repo settings:
+# https://$ARGOCD_URL/api/webhook
+
+# Or use port-forward:
+# https://localhost:8080/api/webhook
+</code></pre>
+<h3 id="2-enable-notifications-optional">2. Enable notifications (optional)</h3>
+<pre><code class="language-bash"># Create notifications configmap
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  trigger.on-sync-failed: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [app-health-degraded]
+  trigger.on-deployed: |
+    - when: app.status.operationState.phase in ['Succeeded']
+      send: [app-deployed]
+EOF
+</code></pre>
+<h2 id="monitoring-argocd">Monitoring ArgoCD</h2>
+<h3 id="1-enable-prometheus-metrics">1. Enable Prometheus metrics</h3>
+<pre><code class="language-bash"># ArgoCD exposes metrics by default on port 8083
+# Create ServiceMonitor for Prometheus
+kubectl apply -f - &lt;&lt;EOF
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-metrics
+  namespace: argocd
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-metrics
+  endpoints:
+  - port: metrics
+    interval: 30s
+EOF
+</code></pre>
+<h2 id="repository-credentials">Repository Credentials</h2>
+<h3 id="1-add-private-git-repository">1. Add private Git repository</h3>
+<pre><code class="language-bash"># Create repository secret
+kubectl create secret generic git-credentials \
+  --from-literal=type=git \
+  --from-literal=url=https://github.com/myorg/private-repo \
+  --from-literal=password=&lt;github-token&gt; \
+  --from-literal=username=not-used \
+  -n argocd
+
+# Label the secret so ArgoCD can discover it
+kubectl label secret git-credentials \
+  argocd.argoproj.io/secret-type=repository \
+  -n argocd
+</code></pre>
+<h3 id="2-add-private-helm-repository">2. Add private Helm repository</h3>
+<pre><code class="language-bash">kubectl create secret generic helm-credentials \
+  --from-literal=type=helm \
+  --from-literal=url=https://charts.example.com \
+  --from-literal=username=&lt;username&gt; \
+  --from-literal=password=&lt;password&gt; \
+  -n argocd
+
+kubectl label secret helm-credentials \
+  argocd.argoproj.io/secret-type=repository \
+  -n argocd
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="application-not-syncing">Application not syncing</h3>
+<pre><code class="language-bash"># Check application status
+kubectl describe app &lt;app-name&gt; -n argocd
+
+# View sync logs
+argocd app logs &lt;app-name&gt;
+
+# Check ArgoCD controller logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller -f
+</code></pre>
+<h3 id="stuck-in-sync">Stuck in sync</h3>
+<pre><code class="language-bash"># Force refresh
+argocd app diff &lt;app-name&gt;
+
+# Clear cache
+argocd repo remove-cache &lt;repo-url&gt;
+
+# Restart ArgoCD
+kubectl rollout restart deployment argocd-application-controller -n argocd
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li>Use separate AppProjects for teams/environments</li>
+<li>Implement GitOps workflows (Git as source of truth)</li>
+<li>Use branch protection rules in Git repositories</li>
+<li>Enable auto-sync for reliable deployments</li>
+<li>Implement prune and selfHeal policies</li>
+<li>Monitor ArgoCD with Prometheus metrics</li>
+<li>Use separate Git repositories for each environment</li>
+<li>Document Application manifests clearly</li>
+<li>Regularly backup ArgoCD configuration</li>
+<li>Use pull request workflows for changes</li>
+</ol>
+<h2 id="security-best-practices">Security Best Practices</h2>
+<ol>
+<li>Change default admin password immediately</li>
+<li>Rotate authentication tokens regularly</li>
+<li>Use RBAC for multi-user access</li>
+<li>Store secrets in sealed-secrets or external vault</li>
+<li>Audit all ArgoCD actions</li>
+<li>Use HTTPS for all connections</li>
+<li>Implement network policies for ArgoCD</li>
+<li>Regularly update ArgoCD</li>
+</ol>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>Official Documentation</strong>: https://argo-cd.readthedocs.io/</li>
+<li><strong>GitHub Repository</strong>: https://github.com/argoproj/argo-cd</li>
+<li><strong>ArgoCD Community</strong>: https://github.com/argoproj/argo-cd/discussions</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>ArgoCD implements GitOps principles</li>
+<li>Enables declarative, version-controlled deployments</li>
+<li>Supports multiple source types (Git, Helm, Kustomize)</li>
+<li>Provides automatic sync and rollback capabilities</li>
+<li>Essential for continuous deployment workflows</li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#1-create-argocd-namespace">1. Create argocd namespace</a></li>
+<li><a href="#2-install-argocd-using-kubectl-recommended-for-simplicity">2. Install ArgoCD using kubectl (recommended for simplicity)</a></li>
+<li><a href="#alternative-install-using-helm">Alternative: Install using Helm</a></li>
+</ul>
+</li>
+<li><a href="#verify-installation">Verify Installation</a></li>
+<li><a href="#access-argocd-ui">Access ArgoCD UI</a><ul>
+<li><a href="#1-get-initial-admin-password">1. Get initial admin password</a></li>
+<li><a href="#2-port-forward-to-argocd-api-server">2. Port-forward to ArgoCD API server</a></li>
+<li><a href="#3-access-the-ui">3. Access the UI</a></li>
+</ul>
+</li>
+<li><a href="#change-admin-password">Change Admin Password</a></li>
+<li><a href="#create-application-example">Create Application Example</a><ul>
+<li><a href="#1-basic-application-from-git-repository">1. Basic Application (from Git repository)</a></li>
+<li><a href="#2-application-with-helm-chart">2. Application with Helm chart</a></li>
+<li><a href="#3-application-with-kustomize">3. Application with Kustomize</a></li>
+</ul>
+</li>
+<li><a href="#useful-commands">Useful Commands</a></li>
+<li><a href="#appproject-for-multi-tenancy">AppProject for Multi-tenancy</a><ul>
+<li><a href="#create-separate-projects-for-teams">Create separate projects for teams</a></li>
+</ul>
+</li>
+<li><a href="#notifications-and-webhooks">Notifications and Webhooks</a><ul>
+<li><a href="#1-configure-github-webhook">1. Configure GitHub webhook</a></li>
+<li><a href="#2-enable-notifications-optional">2. Enable notifications (optional)</a></li>
+</ul>
+</li>
+<li><a href="#monitoring-argocd">Monitoring ArgoCD</a><ul>
+<li><a href="#1-enable-prometheus-metrics">1. Enable Prometheus metrics</a></li>
+</ul>
+</li>
+<li><a href="#repository-credentials">Repository Credentials</a><ul>
+<li><a href="#1-add-private-git-repository">1. Add private Git repository</a></li>
+<li><a href="#2-add-private-helm-repository">2. Add private Helm repository</a></li>
+</ul>
+</li>
+<li><a href="#troubleshooting">Troubleshooting</a><ul>
+<li><a href="#application-not-syncing">Application not syncing</a></li>
+<li><a href="#stuck-in-sync">Stuck in sync</a></li>
+</ul>
+</li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#security-best-practices">Security Best Practices</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>
