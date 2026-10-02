@@ -1,0 +1,33 @@
+# Alternative to 02: replaces the same policy. Apply after completing the first lab.
+# Two total replicas divided evenly, instead of two replicas per member cluster.
+apiVersion: policy.karmada.io/v1alpha1
+kind: PropagationPolicy
+metadata:
+  name: web-placement
+  namespace: karmada-study
+spec:
+  resourceSelectors:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: web
+    - apiVersion: v1
+      kind: Service
+      name: web
+  placement:
+    clusterAffinity:
+      clusterNames: [member1, member2]
+    spreadConstraints:
+      - spreadByField: cluster
+        minGroups: 2
+        maxGroups: 2
+    replicaScheduling:
+      replicaSchedulingType: Divided
+      replicaDivisionPreference: Weighted
+      weightPreference:
+        staticWeightList:
+          - targetCluster:
+              clusterNames: [member1]
+            weight: 1
+          - targetCluster:
+              clusterNames: [member2]
+            weight: 1

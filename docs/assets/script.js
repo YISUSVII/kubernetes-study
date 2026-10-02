@@ -62,6 +62,18 @@ const TECHNOLOGIES = [
     install: "helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --version 91.8.2",
     setup: `${REPO}/prometheus-grafana-setup.md`, examples: `${REPO_TREE}/examples/Prometheus`,
   },
+  {
+    id: "crossplane", icon: "🧩", name: "Crossplane", tagline: "Build platform APIs using namespaced composite Kubernetes resources.",
+    version: "v2.4.2", note: "CNCF Graduated; ConfigMap composition lab", status: "stable", statusLabel: "CNCF Graduated",
+    install: "helm install crossplane crossplane-stable/crossplane -n crossplane-system --create-namespace --version 2.4.2 --wait",
+    setup: `${REPO}/crossplane-setup.md`, examples: `${REPO_TREE}/examples/Crossplane`,
+  },
+  {
+    id: "karmada", icon: "🌍", name: "Karmada", tagline: "Multi-cluster scheduling, workload propagation, and replica placement.",
+    version: "v1.19.0", note: "CNCF Graduated September 2026", status: "stable", statusLabel: "CNCF Graduated",
+    install: "# Follow the setup guide: host cluster, two members, and karmadactl v1.19.0",
+    setup: `${REPO}/karmada-setup.md`, examples: `${REPO_TREE}/examples/Karmada`,
+  },
 ];
 
 const PATHS = [
@@ -70,13 +82,14 @@ const PATHS = [
   { n: 3, title: "Advanced Networking & Service Mesh", desc: "Gateway API, Istio traffic policies, and zero-trust with Calico/Cilium.", diff: 3, time: "4–6 weeks" },
   { n: 4, title: "Observability & Monitoring", desc: "ServiceMonitors, PrometheusRules, recording rules, and alerting.", diff: 2, time: "2–3 weeks" },
   { n: 5, title: "Auto-scaling & High Availability", desc: "KEDA scalers, ScaledJobs, and canary rollouts with traffic splitting.", diff: 2, time: "2–3 weeks" },
+  { n: 6, title: "Platform APIs & Multi-cluster Orchestration", desc: "Crossplane compositions and Karmada workload placement with duplicated and divided replicas.", diff: 3, time: "2–3 weeks" },
 ];
 
 const VERSIONS = [
   { tool: "Kubernetes", version: "v1.37.1", status: "ok", note: "Maintained: 1.35 / 1.36 / 1.37", source: "https://kubernetes.io/releases/" },
   ...TECHNOLOGIES.map((t) => ({
     tool: t.name, version: t.version, status: t.status === "retired" ? "danger" : "ok", note: t.note,
-    source: `${REPO}/DEPRECATIONS.md`,
+    source: t.setup,
   })),
 ];
 
@@ -90,6 +103,8 @@ const DEPRECATIONS = [
 ];
 
 const EXAMPLE_FOLDERS = [
+  { name: "Crossplane", emoji: "🧩", count: "4 manifests", link: `${REPO_TREE}/examples/Crossplane` },
+  { name: "Karmada", emoji: "🌍", count: "3 manifests", link: `${REPO_TREE}/examples/Karmada` },
   { name: "ArgoCD", emoji: "🔄", count: "8 manifests", link: `${REPO_TREE}/examples/ArgoCD` },
   { name: "Calico", emoji: "🛡️", count: "7 manifests", link: `${REPO_TREE}/examples/Calico` },
   { name: "CertManager", emoji: "🔐", count: "4 manifests", link: `${REPO_TREE}/examples/CertManager` },

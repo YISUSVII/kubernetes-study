@@ -1,0 +1,45 @@
+# Apply to the Karmada API, not the host cluster API.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: karmada-study
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: karmada-study
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: karmada-study-web
+  template:
+    metadata:
+      labels:
+        app: karmada-study-web
+    spec:
+      containers:
+        - name: web
+          image: nginx:stable-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: karmada-study
+spec:
+  selector:
+    app: karmada-study-web
+  ports:
+    - port: 80
+      targetPort: 80

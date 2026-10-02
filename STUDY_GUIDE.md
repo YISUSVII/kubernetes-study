@@ -178,6 +178,20 @@ This path teaches you to scale applications automatically.
 
 ---
 
+### Path 6: Platform APIs & Multi-cluster Orchestration (Advanced)
+
+**Prerequisites:** Kubernetes CRDs/RBAC, Helm, and basic GitOps. Start with the single-cluster Crossplane lab, then prepare a Karmada host and two member clusters.
+
+1. Follow [Crossplane setup](crossplane-setup.md) to install the controller and Function, define a namespaced AppConfig API, and compose a ConfigMap.
+2. Change the request's message and verify reconciliation. Explain the roles of the XRD, Composition, Function, and composite resource.
+3. Follow [Karmada setup](karmada-setup.md) to register members and propagate a Deployment and Service.
+4. Replace duplicated replica scheduling with divided scheduling and compare desired replica counts in both members.
+5. Explain how ArgoCD can deliver declarations to these control planes and why placement alone does not provide global traffic routing.
+
+**Success criteria:** a reconciled ConfigMap, two Ready Karmada members, and observed replica counts matching both placement policies. Delete lab requests before removing their controllers or permissions.
+
+---
+
 ## Core Concepts
 
 ### 1. Kubernetes Networking Fundamentals

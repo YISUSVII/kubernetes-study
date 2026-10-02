@@ -23,9 +23,22 @@
 | [kubernetes-admin-tools-reference.md](kubernetes-admin-tools-reference.md) | kubectl, Helm, k9s, and more |
 | [nginx-ingress-setup.md](nginx-ingress-setup.md) | NGINX Ingress Controller ⚠️ **retired, see DEPRECATIONS.md** |
 | [prometheus-grafana-setup.md](prometheus-grafana-setup.md) | Monitoring stack (kube-prometheus-stack chart v91+) |
+| [crossplane-setup.md](crossplane-setup.md) | Platform APIs with Crossplane v2.4.2 (CNCF Graduated) |
+| [karmada-setup.md](karmada-setup.md) | Multi-cluster orchestration with Karmada v1.19.0 (CNCF Graduated) |
 | [examples/](examples/) | Ready-to-use YAML manifests for all technologies |
 
 ---
+
+## Graduated CNCF orchestration projects
+
+Added from [Scheduling & Orchestration](https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration), with category membership checked against the [landscape source](https://github.com/cncf/landscape/blob/master/landscape.yml):
+
+| Project | What to study | Lab |
+|---------|---------------|-----|
+| [Crossplane](https://www.cncf.io/projects/crossplane/) | Define a platform API and reconcile composed Kubernetes resources | [ConfigMap composition](crossplane-setup.md) — no cloud account required |
+| [Karmada](https://www.cncf.io/projects/karmada/) | Place workloads across member clusters; duplicate or divide replicas | [Two-member placement](karmada-setup.md) — requires a host and two member clusters |
+
+Kubernetes and KEDA from this category were already covered. Graduation describes project maturity; each guide documents separate lab prerequisites.
 
 ## Stay Updated — Kubernetes News & Community
 
@@ -100,6 +113,8 @@
 | Gateway API | v1.6.2 | [Release](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2) | Redirect conformance clarification |
 | Istio | 1.31.1 | [Release](https://github.com/istio/istio/releases/tag/1.31.1) | 1.29 support expected to end October 12 |
 | KEDA | v2.21.0 | [Release](https://github.com/kedacore/keda/releases/tag/v2.21.0) | Critical token-audience fix; three breaking changes |
+| Crossplane | v2.4.2 | [Release](https://github.com/crossplane/crossplane/releases/tag/v2.4.2) | Namespaced v2 composite API lab |
+| Karmada | v1.19.0 | [Release](https://github.com/karmada-io/karmada/releases/tag/v1.19.0) | Graduated September 2026; multi-cluster lab |
 | ingress-nginx | controller-v1.15.1 (retired) | [Archived repository](https://github.com/kubernetes/ingress-nginx) | Migrate to a maintained Gateway API implementation |
 | kube-prometheus-stack | 91.8.2 (chart) | [Release](https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2) | Review intervening major chart upgrade notes |
 

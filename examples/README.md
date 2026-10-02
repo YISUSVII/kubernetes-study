@@ -10,6 +10,8 @@ examples/
 ├── Calico/          # Network policies (+ AdminNetworkPolicy)
 ├── CertManager/     # TLS certificates - cert-manager v1.21+
 ├── Cilium/          # eBPF-based CNI (most popular CNI)
+├── Crossplane/      # Namespaced platform API and ConfigMap composition
+├── Karmada/         # Multi-cluster placement and replica scheduling
 ├── GatewayAPI/      # Gateway API v1.6+
 ├── Istio/           # Service mesh - Istio 1.30+ (v1 APIs)
 ├── KEDA/            # Event-driven autoscaling - KEDA v2.21+
@@ -29,6 +31,15 @@ Where:
 - `NN` = Sequential number (01, 02, 03, etc.)
 - `description` = Short description of what the file contains
 - `.yaml` = YAML extension (standard for Kubernetes)
+
+## New graduated orchestration labs
+
+| Folder | Files | Apply order |
+|--------|-------|-------------|
+| [Crossplane/](Crossplane/) | RBAC, Function/XRD, Composition, AppConfig | Follow [setup](../crossplane-setup.md); wait for Function and generated CRD before applying the request |
+| [Karmada/](Karmada/) | Workload, duplicated placement, divided placement | Follow [setup](../karmada-setup.md); file 03 replaces file 02 as a second exercise |
+
+These labs require their controllers. Karmada resources target the Karmada API, while Crossplane resources target the cluster hosting Crossplane. Do not apply either whole directory before completing the setup steps.
 
 ## Technology Folders
 
