@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flux Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Flux Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="flux-setup-notes">Flux Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/fluxcd/flux2/releases/tag/v2.10.0">Flux v2.10.0</a>. Notification <code>Alert</code> and <code>Provider</code> APIs graduate to <code>v1</code>. Conversion drops deprecated <code>Alert.spec.summary</code> and <code>Provider.spec.interval</code>; use <code>eventMetadata.summary</code>, <code>proxySecretRef</code>, and <code>certSecretRef</code> as appropriate and review Azure Event Hub authentication changes. The source/Kustomization lab below does not create notification resources.</p>
+</blockquote>
+<p>Flux continuously reconciles Kubernetes resources from Git or other sources. Its source-controller fetches artifacts, kustomize-controller applies manifests, and helm-controller manages Helm releases. Flux and ArgoCD are alternatives for the same reconciliation boundary: do not let both own the same resources.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster with cluster-admin access and install the <a href="https://fluxcd.io/flux/installation/">Flux CLI</a>. Check its supported Kubernetes versions before using the repository's study baseline. The lab installs controllers without requiring a writable Git repository or a personal access token. Commands use Bash.</p>
+<pre><code class="language-bash">flux version --client
+flux check --pre
+flux install
+flux check
+</code></pre>
+<p>For repeatable installations, select a supported release and use <code>flux install --version=v2.10.0</code>; record the CLI and controller versions. Version 2.10 requires Kubernetes 1.35.2+, 1.36.1+, or 1.37.0+ on those respective minors. When upgrading, object-level identity is always enabled: add explicit controller RBAC for <code>serviceaccounts/token</code> where needed, and expect an initial ImageRepository rescan when adopting Flux artifact storage. For production, use the <a href="https://fluxcd.io/flux/installation/bootstrap/">bootstrap workflow</a> and keep credentials outside Git. Bootstrap provisions controllers and commits their configuration to a repository.</p>
+<h2 id="lab">Lab</h2>
+<p>This uses Flux's public example repository. Review it before applying and replace <code>master</code> with a reviewed commit using <code>--tag</code> or <code>--commit</code> as appropriate when you need immutable source selection.</p>
+<pre><code class="language-bash">kubectl create namespace flux-study
+flux create source git podinfo \
+  --namespace flux-study \
+  --url=https://github.com/stefanprodan/podinfo \
+  --branch=master --interval=1m
+flux create kustomization podinfo \
+  --namespace flux-study \
+  --source=GitRepository/podinfo \
+  --path=./kustomize --target-namespace=flux-study \
+  --prune=true --interval=1m --wait=true
+flux reconcile source git podinfo -n flux-study
+flux reconcile kustomization podinfo -n flux-study --with-source
+flux get all -n flux-study
+kubectl get pods,services -n flux-study
+</code></pre>
+<p>Expect the GitRepository artifact to have a revision and the Kustomization to report Ready. Here <code>Kustomization</code> is a Flux CRD, not the local <code>kustomization.yaml</code> used by the Kustomize CLI. The example does not need public inbound access. Inspect the Service and use <code>kubectl port-forward -n flux-study svc/podinfo 9898:9898</code>, then visit <code>http://localhost:9898</code>.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<pre><code class="language-bash">kubectl describe gitrepository podinfo -n flux-study
+kubectl describe kustomization podinfo -n flux-study
+flux logs --level=error --all-namespaces
+</code></pre>
+<p>Fetch failures usually involve credentials, DNS, or branch names. Apply failures usually involve missing APIs, RBAC, or an incorrect source path. Exercise: in your own repository, change replica count, reconcile, and compare drift correction with <code>flux suspend kustomization podinfo -n flux-study</code> followed by <code>flux resume</code>.</p>
+<pre><code class="language-bash">flux delete kustomization podinfo -n flux-study --silent
+flux delete source git podinfo -n flux-study --silent
+kubectl delete namespace flux-study
+</code></pre>
+<p>Confirm reconciled workloads are removed before uninstalling controllers. On this disposable cluster only, run <code>flux uninstall --silent</code> if no other Flux tenants remain; this removes Flux's shared installation.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://fluxcd.io/flux/get-started/">Flux getting started</a></li>
+<li><a href="https://fluxcd.io/flux/components/kustomize/kustomizations/">Flux Kustomizations</a></li>
+<li><a href="kustomize-setup.html">Kustomize foundations</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

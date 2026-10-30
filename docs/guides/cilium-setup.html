@@ -78,7 +78,7 @@
 </tbody>
 </table>
 <blockquote>
-<p><strong>2026 update</strong>: stable is <a href="https://github.com/cilium/cilium/releases/tag/v1.20.2">Cilium <strong>v1.20.2</strong></a>. Review the minor-version upgrade guide before moving an existing cluster to 1.20. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+<p><strong>October 29, 2026 update</strong>: stable is <a href="https://github.com/cilium/cilium/releases/tag/v1.20.4">Cilium <strong>v1.20.4</strong></a>, an out-of-band security patch for compromised eMudhra CAs that also fixes the 1.20.3 BackendTLSPolicy regression. The <a href="https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/">Gateway API support guide</a> specifies Gateway API v1.6.3; do not assume today's v1.7.0 CRDs are supported. Review the minor-version upgrade guide before moving an existing cluster to 1.20. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
 </blockquote>
 <h2 id="prerequisites">Prerequisites</h2>
 <pre><code class="language-bash"># Add Cilium Helm repository
@@ -89,7 +89,7 @@ helm repo update
 <h3 id="1-quick-install-new-cluster">1. Quick Install (new cluster)</h3>
 <pre><code class="language-bash"># Install Cilium with recommended settings for K8s 1.34+
 helm install cilium cilium/cilium \
-  --version 1.20.2 \
+  --version 1.20.4 \
   --namespace kube-system \
   --set ipam.mode=kubernetes \
   --set kubeProxyReplacement=true \
@@ -104,7 +104,7 @@ helm install cilium cilium/cilium \
 </code></pre>
 <h3 id="2-install-with-hubble-only-existing-cluster">2. Install with Hubble only (existing cluster)</h3>
 <pre><code class="language-bash">helm install cilium cilium/cilium \
-  --version 1.20.2 \
+  --version 1.20.4 \
   --namespace kube-system \
   --set hubble.enabled=true \
   --set hubble.relay.enabled=true \

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fluent Bit Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Fluent Bit Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="fluent-bit-setup-notes">Fluent Bit Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/fluent/fluent-bit/releases/tag/v5.1.5">Fluent Bit v5.1.5</a>. Select a compatible Helm chart and verify its <code>appVersion</code>, parser configuration, and output plugins before upgrading.</p>
+</blockquote>
+<p>Fluent Bit is a lightweight telemetry agent commonly deployed as a DaemonSet to tail container logs, enrich them with Kubernetes metadata, and forward them to a backend. It is not a log database; pair it with Loki or another log store.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster with Linux nodes, Helm, and permission to deploy host log mounts and metadata RBAC. Managed/serverless environments may forbid these mounts or use different log paths. The lab assumes standard CRI logs under <code>/var/log/containers</code> and <code>/var/log/pods</code>.</p>
+<pre><code class="language-bash">helm repo add fluent https://fluent.github.io/helm-charts
+helm repo update
+helm search repo fluent/fluent-bit --versions
+export CHART_VERSION='&lt;selected-chart-version&gt;'
+helm show values fluent/fluent-bit --version &quot;$CHART_VERSION&quot;
+</code></pre>
+<h2 id="lab">Lab</h2>
+<p>Write temporary chart values. The stdout output makes ingestion observable without a separate backend. Exclude the agent namespace to avoid reading the output back into itself.</p>
+<pre><code class="language-bash">cat &gt; /tmp/fluent-study-values.yaml &lt;&lt;'EOF'
+kind: DaemonSet
+config:
+  inputs: |
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        Exclude_Path /var/log/containers/*_fluent-study_*.log
+        multiline.parser docker, cri
+        Tag kube.*
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+        Read_from_Head On
+  filters: |
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Kube_Tag_Prefix kube.var.log.containers.
+        Merge_Log On
+        Keep_Log Off
+  outputs: |
+    [OUTPUT]
+        Name stdout
+        Match kube.*
+EOF
+helm install fluent-bit fluent/fluent-bit --version &quot;$CHART_VERSION&quot; \
+  -n fluent-study --create-namespace -f /tmp/fluent-study-values.yaml \
+  --wait --timeout 5m
+kubectl create namespace log-study
+kubectl run log-generator -n log-study --image=busybox:1.37 --restart=Never \
+  -- /bin/sh -c 'while true; do echo &quot;hello-fluent-study&quot;; sleep 5; done'
+kubectl logs -n fluent-study -l app.kubernetes.io/instance=fluent-bit \
+  --all-containers=true --tail=100
+</code></pre>
+<p>Expect <code>hello-fluent-study</code> plus Kubernetes namespace/pod metadata in the agent output. If ingestion is delayed, rerun the logs command. Each DaemonSet pod sees only its node's files, so query all agent pods rather than an arbitrary one.</p>
+<h2 id="send-to-loki">Send to Loki</h2>
+<p>After completing the <a href="loki-setup.html">Loki lab</a>, replace the stdout output in the values file with this output and run <code>helm upgrade fluent-bit fluent/fluent-bit</code> using the same namespace, chart version, and values file:</p>
+<pre><code class="language-text">[OUTPUT]
+    Name loki
+    Match kube.*
+    Host loki-gateway.loki-study.svc.cluster.local
+    Port 80
+    Labels job=fluent-bit
+    Line_Format json
+</code></pre>
+<p>The host assumes Loki's release name <code>loki</code> and namespace <code>loki-study</code>. Query <code>{job="fluent-bit"} |= "hello-fluent-study"</code> in Grafana Explore. Production needs TLS/authentication, retry/backpressure planning, persistent buffering where required, and low-cardinality labels. Do not label every log line with request IDs or other unbounded values.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Missing files indicate host mount or runtime path issues. Missing metadata suggests RBAC or API server connectivity problems. Output retries indicate backend DNS, endpoint, or authentication failures; memory-only buffering can lose logs during restarts.</p>
+<pre><code class="language-bash">kubectl delete namespace log-study
+helm uninstall fluent-bit -n fluent-study
+kubectl delete namespace fluent-study
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://docs.fluentbit.io/manual/installation/kubernetes">Kubernetes installation</a></li>
+<li><a href="https://docs.fluentbit.io/manual/pipeline/outputs/loki">Loki output plugin</a></li>
+<li><a href="https://github.com/fluent/helm-charts">Fluent Bit Helm charts</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#send-to-loki">Send to Loki</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

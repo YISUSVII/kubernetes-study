@@ -19,7 +19,7 @@
 <div class="container reader-layout has-toc">
 <main id="main" class="reader-content"><h1 id="kubernetes-study-repository">Kubernetes Study Repository</h1>
 <blockquote>
-<p>A structured study guide covering production-grade Kubernetes tooling, updated for <strong>October 1, 2026</strong>.
+<p>A structured study guide covering production-grade Kubernetes tooling, updated for <strong>October 29, 2026</strong>.
 Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains <strong>1.37</strong>; check each add-on's support matrix before upgrading.</p>
 <p>🌐 <strong>Website</strong>: browse this repo as a visual, searchable site at <strong>https://yisusvii.github.io/kubernetes-study/</strong> (source in <a href="../index.html"><code>docs/</code></a>). To enable it on your own fork: repo <strong>Settings → Pages → Source: Deploy from a branch → Branch: <code>main</code> / folder: <code>/docs</code></strong>.</p>
 <p>⚠️ <strong>Deprecation notice</strong>: <code>ingress-nginx</code> (the project used in <a href="nginx-ingress-setup.html">nginx-ingress-setup.md</a>) was <strong>archived/retired by Kubernetes on March 24, 2026</strong>. See <a href="deprecations.html">DEPRECATIONS.md</a> for details and migration guidance before using it in new projects.</p>
@@ -47,7 +47,7 @@ Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains
 </tr>
 <tr>
 <td><a href="calico-setup.html">calico-setup.md</a></td>
-<td>Network policies with Calico v3.32+</td>
+<td>Network policies with Calico v3.33+</td>
 </tr>
 <tr>
 <td><a href="cert-manager-setup.html">cert-manager-setup.md</a></td>
@@ -79,22 +79,163 @@ Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains
 </tr>
 <tr>
 <td><a href="prometheus-grafana-setup.html">prometheus-grafana-setup.md</a></td>
-<td>Monitoring stack (kube-prometheus-stack chart v91+)</td>
+<td>Monitoring stack (kube-prometheus-stack chart v92+)</td>
 </tr>
 <tr>
 <td><a href="crossplane-setup.html">crossplane-setup.md</a></td>
-<td>Platform APIs with Crossplane v2.4.2 (CNCF Graduated)</td>
+<td>Platform APIs with Crossplane v2.4.3 (CNCF Graduated)</td>
 </tr>
 <tr>
 <td><a href="karmada-setup.html">karmada-setup.md</a></td>
 <td>Multi-cluster orchestration with Karmada v1.19.0 (CNCF Graduated)</td>
 </tr>
 <tr>
+<td><a href="#ecosystem-image-coverage">Ecosystem image coverage</a></td>
+<td>Comparison of all 24 pictured technologies and links to their guides</td>
+</tr>
+<tr>
 <td><a href="../examples/index.html">examples/</a></td>
-<td>Ready-to-use YAML manifests for all technologies</td>
+<td>Standalone YAML collections; additional inline labs are included in the guides</td>
 </tr>
 </tbody>
 </table>
+<h2 id="ecosystem-image-coverage">Ecosystem image coverage</h2>
+<p>Compared with the supplied Kubernetes Ecosystem image on <strong>October 29, 2026</strong>. Of its 24 technologies, <strong>8 already had dedicated setup coverage</strong>, <strong>3 had partial coverage</strong>, and <strong>13 had no substantive study coverage</strong>. All 16 gaps now have dedicated guides. Prometheus and Grafana share one existing guide; Kubernetes at the center is the repository's foundation, not another missing add-on.</p>
+<table>
+<thead>
+<tr>
+<th>Technology in image</th>
+<th>Coverage before this update</th>
+<th>Study content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Helm</td>
+<td>Partial: CLI reference and chart installation commands</td>
+<td><a href="helm-setup.html">Helm setup and release lifecycle</a></td>
+</tr>
+<tr>
+<td>Kustomize</td>
+<td>Partial: ArgoCD application example</td>
+<td><a href="kustomize-setup.html">Bases, overlays, and rendering</a></td>
+</tr>
+<tr>
+<td>Argo CD</td>
+<td>Existing dedicated guide</td>
+<td><a href="argocd-setup.html">ArgoCD</a></td>
+</tr>
+<tr>
+<td>Flux</td>
+<td>Missing</td>
+<td><a href="flux-setup.html">GitOps reconciliation</a></td>
+</tr>
+<tr>
+<td>Prometheus</td>
+<td>Existing dedicated guide</td>
+<td><a href="prometheus-grafana-setup.html">Prometheus and Grafana</a></td>
+</tr>
+<tr>
+<td>Grafana</td>
+<td>Existing dedicated guide</td>
+<td><a href="prometheus-grafana-setup.html">Prometheus and Grafana</a></td>
+</tr>
+<tr>
+<td>OTel (OpenTelemetry)</td>
+<td>Missing: only a resource-list mention</td>
+<td><a href="opentelemetry-setup.html">Collector and OTLP lab</a></td>
+</tr>
+<tr>
+<td>Fluent Bit</td>
+<td>Missing</td>
+<td><a href="fluent-bit-setup.html">Container log collection</a></td>
+</tr>
+<tr>
+<td>Loki</td>
+<td>Missing</td>
+<td><a href="loki-setup.html">Log storage and LogQL</a></td>
+</tr>
+<tr>
+<td>Cilium</td>
+<td>Existing dedicated guide</td>
+<td><a href="cilium-setup.html">Cilium</a></td>
+</tr>
+<tr>
+<td>Calico</td>
+<td>Existing dedicated guide</td>
+<td><a href="calico-setup.html">Calico</a></td>
+</tr>
+<tr>
+<td>containerd</td>
+<td>Missing</td>
+<td><a href="containerd-setup.html">Runtime configuration and CRI diagnostics</a></td>
+</tr>
+<tr>
+<td>CoreDNS</td>
+<td>Missing</td>
+<td><a href="coredns-setup.html">Service discovery and DNS diagnostics</a></td>
+</tr>
+<tr>
+<td>CRI-O</td>
+<td>Missing</td>
+<td><a href="cri-o-setup.html">Runtime installation boundaries and diagnostics</a></td>
+</tr>
+<tr>
+<td>Istio</td>
+<td>Existing dedicated guide</td>
+<td><a href="istio-setup.html">Istio</a></td>
+</tr>
+<tr>
+<td>Envoy Gateway</td>
+<td>Partial: installation option in Gateway API guide</td>
+<td><a href="envoy-gateway-setup.html">Controller-specific Gateway API lab</a></td>
+</tr>
+<tr>
+<td>Longhorn</td>
+<td>Missing</td>
+<td><a href="longhorn-setup.html">Persistent storage and data lifecycle</a></td>
+</tr>
+<tr>
+<td>Velero</td>
+<td>Missing</td>
+<td><a href="velero-setup.html">Backup and verified restore</a></td>
+</tr>
+<tr>
+<td>KEDA</td>
+<td>Existing dedicated guide</td>
+<td><a href="keda-setup.html">KEDA</a></td>
+</tr>
+<tr>
+<td>Karpenter</td>
+<td>Missing</td>
+<td><a href="karpenter-setup.html">Provider-aware node provisioning</a></td>
+</tr>
+<tr>
+<td>cert-manager</td>
+<td>Existing dedicated guide</td>
+<td><a href="cert-manager-setup.html">cert-manager</a></td>
+</tr>
+<tr>
+<td>Kyverno</td>
+<td>Missing</td>
+<td><a href="kyverno-setup.html">Audit-to-enforce policy lab</a></td>
+</tr>
+<tr>
+<td>Falco</td>
+<td>Missing</td>
+<td><a href="falco-setup.html">Runtime event detection</a></td>
+</tr>
+<tr>
+<td>Trivy</td>
+<td>Missing</td>
+<td><a href="trivy-setup.html">Image and manifest scanning</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="lab-boundaries">Lab boundaries</h3>
+<p>The new guides include prerequisites, inline commands/configuration, expected results, troubleshooting, cleanup, exercises, and official references. Shell examples use <strong>Bash</strong> unless identified otherwise; on Windows, use WSL for these commands. Runtime diagnostics run on the relevant <strong>Linux node</strong>, not on the Windows host.</p>
+<p>Select and record supported CLI/chart/application versions before deployment. New guides are <strong>study procedures, not cluster-tested compatibility certifications</strong>; their upstream releases are recorded in the October 29 snapshot below. Helm chart versions are independent of application versions. Review upstream support matrices against your actual Kubernetes version.</p>
+<p>Karpenter requires provider infrastructure and may incur cloud charges; Velero needs an object storage provider; Longhorn needs prepared storage nodes; Falco needs kernel access. CoreDNS and runtimes are commonly installed by cluster bootstrap or managed providers: do not replace them on an existing cluster just to complete a lab. The 16 new labs are inline in their guides rather than blanket-apply directories under <a href="../examples/index.html"><code>examples/</code></a>.</p>
 <hr />
 <h2 id="graduated-cncf-orchestration-projects">Graduated CNCF orchestration projects</h2>
 <p>Added from <a href="https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration">Scheduling &amp; Orchestration</a>, with category membership checked against the <a href="https://github.com/cncf/landscape/blob/master/landscape.yml">landscape source</a>:</p>
@@ -351,7 +492,7 @@ Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains
 </tbody>
 </table>
 <hr />
-<h2 id="release-snapshot--october-1-2026">Release Snapshot — October 1, 2026</h2>
+<h2 id="release-snapshot--october-29-2026">Release Snapshot — October 29, 2026</h2>
 <table>
 <thead>
 <tr>
@@ -364,45 +505,45 @@ Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains
 <tbody>
 <tr>
 <td>Kubernetes</td>
-<td>1.37.1</td>
-<td><a href="https://kubernetes.io/releases/">Supported releases</a></td>
-<td>Maintained branches: 1.35, 1.36, 1.37</td>
+<td>1.37.2</td>
+<td><a href="https://github.com/kubernetes/kubernetes/releases/tag/v1.37.2">Release</a></td>
+<td>Maintained: 1.35, 1.36, 1.37; 1.34 reached EOL October 27</td>
 </tr>
 <tr>
 <td>ArgoCD</td>
-<td>v3.5.3</td>
-<td><a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.3">Release</a></td>
-<td>Helm 4 and Source Integrity migration</td>
+<td>v3.5.6</td>
+<td><a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.6">Release</a></td>
+<td>Includes 3.5.4 critical fixes; review Kustomize/OCI restrictions</td>
 </tr>
 <tr>
 <td>Calico</td>
-<td>v3.32.2</td>
-<td><a href="https://github.com/projectcalico/calico/releases/tag/v3.32.2">Release</a></td>
-<td>Patch update</td>
+<td>v3.33.0</td>
+<td><a href="https://github.com/projectcalico/calico/releases/tag/v3.33.0">Release</a></td>
+<td>Separate CRD chart; consolidated images; eBPF kernel requirements</td>
 </tr>
 <tr>
 <td>cert-manager</td>
-<td>v1.21.2</td>
-<td><a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2">Release</a></td>
-<td>Security hardening and renewal/webhook fixes</td>
+<td>v1.21.3</td>
+<td><a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.3">Release</a></td>
+<td>Compromised CA distrust, Secret ownership, and ARI fixes</td>
 </tr>
 <tr>
 <td>Cilium</td>
-<td>v1.20.2</td>
-<td><a href="https://github.com/cilium/cilium/releases/tag/v1.20.2">Release</a></td>
-<td>1.20 is stable; review minor upgrade notes</td>
+<td>v1.20.4</td>
+<td><a href="https://github.com/cilium/cilium/releases/tag/v1.20.4">Release</a></td>
+<td>Security patch; fixes BackendTLSPolicy regression</td>
 </tr>
 <tr>
 <td>Gateway API</td>
-<td>v1.6.2</td>
-<td><a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2">Release</a></td>
-<td>Redirect conformance clarification</td>
+<td>v1.7.0 upstream; v1.6.3 Cilium lab</td>
+<td><a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.7.0">Release</a></td>
+<td>Match CRDs to controller support; Experimental APIs changed</td>
 </tr>
 <tr>
 <td>Istio</td>
-<td>1.31.1</td>
-<td><a href="https://github.com/istio/istio/releases/tag/1.31.1">Release</a></td>
-<td>1.29 support expected to end October 12</td>
+<td>1.31.3</td>
+<td><a href="https://github.com/istio/istio/releases/tag/1.31.3">Release</a></td>
+<td>Security-patched baseline; 1.29 reached EOL October 15</td>
 </tr>
 <tr>
 <td>KEDA</td>
@@ -412,9 +553,9 @@ Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains
 </tr>
 <tr>
 <td>Crossplane</td>
-<td>v2.4.2</td>
-<td><a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.2">Release</a></td>
-<td>Namespaced v2 composite API lab</td>
+<td>v2.4.3</td>
+<td><a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.3">Release</a></td>
+<td>Security and package-download/RBAC fixes</td>
 </tr>
 <tr>
 <td>Karmada</td>
@@ -430,16 +571,112 @@ Study baseline: <strong>Kubernetes 1.35 / 1.36</strong>. Upstream also maintains
 </tr>
 <tr>
 <td>kube-prometheus-stack</td>
-<td>91.8.2 (chart)</td>
-<td><a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2">Release</a></td>
-<td>Review intervening major chart upgrade notes</td>
+<td>92.16.0 (chart)</td>
+<td><a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-92.16.0">Release</a></td>
+<td>92.x adds Linux node selectors and restarts workloads</td>
+</tr>
+<tr>
+<td>Helm</td>
+<td>v4.3.1</td>
+<td><a href="https://github.com/helm/helm/releases/tag/v4.3.1">Release</a></td>
+<td>CLI version, not a chart version</td>
+</tr>
+<tr>
+<td>Kustomize</td>
+<td>v5.8.3 standalone</td>
+<td><a href="https://github.com/kubernetes-sigs/kustomize/releases/tag/kustomize/v5.8.3">Release</a></td>
+<td>kubectl's embedded version can differ</td>
+</tr>
+<tr>
+<td>Flux</td>
+<td>v2.10.0</td>
+<td><a href="https://github.com/fluxcd/flux2/releases/tag/v2.10.0">Release</a></td>
+<td>Notification v1 migration and workload-identity RBAC changes</td>
+</tr>
+<tr>
+<td>Envoy Gateway</td>
+<td>v1.9.3</td>
+<td><a href="https://github.com/envoyproxy/gateway/releases/tag/v1.9.3">Release</a></td>
+<td>Check supported Gateway API CRDs</td>
+</tr>
+<tr>
+<td>Kyverno</td>
+<td>v1.19.2</td>
+<td><a href="https://github.com/kyverno/kyverno/releases/tag/v1.19.2">Release</a></td>
+<td>24 published security advisories addressed</td>
+</tr>
+<tr>
+<td>Trivy</td>
+<td>v0.76.1</td>
+<td><a href="https://github.com/aquasecurity/trivy/releases/tag/v0.76.1">Release</a></td>
+<td>Security update; update scanner and database</td>
+</tr>
+<tr>
+<td>OpenTelemetry Collector distributions</td>
+<td>v0.164.0</td>
+<td><a href="https://github.com/open-telemetry/opentelemetry-collector-releases/releases/tag/v0.164.0">Release</a></td>
+<td>Separate from SDK, Operator, and chart versions</td>
+</tr>
+<tr>
+<td>Fluent Bit</td>
+<td>v5.1.5</td>
+<td><a href="https://github.com/fluent/fluent-bit/releases/tag/v5.1.5">Release</a></td>
+<td>Inspect chart appVersion and output plugins</td>
+</tr>
+<tr>
+<td>Loki</td>
+<td>v3.7.9 application; 20.0.3 chart</td>
+<td><a href="https://github.com/grafana/loki/releases/tag/v3.7.9">App release</a>, <a href="https://github.com/grafana-community/helm-charts/releases/tag/loki-20.0.3">chart release</a></td>
+<td>Chart 20 removes bundled MinIO and rejects obsolete values</td>
+</tr>
+<tr>
+<td>Falco</td>
+<td>0.45.2</td>
+<td><a href="https://github.com/falcosecurity/falco/releases/tag/0.45.2">Release</a></td>
+<td>Match chart, driver, rules, plugins, and kernel</td>
+</tr>
+<tr>
+<td>Longhorn</td>
+<td>v1.13.0</td>
+<td><a href="https://github.com/longhorn/longhorn/releases/tag/v1.13.0">Release</a></td>
+<td>Kubernetes 1.34+; sharded V2 volumes remain evaluation-only</td>
+</tr>
+<tr>
+<td>Velero</td>
+<td>v1.18.4</td>
+<td><a href="https://github.com/vmware-tanzu/velero/releases/tag/v1.18.4">Release</a></td>
+<td>Check provider plugin compatibility and test restores</td>
+</tr>
+<tr>
+<td>Karpenter AWS provider</td>
+<td>v1.15.1</td>
+<td><a href="https://github.com/aws/karpenter-provider-aws/releases/tag/v1.15.1">Release</a></td>
+<td>Provider-specific release; verify CRDs and IAM</td>
+</tr>
+<tr>
+<td>containerd</td>
+<td>v2.4.2</td>
+<td><a href="https://github.com/containerd/containerd/releases/tag/v2.4.2">Release</a></td>
+<td>Security fixes; use the provider-supported runtime branch</td>
+</tr>
+<tr>
+<td>CRI-O</td>
+<td>v1.37.2</td>
+<td><a href="https://github.com/cri-o/cri-o/releases/tag/v1.37.2">Release</a></td>
+<td>Match runtime minor to Kubernetes, not this upstream latest pin</td>
+</tr>
+<tr>
+<td>CoreDNS</td>
+<td>v1.15.0</td>
+<td><a href="https://github.com/coredns/coredns/releases/tag/v1.15.0">Release</a></td>
+<td>Security fixes; respect distribution-managed DNS versions</td>
 </tr>
 </tbody>
 </table>
-<p>This snapshot records published versions, not cluster-tested compatibility. In particular, <a href="https://istio.io/latest/docs/releases/supported-releases/">Istio 1.31 lists Kubernetes 1.32–1.36 as supported</a>; do not assume Kubernetes 1.37 support across the stack.</p>
+<p>This snapshot records published stable versions, not cluster-tested compatibility. <a href="https://istio.io/latest/docs/releases/supported-releases/">Istio 1.31 supports Kubernetes 1.32–1.37</a>, while 1.30 stops at 1.36. <a href="https://github.com/fluxcd/flux2/releases/tag/v2.10.0">Flux 2.10</a> requires at least Kubernetes 1.35.2, 1.36.1, or 1.37.0 on those respective minors. <a href="https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/">Cilium specifies Gateway API 1.6.3</a>, so its lab does not blindly adopt upstream 1.7.0. Check each component independently.</p>
 <p>See <a href="deprecations.html">DEPRECATIONS.md</a> for the October security, deprecation, and ecosystem news update.</p>
 <hr />
-<p><strong>Last Updated</strong>: October 1, 2026</p>
+<p><strong>Last Updated</strong>: October 29, 2026</p>
 <h2 id="website-content">Website content</h2>
 <p>The website keeps setup guides, learning paths, admin references, and YAML examples on the site as styled HTML pages. Each learning path opens its section of the complete study guide. Manifest pages include copy and download controls.</p>
 <p>Markdown files and <a href="../examples/index.html"><code>examples/</code></a> remain the source of truth. After changing them, regenerate the website and commit the generated files in <a href="../index.html"><code>docs/</code></a>:</p>
@@ -451,6 +688,10 @@ python3 scripts/check_site.py
 <aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
 <ul>
 <li><a href="#contents">Contents</a></li>
+<li><a href="#ecosystem-image-coverage">Ecosystem image coverage</a><ul>
+<li><a href="#lab-boundaries">Lab boundaries</a></li>
+</ul>
+</li>
 <li><a href="#graduated-cncf-orchestration-projects">Graduated CNCF orchestration projects</a></li>
 <li><a href="#stay-updated--kubernetes-news--community">Stay Updated — Kubernetes News &amp; Community</a><ul>
 <li><a href="#official-sources">Official Sources</a></li>
@@ -462,7 +703,7 @@ python3 scripts/check_site.py
 <li><a href="#top-blogs-to-follow">Top Blogs to Follow</a></li>
 </ul>
 </li>
-<li><a href="#release-snapshot--october-1-2026">Release Snapshot — October 1, 2026</a></li>
+<li><a href="#release-snapshot--october-29-2026">Release Snapshot — October 29, 2026</a></li>
 <li><a href="#website-content">Website content</a></li>
 </ul>
 </div>

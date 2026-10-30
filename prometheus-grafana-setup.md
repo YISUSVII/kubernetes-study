@@ -11,16 +11,17 @@ helm repo update
 
 ## Installation Command
 ```bash
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 91.8.2
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 92.16.0
 ```
 
 ## Example Installation Details
-- **Chart Version**: 91.8.2 (stable snapshot checked October 1, 2026)
+- **Chart Version**: 92.16.0 (published snapshot checked October 29, 2026)
+- **Chart appVersion**: v0.94.2 (Prometheus Operator, not the Prometheus or Grafana application version)
 - **Release Name**: prometheus
 - **Namespace**: monitoring
 - **Status**: verify in your cluster using the commands below
 
-> **October 2026 update**: [chart 91.8.2](https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2) replaces the July 87.21.0 pin. Review the [chart upgrade notes](https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.8.2/charts/kube-prometheus-stack/README.md) before upgrading across major chart versions.
+> **October 29, 2026 update**: [chart 92.16.0](https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-92.16.0) replaces 91.8.2. Chart 92 adds Linux node selectors to chart-owned workloads and triggers a one-time rollout; review placement in mixed-OS clusters. Read the [tagged upgrade notes](https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-92.16.0/charts/kube-prometheus-stack/UPGRADE.md) and CRD lifecycle instructions before upgrading. Save your values, render the chart, and verify ServiceMonitors, rules, and dashboards afterward.
 
 ## Post-Installation Commands
 

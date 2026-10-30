@@ -30,13 +30,13 @@ helm repo update
 <pre><code class="language-bash">kubectl create namespace cert-manager
 </code></pre>
 <h3 id="2-install-cert-manager-crds">2. Install Cert-Manager CRDs</h3>
-<pre><code class="language-bash">kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.2/cert-manager.crds.yaml
+<pre><code class="language-bash">kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.3/cert-manager.crds.yaml
 </code></pre>
 <h3 id="3-install-cert-manager-using-helm">3. Install Cert-Manager using Helm</h3>
-<pre><code class="language-bash">helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.21.2
+<pre><code class="language-bash">helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.21.3
 </code></pre>
 <blockquote>
-<p><strong>2026 update</strong>: <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2">v1.21.2</a> is stable as checked October 1, 2026, with security hardening and renewal/webhook fixes. If you're on v1.19.x/v1.20.x, upgrade at least to v1.19.6/v1.20.3 — those patch releases fix a HIGH severity RBAC issue (<a href="https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258">GHSA-8rvj-mm4h-c258</a>) where <code>cert-manager-edit</code> allowed direct creation of ACME <code>Challenge</code>/<code>Order</code> resources. See <a href="deprecations.html">DEPRECATIONS.md</a> for upgrade and security notes.</p>
+<p><strong>October 29, 2026 update</strong>: <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.3">v1.21.3</a> removes trust in compromised eMudhra CAs, fixes an ACME ARI renewal loop, and prevents copying a private key from a Secret not owned by the Certificate. Upstream recommends that all users upgrade. Older installations must also review <a href="https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258">GHSA-8rvj-mm4h-c258</a>; its fixed versions are not a substitute for using a currently supported, patched branch. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
 </blockquote>
 <h2 id="verify-installation">Verify Installation</h2>
 <pre><code class="language-bash"># Check cert-manager pods

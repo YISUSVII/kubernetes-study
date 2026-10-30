@@ -1,6 +1,6 @@
 # Kubernetes Learning Journey: Complete Study Guide
 
-Welcome to your comprehensive Kubernetes study guide! This resource is designed to help you learn Kubernetes administration, networking, and deployment patterns at your own pace. All examples reference actual YAML files in the `examples/` directory.
+Welcome to your comprehensive Kubernetes study guide! This resource is designed to help you learn Kubernetes administration, networking, and deployment patterns at your own pace. Standalone YAML collections live in the `examples/` directory; additional ecosystem guides include inline commands and configuration labs.
 
 ## Table of Contents
 
@@ -52,6 +52,22 @@ Kubernetes/
 ---
 
 ## Learning Paths
+
+### Ecosystem extensions
+
+The [image comparison](README.md#ecosystem-image-coverage) maps all 24 pictured technologies to content. Use these focused labs alongside the six paths below; prerequisites differ, so they are not one installation sequence.
+
+| Area | Suggested progression | Completion check |
+|------|-----------------------|------------------|
+| Packaging and delivery | [Helm](helm-setup.md), [Kustomize](kustomize-setup.md), then [Flux](flux-setup.md) as an alternative to ArgoCD | Render manifests, inspect release history, and reconcile a Git revision |
+| Gateway implementation | [Envoy Gateway](envoy-gateway-setup.md) alongside Path 3 | Resolve route conditions and send an HTTP request through Envoy |
+| Telemetry | [OpenTelemetry](opentelemetry-setup.md), [Loki](loki-setup.md), then [Fluent Bit](fluent-bit-setup.md) alongside Path 4 | Send synthetic telemetry, ingest a container log, and query it |
+| Security layers | [Trivy](trivy-setup.md), [Kyverno](kyverno-setup.md), [Falco](falco-setup.md) | Distinguish a scan finding, an admission denial, and a runtime alert |
+| Storage and recovery | [Longhorn](longhorn-setup.md), then [Velero](velero-setup.md) | Verify persistence and restore known content; distinguish metadata from volume backup |
+| Node capacity | [Karpenter](karpenter-setup.md) alongside Path 5 | Observe a NodeClaim and Ready node, then verify cloud resource teardown |
+| Cluster foundations | [CoreDNS](coredns-setup.md), then either [containerd](containerd-setup.md) or [CRI-O](cri-o-setup.md) | Resolve service DNS and inspect the node's actual CRI runtime |
+
+Use disposable environments. For Bash labs on Windows, use WSL; run Linux node diagnostics on the node itself. Never replace cluster DNS/runtimes, apply storage destruction, or provision cloud capacity on an existing environment without the relevant operational authorization.
 
 ### Path 1: Web Application Deployment (Beginner)
 **Time: 2-3 weeks | Difficulty: ⭐**
@@ -1592,7 +1608,7 @@ All YAML examples are in: `/examples/`
 
 ---
 
-**Last Updated**: October 1, 2026
+**Last Updated**: October 29, 2026
 **Next Review**: 1 month  
 **Status**: Study Material Ready ✓ — Updated for K8s 1.35/1.36 study baseline
 

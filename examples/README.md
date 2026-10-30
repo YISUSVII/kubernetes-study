@@ -1,6 +1,6 @@
 # Kubernetes Examples Directory
 
-This directory contains organized YAML examples for all Kubernetes tools and technologies documented in the setup guides. Updated for **K8s 1.35/1.36 study baseline (October 2026)**. See [../DEPRECATIONS.md](../DEPRECATIONS.md) for version history and retired components.
+This directory contains standalone YAML collections for the technologies listed below. Additional ecosystem labs include commands and configuration inline in their setup guides; see the [complete technology comparison](../README.md#ecosystem-image-coverage). Updated for **K8s 1.35/1.36 study baseline (October 2026)**. See [../DEPRECATIONS.md](../DEPRECATIONS.md) for version history and retired components.
 
 ## Directory Structure
 
@@ -296,7 +296,7 @@ For each technology, refer to the corresponding setup guide:
 - Prometheus → `../prometheus-grafana-setup.md`
 
 ---
-**Last Updated**: October 1, 2026 — Compatible with K8s 1.35/1.36 study baseline
+**Last Updated**: October 29, 2026 — Intended for the K8s 1.35/1.36 study baseline; verify controller support before applying
 
 ## Troubleshooting
 

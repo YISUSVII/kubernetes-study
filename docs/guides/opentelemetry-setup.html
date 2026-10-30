@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenTelemetry Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>OpenTelemetry Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="opentelemetry-setup-notes">OpenTelemetry Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/open-telemetry/opentelemetry-collector-releases/releases/tag/v0.164.0">Collector distributions v0.164.0</a> include Go crypto/x509 security fixes. Collector, SDK, Operator, and Helm chart versions are separate; inspect the selected distribution's available components before upgrading.</p>
+</blockquote>
+<p>OpenTelemetry (OTel in the image) provides APIs, SDKs, protocols, and a Collector for traces, metrics, and logs. A Collector receives, processes, and exports telemetry; it is not a long-term storage backend or dashboard. Application instrumentation is separate from installing a Collector.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster, Helm, kubectl, curl, and Bash. Check the <a href="https://opentelemetry.io/docs/platforms/kubernetes/helm/collector/">Collector chart documentation</a> and select a compatible chart version. Collector distributions contain different components; choose an image that contains every receiver, processor, and exporter in your configuration.</p>
+<pre><code class="language-bash">helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo update
+helm search repo open-telemetry/opentelemetry-collector --versions
+export CHART_VERSION='&lt;selected-chart-version&gt;'
+</code></pre>
+<h2 id="lab">Lab</h2>
+<p>This lab accepts OTLP/HTTP logs and sends them to the debug exporter. It intentionally does not collect host files or install the Operator. Create temporary chart values:</p>
+<pre><code class="language-bash">cat &gt; /tmp/otel-study-values.yaml &lt;&lt;'EOF'
+mode: deployment
+replicaCount: 1
+image:
+  repository: otel/opentelemetry-collector-k8s
+config:
+  receivers:
+    jaeger: null
+    zipkin: null
+    prometheus: null
+  exporters:
+    debug:
+      verbosity: detailed
+  service:
+    pipelines:
+      traces: null
+      metrics: null
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [debug]
+ports:
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false
+EOF
+helm install otel open-telemetry/opentelemetry-collector \
+  --version &quot;$CHART_VERSION&quot; -n otel-study --create-namespace \
+  -f /tmp/otel-study-values.yaml --wait --timeout 5m
+kubectl get pods,services -n otel-study
+kubectl port-forward -n otel-study svc/otel-opentelemetry-collector 4318:4318
+</code></pre>
+<p>In another terminal, send a synthetic log and inspect the Collector output:</p>
+<pre><code class="language-bash">curl -f -H 'Content-Type: application/json' http://localhost:4318/v1/logs \
+  -d '{&quot;resourceLogs&quot;:[{&quot;resource&quot;:{&quot;attributes&quot;:[{&quot;key&quot;:&quot;service.name&quot;,&quot;value&quot;:{&quot;stringValue&quot;:&quot;study-client&quot;}}]},&quot;scopeLogs&quot;:[{&quot;logRecords&quot;:[{&quot;severityText&quot;:&quot;INFO&quot;,&quot;body&quot;:{&quot;stringValue&quot;:&quot;hello-otel-study&quot;}}]}]}]}'
+kubectl logs -n otel-study -l app.kubernetes.io/instance=otel --tail=100
+</code></pre>
+<p>Expect an OTLP success response with no rejected log records and <code>hello-otel-study</code> in the logs after batch export. HTTP 200 alone is insufficient if <code>partialSuccess</code> reports rejections. Exercise: add a redaction processor before exporting and verify sensitive attributes no longer appear.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Check OTLP protocol and ports: gRPC uses 4317, HTTP uses 4318 and <code>/v1/logs</code>, <code>/v1/metrics</code>, or <code>/v1/traces</code>. An enabled receiver must also belong to a service pipeline. For unsupported component errors, inspect the Collector distribution and chart-generated ConfigMap.</p>
+<p>Never expose unauthenticated OTLP endpoints publicly. Debug exports can reveal private payloads. Do not combine container-log collection with exporting those same logs back to stdout without excluding Collector logs; this can create an ingestion loop. Production requires TLS/authentication, bounded queues, resource limits, and a real telemetry backend.</p>
+<pre><code class="language-bash">helm uninstall otel -n otel-study
+kubectl delete namespace otel-study
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://opentelemetry.io/docs/collector/configuration/">Collector configuration</a></li>
+<li><a href="https://opentelemetry.io/docs/platforms/kubernetes/">Kubernetes instrumentation</a></li>
+<li><a href="prometheus-grafana-setup.html">Metrics and dashboards</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

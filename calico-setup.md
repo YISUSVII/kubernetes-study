@@ -3,7 +3,7 @@
 ## Prerequisites
 ```bash
 # Add Calico Helm repository
-helm repo add projectcalico https://projectcalico.docs.tigera.io/charts
+helm repo add projectcalico https://docs.tigera.io/calico/charts
 
 # Update Helm repositories
 helm repo update
@@ -18,10 +18,12 @@ kubectl create namespace tigera-operator
 
 ### 2. Install Calico using Helm
 ```bash
-helm install calico projectcalico/tigera-operator --namespace tigera-operator --version v3.32.2
+helm template calico-crds projectcalico/crd.projectcalico.org.v1 --version v3.33.0 \
+  | kubectl apply --server-side -f -
+helm install calico projectcalico/tigera-operator --namespace tigera-operator --version v3.33.0
 ```
 
-> **2026 update**: stable as checked October 1, 2026 is [Calico v3.32.2](https://github.com/projectcalico/calico/releases/tag/v3.32.2). See [DEPRECATIONS.md](DEPRECATIONS.md) for version history notes.
+> **October 29, 2026 update**: stable is [Calico v3.33.0](https://github.com/projectcalico/calico/releases/tag/v3.33.0). Since 3.32, install and upgrade CRDs separately before the operator. Version 3.33 consolidates component images, deprecates the chart's `defaultFelixConfiguration`, and requires Linux 5.10+ with BTF/CO-RE for eBPF. Review the [release notes](https://github.com/projectcalico/calico/blob/v3.33.0/release-notes/v3.33.0-release-notes.md) and [DEPRECATIONS.md](DEPRECATIONS.md) before upgrading an existing CNI. Use a fresh cluster without another CNI for this installation lab.
 
 ### 3. Verify Installation
 ```bash

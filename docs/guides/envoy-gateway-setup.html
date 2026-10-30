@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Envoy Gateway Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Envoy Gateway Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="envoy-gateway-setup-notes">Envoy Gateway Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/envoyproxy/gateway/releases/tag/v1.9.3">Envoy Gateway v1.9.3</a>. Keep the chart and quickstart artifacts on the same release; use its compatibility matrix for Gateway API CRDs rather than installing upstream v1.7.0 automatically.</p>
+</blockquote>
+<p>Envoy Gateway is a Kubernetes Gateway API implementation. Its controller translates Gateway API configuration into Envoy proxy configuration; Envoy proxies carry application traffic. Installing Gateway API CRDs alone does not install a traffic-serving controller.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster, Helm with OCI support, kubectl, curl, and Bash. Check the <a href="https://gateway.envoyproxy.io/news/releases/matrix/">compatibility matrix</a> for both Kubernetes and Gateway API versions. If your provider manages Gateway API CRDs, follow the provider-managed CRD instructions instead of taking ownership of them with another chart.</p>
+<p>The <a href="https://gateway.envoyproxy.io/docs/tasks/quickstart/">official quickstart</a> currently demonstrates <code>v1.9.3</code>; this is a documentation reference, not a claim that the release was tested on your cluster. Review its chart and release notes before installing.</p>
+<pre><code class="language-bash">export ENVOY_GATEWAY_VERSION=v1.9.3
+helm show chart oci://docker.io/envoyproxy/gateway-helm --version &quot;$ENVOY_GATEWAY_VERSION&quot;
+helm install eg oci://docker.io/envoyproxy/gateway-helm \
+  --version &quot;$ENVOY_GATEWAY_VERSION&quot; \
+  --namespace envoy-gateway-system --create-namespace --wait --timeout 5m
+kubectl get pods -n envoy-gateway-system
+</code></pre>
+<h2 id="lab">Lab</h2>
+<p>Use a fresh namespace and the matching upstream sample, which includes the GatewayClass, Gateway, HTTPRoute, and backend. Download and review the manifest before applying it.</p>
+<pre><code class="language-bash">kubectl create namespace envoy-study
+curl -fL &quot;https://github.com/envoyproxy/gateway/releases/download/${ENVOY_GATEWAY_VERSION}/quickstart.yaml&quot; \
+  -o /tmp/envoy-quickstart.yaml
+kubectl apply -n envoy-study -f /tmp/envoy-quickstart.yaml
+kubectl wait -n envoy-study --for=condition=Available deployment --all --timeout=180s
+kubectl get gateway,httproute -n envoy-study
+kubectl describe gateway eg -n envoy-study
+kubectl describe httproute backend -n envoy-study
+</code></pre>
+<p>Expect Accepted and ResolvedRefs conditions on the route and Programmed on the Gateway when the environment supports address provisioning. If the sample's route name changes, use the name from <code>kubectl get httproute</code>. Without a LoadBalancer implementation, discover the generated Envoy Service and port-forward it:</p>
+<pre><code class="language-bash">kubectl get service -n envoy-gateway-system \
+  -l gateway.envoyproxy.io/owning-gateway-namespace=envoy-study,gateway.envoyproxy.io/owning-gateway-name=eg
+</code></pre>
+<p>In another terminal, substitute that Service name in <code>kubectl port-forward -n envoy-gateway-system svc/&lt;ENVOY_SERVICE&gt; 8888:80</code>. Then test the hostname expected by the HTTPRoute:</p>
+<pre><code class="language-bash">curl -v -H 'Host: www.example.com' http://localhost:8888/get
+</code></pre>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>A 404 usually means hostname/path mismatch or an unattached route; 503 often means no ready backend endpoints. Inspect route parent conditions, Service ports, and EndpointSlices before changing proxy settings. Exercise: add a header match or weighted backends using the <a href="gateway-api-setup.html">Gateway API guide</a>.</p>
+<pre><code class="language-bash">kubectl delete -n envoy-study -f /tmp/envoy-quickstart.yaml
+kubectl delete namespace envoy-study
+helm uninstall eg -n envoy-gateway-system
+</code></pre>
+<p>Delete only this lab's resources. GatewayClass is cluster-scoped; use an isolated cluster so the sample cannot conflict with other installations. Do not remove shared Gateway API CRDs during cleanup.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://gateway.envoyproxy.io/docs/">Envoy Gateway documentation</a></li>
+<li><a href="https://gateway.envoyproxy.io/docs/install/install-helm/">Helm installation and CRD ownership</a></li>
+<li><a href="../examples/GatewayAPI/index.html">Gateway API examples</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

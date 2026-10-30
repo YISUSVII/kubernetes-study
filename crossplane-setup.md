@@ -2,7 +2,7 @@
 
 Crossplane adds a declarative platform API to Kubernetes. This lab creates an `AppConfig` API that reconciles a ConfigMap, without provisioning cloud infrastructure. It complements ArgoCD: GitOps can deliver the API definitions and requests, while Crossplane reconciles their composed resources.
 
-[CNCF graduated status](https://www.cncf.io/projects/crossplane/) and [Scheduling & Orchestration category](https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration) checked October 1, 2026. Release pin: [v2.4.2](https://github.com/crossplane/crossplane/releases/tag/v2.4.2).
+[CNCF graduated status](https://www.cncf.io/projects/crossplane/) and [Scheduling & Orchestration category](https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration) checked October 1, 2026. Release pin refreshed October 29: [v2.4.3](https://github.com/crossplane/crossplane/releases/tag/v2.4.3), which removes compromised eMudhra CA trust and fixes truncated package-download caching, Usage reconciliation, and XR scale RBAC.
 
 ## Install
 
@@ -12,7 +12,7 @@ Use a disposable Kubernetes cluster, Helm, and permission to install CRDs/RBAC. 
 helm repo add crossplane-stable https://charts.crossplane.io/stable
 helm repo update
 helm install crossplane crossplane-stable/crossplane \
-  --namespace crossplane-system --create-namespace --version 2.4.2 --wait
+  --namespace crossplane-system --create-namespace --version 2.4.3 --wait
 kubectl get pods -n crossplane-system
 ```
 

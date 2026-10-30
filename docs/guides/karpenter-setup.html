@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Karpenter Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Karpenter Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="karpenter-setup-notes">Karpenter Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: AWS provider <a href="https://github.com/aws/karpenter-provider-aws/releases/tag/v1.15.1">v1.15.1</a>. This is an AWS-specific release, not a universal cloud-provider version. Verify Kubernetes, controller, CRD, IAM, and node-image compatibility together.</p>
+</blockquote>
+<p>Karpenter provisions nodes for unschedulable Pods and can consolidate capacity afterward. KEDA/HPA adjust workload replicas; Karpenter supplies node capacity. It requires a supported provider and is not a general-purpose node provisioner for a local kind cluster.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>This guide uses the AWS provider on a disposable EKS cluster. You need an AWS account, budget controls, AWS CLI, kubectl, Helm, Bash, and permissions to create the required IAM/network/compute resources. Nodes, load balancers, storage, and control planes can incur charges. Never run this exercise in a production account without a reviewed plan.</p>
+<p>Follow the <a href="https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/">official getting-started sequence</a> for a selected supported release. It provisions the controller identity, node IAM role and cluster access, subnet/security-group discovery tags, and interruption handling resources. Keep baseline capacity for the controller and DNS independent of Karpenter to avoid bootstrap deadlocks. EKS Auto Mode and AKS node autoprovisioning use provider-managed integrations; do not install this AWS chart over those integrations.</p>
+<p>After completing the official controller installation, verify the environment:</p>
+<pre><code class="language-bash">aws sts get-caller-identity
+kubectl get nodes
+kubectl get deployments -n kube-system -l app.kubernetes.io/name=karpenter
+kubectl get crd nodepools.karpenter.sh ec2nodeclasses.karpenter.k8s.aws
+</code></pre>
+<p>Use the namespace chosen during installation if it differs from <code>kube-system</code>. Pin the controller/chart, CRDs, and a compatible AMI; follow release migration guidance instead of combining manifests from different versions.</p>
+<h2 id="lab">Lab</h2>
+<p>Create and verify an <code>EC2NodeClass</code> named <code>study</code> using the provider's <a href="https://karpenter.sh/docs/concepts/nodeclasses/">NodeClass instructions</a>. It must select your authorized node IAM role, tagged subnets/security groups, and a pinned AMI matching your Kubernetes version. These are account-specific prerequisites and cannot be replaced by a universal copy-and-paste manifest.</p>
+<p>With that NodeClass Ready, apply a limited NodePool. The taint isolates lab workloads; it is not an account spending limit.</p>
+<pre><code class="language-bash">kubectl apply -f - &lt;&lt;'EOF'
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: study
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: study
+      taints:
+        - key: study.example.org/dedicated
+          value: karpenter
+          effect: NoSchedule
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: [amd64]
+        - key: kubernetes.io/os
+          operator: In
+          values: [linux]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: [on-demand]
+      expireAfter: 24h
+  limits:
+    cpu: &quot;8&quot;
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: capacity-test
+spec:
+  nodeSelector:
+    karpenter.sh/nodepool: study
+  tolerations:
+    - key: study.example.org/dedicated
+      operator: Equal
+      value: karpenter
+      effect: NoSchedule
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: &quot;1&quot;
+          memory: 128Mi
+EOF
+kubectl get nodepool study
+kubectl get nodeclaims -l karpenter.sh/nodepool=study
+kubectl get pod capacity-test -o wide
+kubectl logs -n kube-system -l app.kubernetes.io/name=karpenter -c controller --tail=100
+</code></pre>
+<p>Expect the Pod to progress from Pending to Running on a new Ready node. NodePool limits are eventually consistent and do not provide a strict cost cap. DaemonSet overhead counts toward node sizing; overly restrictive limits can prevent provisioning entirely.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Inspect Pod scheduling events, NodePool/NodeClass conditions, NodeClaims, and controller logs. Common blockers are missing IAM/cluster authorization, incorrect discovery tags, incompatible AMIs, unavailable instance capacity, and requirements that cannot fit inside pool limits. Consolidation is constrained by disruption budgets and workload scheduling requirements.</p>
+<pre><code class="language-bash">kubectl delete pod capacity-test
+kubectl delete nodepool study --wait=true
+kubectl get nodeclaims -l karpenter.sh/nodepool=study
+kubectl delete ec2nodeclass study
+</code></pre>
+<p>Keep the controller running until its finalizers complete and confirm the corresponding cloud instances terminated. Do not force-remove finalizers or uninstall the controller first. Then follow the official teardown for the disposable cluster, IAM resources, interruption queue, and stacks you created; verify the account for remaining billable resources.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://karpenter.sh/docs/concepts/nodepools/">NodePool concepts</a></li>
+<li><a href="https://karpenter.sh/docs/concepts/disruption/">Karpenter disruption</a></li>
+<li><a href="keda-setup.html">Workload autoscaling with KEDA</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

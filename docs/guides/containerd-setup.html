@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>containerd Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>containerd Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="containerd-setup-notes">containerd Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/containerd/containerd/releases/tag/v2.4.2">containerd v2.4.2</a> includes runtime security fixes. Use your distribution/provider's supported patched branch; do not replace a managed runtime or paste 1.x configuration into 2.x without migration review.</p>
+</blockquote>
+<p>containerd is a container runtime used by Kubernetes through the Container Runtime Interface (CRI). It manages images, containers, and runtime shims; an OCI runtime such as runc executes containers. A healthy <code>ctr</code> command does not prove that the CRI service kubelet needs is healthy.</p>
+<h2 id="prerequisites-and-installation-boundaries">Prerequisites and installation boundaries</h2>
+<p>Inspect your cluster's runtime before changing anything:</p>
+<pre><code class="language-bash">kubectl get nodes -o custom-columns=NAME:.metadata.name,RUNTIME:.status.nodeInfo.containerRuntimeVersion
+</code></pre>
+<p>For installation, use a fresh, disposable Linux VM and follow the <a href="https://github.com/containerd/containerd/blob/main/docs/getting-started.md">containerd getting-started guide</a> plus your Kubernetes distribution's instructions. Select a supported containerd release for the Kubernetes minor, install compatible runc and CNI binaries, and use your distribution's systemd unit/package integration. containerd does not install a Kubernetes CNI network by itself.</p>
+<p>The host configuration is commonly <code>/etc/containerd/config.toml</code> and the socket <code>/run/containerd/containerd.sock</code>; distributions can override both. Generate defaults using the installed binary's <code>containerd config default</code>, then review the result before placing it into service. Never overwrite an existing node's configuration with generic defaults.</p>
+<p>Match kubelet and runtime cgroup drivers, normally <code>systemd</code> on systemd/cgroup-v2 hosts. For containerd 2.x, the generated configuration normally uses version 3 and the runtime options live under <code>plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options</code>. Older 1.x version-2 examples use <code>plugins.'io.containerd.grpc.v1.cri'.containerd.runtimes.runc.options</code>. Do not paste one path into the other version; inspect generated configuration and release documentation. Ensure CRI is not disabled.</p>
+<h2 id="lab">Lab</h2>
+<p>The following are host-level read-only diagnostics. Run them on a disposable containerd Linux node with authorized access, not in the Windows desktop shell. Install a supported <a href="https://github.com/kubernetes-sigs/cri-tools">cri-tools/crictl</a> release first. Runtime socket access is highly privileged; do not make the socket world-writable.</p>
+<pre><code class="language-bash">containerd --version
+systemctl status containerd --no-pager
+crictl --runtime-endpoint unix:///run/containerd/containerd.sock \
+  --image-endpoint unix:///run/containerd/containerd.sock info
+crictl --runtime-endpoint unix:///run/containerd/containerd.sock pods
+crictl --runtime-endpoint unix:///run/containerd/containerd.sock ps -a
+ctr plugins ls
+journalctl -u containerd -n 100 --no-pager
+</code></pre>
+<p>If permissions require elevation, run diagnostics yourself using your organization's authorized host access workflow. Expect CRI info to return successfully and RuntimeReady to be true. NetworkReady also depends on CNI setup; a new runtime-only VM may not have working pod networking yet.</p>
+<p>From a terminal with cluster access, create one disposable workload:</p>
+<pre><code class="language-bash">kubectl create namespace runtime-study
+kubectl run runtime-check -n runtime-study --image=busybox:1.37 \
+  --restart=Never -- /bin/sh -c 'echo hello-containerd; sleep 300'
+kubectl get pod runtime-check -n runtime-study -o wide
+kubectl logs runtime-check -n runtime-study
+</code></pre>
+<p>On the node shown by the Pod's NODE field, inspect <code>crictl pods</code> and <code>crictl ps</code> again. Expect to find its sandbox/container and <code>hello-containerd</code> in workload logs. If a mixed-runtime cluster is in use, explicitly select a verified containerd node; this test does not change the runtime of the node it lands on.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>For connection errors, check the socket configured in kubelet and the runtime service. For CRI errors with a working <code>ctr</code>, inspect CRI plugin status and disabled plugins. For sandbox failures, inspect CNI configuration, pause image availability, and cgroup settings. Image pulls can fail independently because of registry credentials, mirrors, or trust configuration.</p>
+<p>Never delete Kubernetes containers with <code>ctr</code> or <code>crictl</code> as routine cleanup: kubelet owns their lifecycle. Do not restart or replace a managed node's runtime without the provider's maintenance process. Runtime upgrades require a planned drain, rollback path, and compatibility checks.</p>
+<pre><code class="language-bash">kubectl delete namespace runtime-study
+</code></pre>
+<p>Dispose of a standalone installation VM when finished; do not uninstall the runtime from a node that still belongs to a cluster. Exercise: explain why a successful <code>ctr images pull</code> may not reproduce kubelet's CRI registry settings.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/">Kubernetes container runtime configuration</a></li>
+<li><a href="https://github.com/containerd/containerd/blob/main/docs/cri/config.md">containerd CRI configuration</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation-boundaries">Prerequisites and installation boundaries</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>
