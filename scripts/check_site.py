@@ -6,6 +6,10 @@ from pathlib import Path
 import subprocess
 from urllib.parse import unquote, urlsplit
 
+import markdown
+
+from build_site import FOLDERS, SiteExtension, resolve
+
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / 'docs'
 
@@ -48,6 +52,17 @@ process.stdout.write(Object.values(nodes).map(n => n.innerHTML).join(''));
     homepage = pages[DOCS / 'index.html']
     homepage.feed(rendered)
     errors = []
+    renderer = markdown.Markdown(extensions=[SiteExtension()])
+    renderer.site_source = ROOT / 'README.md'
+    renderer.site_output = DOCS / 'guides' / 'readme.html'
+    inline = renderer.convert('`crossplane` and `examples/Crossplane`')
+    expected_inline = '<p><code>crossplane</code> and <a href="../examples/Crossplane/index.html"><code>examples/Crossplane</code></a></p>'
+    if inline != expected_inline:
+        errors.append('Inline references must match source paths case-sensitively on every platform')
+    if resolve('examples/crossplane', ROOT / 'README.md') is not None:
+        errors.append('Explicit source links must not match differently cased paths')
+    if [folder.name for folder in FOLDERS] != sorted(folder.name for folder in FOLDERS):
+        errors.append('Example collection order must be case-sensitive on every platform')
     for path, page in pages.items():
         for identifier, count in Counter(page.ids).items():
             if count > 1:

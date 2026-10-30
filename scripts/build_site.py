@@ -18,12 +18,13 @@ MANIFESTS = sorted((ROOT / 'examples').rglob('*.yaml'))
 PAGES = {p: DOCS / 'guides' / (p.stem.lower().replace('_', '-') + '.html') for p in SOURCES if p.parent == ROOT}
 PAGES.update({p: DOCS / p.relative_to(ROOT).with_suffix('.html') for p in SOURCES if p.parent != ROOT})
 PAGES.update({p: DOCS / p.relative_to(ROOT).with_suffix('.html') for p in MANIFESTS})
-FOLDERS = sorted(p for p in (ROOT / 'examples').iterdir() if p.is_dir())
+FOLDERS = sorted((p for p in (ROOT / 'examples').iterdir() if p.is_dir()), key=lambda path: path.as_posix())
 PAGES.update({p: DOCS / p.relative_to(ROOT) / 'index.html' for p in FOLDERS})
 PAGES[ROOT / 'examples'] = DOCS / 'examples' / 'index.html'
 PAGES[DOCS] = DOCS / 'index.html'
 # The examples overview also serves as the folder landing page.
 PAGES[ROOT / 'examples' / 'README.md'] = DOCS / 'examples' / 'index.html'
+PAGE_PATHS = {path.as_posix(): path for path in PAGES}
 
 
 def relative(target, output):
@@ -48,8 +49,8 @@ def resolve(value, source):
     elif not parts.path:
         return None
     else:
-        target = (source.parent / unquote(parts.path)).resolve()
-    return target if target in PAGES else None
+        target = source.parent / unquote(parts.path)
+    return PAGE_PATHS.get(Path(os.path.abspath(target)).as_posix())
 
 
 class SiteLinks(Treeprocessor):
@@ -67,8 +68,8 @@ class SiteLinks(Treeprocessor):
                 if child.tag != 'code' or parent.tag in ('pre', 'a') or not child.text:
                     continue
                 value = child.text
-                candidates = [(source.parent / value).resolve(), (ROOT / value).resolve(), (ROOT / 'examples' / value).resolve()]
-                target = next((p for p in candidates if p in PAGES), None)
+                candidates = [Path(os.path.abspath(path)).as_posix() for path in (source.parent / value, ROOT / value, ROOT / 'examples' / value)]
+                target = next((PAGE_PATHS[path] for path in candidates if path in PAGE_PATHS), None)
                 if target is None:
                     matches = [p for p in PAGES if p.name == value]
                     target = matches[0] if len(matches) == 1 else None
