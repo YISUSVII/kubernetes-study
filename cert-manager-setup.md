@@ -18,15 +18,15 @@ kubectl create namespace cert-manager
 
 ### 2. Install Cert-Manager CRDs
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.2/cert-manager.crds.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.3/cert-manager.crds.yaml
 ```
 
 ### 3. Install Cert-Manager using Helm
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.21.2
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.21.3
 ```
 
-> **2026 update**: [v1.21.2](https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2) is stable as checked October 1, 2026, with security hardening and renewal/webhook fixes. If you're on v1.19.x/v1.20.x, upgrade at least to v1.19.6/v1.20.3 — those patch releases fix a HIGH severity RBAC issue ([GHSA-8rvj-mm4h-c258](https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258)) where `cert-manager-edit` allowed direct creation of ACME `Challenge`/`Order` resources. See [DEPRECATIONS.md](DEPRECATIONS.md) for upgrade and security notes.
+> **October 29, 2026 update**: [v1.21.3](https://github.com/cert-manager/cert-manager/releases/tag/v1.21.3) removes trust in compromised eMudhra CAs, fixes an ACME ARI renewal loop, and prevents copying a private key from a Secret not owned by the Certificate. Upstream recommends that all users upgrade. Older installations must also review [GHSA-8rvj-mm4h-c258](https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258); its fixed versions are not a substitute for using a currently supported, patched branch. See [DEPRECATIONS.md](DEPRECATIONS.md).
 
 ## Verify Installation
 ```bash

@@ -19,72 +19,84 @@
 <div class="container reader-layout has-toc">
 <main id="main" class="reader-content"><h1 id="2026-update-releases-deprecations--ecosystem-news">2026 Update: Releases, Deprecations &amp; Ecosystem News</h1>
 <blockquote>
-<p>Checked against official project releases and upgrade documentation on <strong>October 1, 2026</strong>. Previous refresh: July 29, 2026. These are published release pins, not validation of a deployed cluster.</p>
+<p>Checked against official project releases and upgrade documentation on <strong>October 29, 2026</strong>. Previous page refresh: October 1, 2026. These are published release references, not validation of a deployed cluster.</p>
 </blockquote>
-<h2 id="release-changes-since-july">Release changes since July</h2>
+<h2 id="release-changes-since-october-1">Release changes since October 1</h2>
 <table>
 <thead>
 <tr>
 <th>Component</th>
-<th>July pin</th>
-<th>October snapshot</th>
+<th>October 1 snapshot</th>
+<th>October 29 snapshot</th>
 <th>Official release</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Kubernetes</td>
-<td>Study baseline 1.34/1.35</td>
-<td>Latest 1.37.1; study baseline 1.35/1.36</td>
-<td><a href="https://kubernetes.io/releases/">Upstream support</a></td>
+<td>1.37.1</td>
+<td>1.37.2; study baseline remains 1.35/1.36</td>
+<td><a href="https://github.com/kubernetes/kubernetes/releases/tag/v1.37.2">Release</a></td>
 </tr>
 <tr>
 <td>ArgoCD</td>
-<td>v3.4.5</td>
 <td>v3.5.3</td>
-<td><a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.3">Release</a></td>
+<td>v3.5.6</td>
+<td><a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.6">Release</a></td>
 </tr>
 <tr>
 <td>Calico</td>
-<td>v3.32.1</td>
 <td>v3.32.2</td>
-<td><a href="https://github.com/projectcalico/calico/releases/tag/v3.32.2">Release</a></td>
+<td>v3.33.0</td>
+<td><a href="https://github.com/projectcalico/calico/releases/tag/v3.33.0">Release</a></td>
 </tr>
 <tr>
 <td>cert-manager</td>
-<td>v1.21.0</td>
 <td>v1.21.2</td>
-<td><a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2">Release</a></td>
+<td>v1.21.3</td>
+<td><a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.3">Release</a></td>
 </tr>
 <tr>
 <td>Cilium</td>
-<td>v1.19.6</td>
 <td>v1.20.2</td>
-<td><a href="https://github.com/cilium/cilium/releases/tag/v1.20.2">Release</a></td>
+<td>v1.20.4</td>
+<td><a href="https://github.com/cilium/cilium/releases/tag/v1.20.4">Release</a></td>
 </tr>
 <tr>
 <td>Gateway API</td>
-<td>v1.6.1</td>
 <td>v1.6.2</td>
-<td><a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2">Release</a></td>
+<td>v1.7.0 upstream; v1.6.3 Cilium lab</td>
+<td><a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.7.0">Release</a></td>
 </tr>
 <tr>
 <td>Istio</td>
-<td>1.30.3</td>
 <td>1.31.1</td>
-<td><a href="https://github.com/istio/istio/releases/tag/1.31.1">Release</a></td>
+<td>1.31.3</td>
+<td><a href="https://github.com/istio/istio/releases/tag/1.31.3">Release</a></td>
 </tr>
 <tr>
 <td>KEDA</td>
-<td>v2.20.1</td>
 <td>v2.21.0</td>
+<td>v2.21.0 (unchanged)</td>
 <td><a href="https://github.com/kedacore/keda/releases/tag/v2.21.0">Release</a></td>
 </tr>
 <tr>
+<td>Crossplane</td>
+<td>v2.4.2</td>
+<td>v2.4.3</td>
+<td><a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.3">Release</a></td>
+</tr>
+<tr>
+<td>Karmada</td>
+<td>v1.19.0</td>
+<td>v1.19.0 (unchanged)</td>
+<td><a href="https://github.com/karmada-io/karmada/releases/tag/v1.19.0">Release</a></td>
+</tr>
+<tr>
 <td>kube-prometheus-stack</td>
-<td>Chart 87.21.0</td>
 <td>Chart 91.8.2</td>
-<td><a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2">Release</a></td>
+<td>Chart 92.16.0</td>
+<td><a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-92.16.0">Release</a></td>
 </tr>
 <tr>
 <td>ingress-nginx</td>
@@ -94,6 +106,15 @@
 </tr>
 </tbody>
 </table>
+<p>The <a href="readme.html#release-snapshot--october-29-2026">complete release snapshot</a> also records all 16 newly covered ecosystem technologies. Their versions are newly verified references, not invented October 1 baselines.</p>
+<h2 id="priority-october-security-patches">Priority: October security patches</h2>
+<ul>
+<li><strong>ArgoCD 3.5.4 and later:</strong> critical fixes cover Kustomize command execution, Jsonnet file access, and AppProject hook restrictions, plus login throttling, SSH proxy handling, extension RBAC, and oversized OCI manifests. The lab now pins 3.5.6. Kustomize Helm rendering no longer honors <code>helmGlobals.configHome</code>; OCI manifests above 4 MiB are rejected. <a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.4">Stable security release</a>. Version 3.6 release candidates are not stable pins.</li>
+<li><strong>Compromised eMudhra CAs:</strong> patched releases include cert-manager 1.21.3, Cilium 1.20.4, Crossplane 2.4.3, Istio 1.31.3, Trivy 0.76.1, and CoreDNS 1.15.0. Review each release's trust-store changes and your certificate chains; changing only a chart version or vulnerability database does not guarantee a patched binary. <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.3">cert-manager notes</a>, <a href="https://github.com/cilium/cilium/releases/tag/v1.20.4">Cilium notes</a>, <a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.3">Crossplane notes</a>.</li>
+<li><strong>Istio:</strong> security notices <a href="https://istio.io/latest/news/security/">2026-007 and 2026-008</a> cover Envoy issues, authorization-policy method-case bypass, ambient control-plane denial of service, and compromised CA distrust. Supported patched baselines are 1.31.3+ and 1.30.7+; 1.29's final patch does not extend its support window.</li>
+<li><strong>Kyverno 1.19.2:</strong> addresses 24 advisories across policy isolation, image verification, authorization, expression limits, and workflow hardening. Check each advisory's affected versions and select a chart with the patched application. <a href="https://github.com/kyverno/kyverno/releases/tag/v1.19.2">Release and advisory links</a>.</li>
+<li><strong>containerd 2.4.2:</strong> includes runtime security fixes. Follow the distribution's supported patched branch and drain/upgrade procedures rather than replacing a managed runtime directly. <a href="https://github.com/containerd/containerd/releases/tag/v2.4.2">Release advisories</a>.</li>
+</ul>
 <h2 id="priority-keda-221-security-and-breaking-changes">Priority: KEDA 2.21 security and breaking changes</h2>
 <p>KEDA 2.21 fixes critical <strong>CVE-2026-77524 / GHSA-637c-6jxx-4rwm</strong>. The affected paths use Vault Kubernetes authentication or <code>boundServiceAccountToken</code> in TriggerAuthentication/ClusterTriggerAuthentication. Review these integrations before upgrading; API keys and ordinary Vault token authentication are outside those affected paths. <a href="https://github.com/kedacore/keda/releases/tag/v2.21.0">Release and advisory links</a>.</p>
 <ul>
@@ -105,20 +126,28 @@
 <p>Earlier migration reminder: custom RBAC for KEDA 2.20+ must allow event recording through <code>events.k8s.io/events</code>. Review all intervening release notes when upgrading older installations.</p>
 <h2 id="argocd-35-helm-and-deprecated-signature-configuration">ArgoCD 3.5: Helm and deprecated signature configuration</h2>
 <p>ArgoCD 3.5 uses Helm 4. Plain HTTP OCI registries require explicit configuration, including dependency repositories. Existing <code>spec.source.helm.version: v3</code> no longer selects Helm 3. GnuPG signature configuration (<code>AppProject.spec.signatureKeys</code>) is deprecated in favor of <code>sourceIntegrity</code>. Impersonation now covers API server operations <strong>when enabled</strong>; it is not an assertion that every installation enables impersonation by default. Review the <a href="https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/">3.4 → 3.5 upgrade guide</a>.</p>
-<p>The <a href="argocd-setup.html">setup guide</a> pins the application manifest to v3.5.3. Helm chart versions are independent of application versions; select a chart by its <code>appVersion</code> rather than retaining the previous <code>8.x</code> placeholder.</p>
-<h2 id="cert-manager-1212-security-hardening-and-reliability">cert-manager 1.21.2: security hardening and reliability</h2>
-<p>The September patch fixes renewal/HTTP-01 solver issues, webhook/controller panics, and duplicate Gateway listener DNS names. It limits untrusted issuer responses in status/events and tightens ambient AWS credential use for namespaced Vault Issuers. Upstream recommends upgrading. <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.2">Release notes</a>.</p>
+<p>The <a href="argocd-setup.html">setup guide</a> pins the application manifest to v3.5.6. Helm chart versions are independent of application versions; select a chart by its <code>appVersion</code> rather than retaining the previous <code>8.x</code> placeholder.</p>
+<h2 id="cert-manager-1213-trust-secret-ownership-and-renewal">cert-manager 1.21.3: trust, Secret ownership, and renewal</h2>
+<p>The October patch distrusts compromised eMudhra CAs, fixes a stale ACME ARI renewal-window loop, and requires the next-private-key Secret to have the expected label and Certificate ownership. This prevents a status writer from using an unrelated Secret's key. Upstream recommends that all users upgrade. These fixes supplement September's issuer-response and ambient-credential hardening. <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.21.3">Release notes</a>.</p>
 <p>The July RBAC advisory remains relevant to older installations: <a href="https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258">GHSA-8rvj-mm4h-c258</a>. Check the advisory's affected/fixed versions when assessing an existing cluster.</p>
 <h2 id="kubernetes-and-istio-support-windows">Kubernetes and Istio support windows</h2>
-<p>Upstream Kubernetes currently maintains <strong>1.35, 1.36, and 1.37</strong>. The study prerequisites now use 1.35/1.36 and recommend matching kubectl's minor version to the cluster. <a href="https://kubernetes.io/releases/">Kubernetes releases</a>.</p>
-<p>Istio supports <strong>1.29, 1.30, and 1.31</strong>; 1.28 is out of support. Istio 1.29's expected end of support is <strong>October 12, 2026</strong>. Istio 1.31 lists Kubernetes <strong>1.32–1.36</strong> as supported, so the latest Kubernetes release is not automatically supported by the whole stack. <a href="https://istio.io/latest/docs/releases/supported-releases/">Istio support matrix</a>.</p>
+<p>Upstream Kubernetes currently maintains <strong>1.35, 1.36, and 1.37</strong>; <strong>1.34 reached EOL October 27, 2026</strong>. The study prerequisites retain 1.35/1.36 and recommend matching kubectl's minor version to the cluster. Latest published stable is 1.37.2. <a href="https://kubernetes.io/releases/">Kubernetes releases and support dates</a>.</p>
+<p>Istio supports <strong>1.30 and 1.31</strong>. Version <strong>1.29 reached EOL October 15, 2026</strong>, replacing the previous page's estimated October 12 date. Istio 1.31 supports Kubernetes <strong>1.32–1.37</strong>; 1.30 supports <strong>1.32–1.36</strong>. This does not certify every other add-on on Kubernetes 1.37. <a href="https://istio.io/latest/docs/releases/supported-releases/">Istio support matrix</a>.</p>
 <p>Ecosystem news: Istio 1.31 adds weighted ambient waypoint canaries and enables stricter separation of cross-namespace Istio Gateways from managed Gateway API proxies by default. Review custom gateway sharing before upgrading. <a href="https://istio.io/latest/news/releases/1.31.x/announcing-1.31/change-notes/">1.31 change notes</a>.</p>
 <h2 id="networking-and-monitoring-updates">Networking and monitoring updates</h2>
 <ul>
-<li><strong>Cilium 1.20 is stable</strong>, replacing July's release-candidate notice. Patch 1.20.2 includes ENI/IPAM, network-policy, and Gateway API fixes. Follow the project's minor upgrade documentation before changing the CNI. <a href="https://github.com/cilium/cilium/releases/tag/v1.20.2">Release notes</a>.</li>
-<li><strong>Gateway API 1.6.2</strong> clarifies that redirect codes 303, 307, and 308 require Extended conformance. Check the implementation's supported features. Standard and Experimental are alternative CRD channels; the setup guide no longer describes already-standard features as requiring Experimental. <a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2">Release notes</a>.</li>
-<li><strong>Calico 3.32.2</strong> is a patch update; no example API rewrites were made in this refresh. <a href="https://github.com/projectcalico/calico/releases/tag/v3.32.2">Release</a>.</li>
-<li><strong>kube-prometheus-stack 91.8.2</strong> replaces chart 87.21.0. Major chart changes require reading the intervening upgrade sections and CRD handling instructions; a larger chart version is not evidence of a harmless upgrade. <a href="https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.8.2/charts/kube-prometheus-stack/README.md">Chart documentation</a>.</li>
+<li><strong>Cilium 1.20.4</strong> fixes the 1.20.3 BackendTLSPolicy regression as well as CA trust. CiliumEnvoyConfig redirects now require same-namespace Services; omitted namespaces in clusterwide references default to <code>default</code>. Follow the minor upgrade guide before changing the CNI. <a href="https://github.com/cilium/cilium/releases/tag/v1.20.4">Release notes</a>.</li>
+<li><strong>Gateway API 1.7.0</strong> promotes HTTPRoute retries to Standard. Experimental session persistence moves to XBackend; inline route/BackendTrafficPolicy attachment is deprecated. Experimental fields are renamed, including <code>sessionName</code> to <code>cookie.name</code>/<code>header.name</code>, <code>cookieConfig</code> to <code>cookie</code>, and XBackend port <code>port</code> to <code>number</code>; <code>port.name</code> is removed. Standard CRDs are not subject to those Experimental field breaks. <a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.7.0">Release notes</a>.</li>
+<li><strong>Controller compatibility:</strong> the Cilium lab uses <strong>Gateway API 1.6.3</strong>, as specified by <a href="https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/">Cilium's support page</a>. Standard/Experimental are alternative channels; check safe-upgrade restrictions before switching. Redirect codes 303, 307, and 308 still require Extended conformance. TCPRoute/UDPRoute use <code>v1</code>; avoid deprecated <code>v1alpha2</code>.</li>
+<li><strong>Calico 3.33.0:</strong> install/update the separate <code>crd.projectcalico.org.v1</code> chart before the operator. <code>defaultFelixConfiguration</code> is deprecated; apply custom resources explicitly. Most separate component images are replaced by <code>quay.io/calico/calico</code>; audit image mirrors. eBPF requires Linux 5.10+ and BTF/CO-RE. BIRD-programmed IPIP routes are deprecated for planned removal in 3.35; Felix is now the default owner. DatastoreMigration <code>v1beta1</code> remains served but is deprecated in favor of <code>v1</code>. FIPS image variants were removed. <a href="https://github.com/projectcalico/calico/blob/v3.33.0/release-notes/v3.33.0-release-notes.md">Release notes</a>.</li>
+<li><strong>kube-prometheus-stack 92.16.0:</strong> chart 92 adds <code>kubernetes.io/os: linux</code> node selectors to chart-owned workloads, merging existing selectors and triggering a one-time rollout. Review mixed-OS placement and CRD handling. The chart's appVersion is Prometheus Operator v0.94.2, not Prometheus/Grafana. <a href="https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-92.16.0/charts/kube-prometheus-stack/UPGRADE.md">Tagged upgrade instructions</a>.</li>
+</ul>
+<h2 id="newly-covered-ecosystem-migration-boundaries">Newly covered ecosystem migration boundaries</h2>
+<ul>
+<li><strong>Flux 2.10:</strong> object-level workload identity is always enabled and default controller RBAC no longer grants <code>create</code> on <code>serviceaccounts/token</code>. Install explicit bindings where required before upgrading. Notification Event/Alert/Provider APIs graduate to <code>v1</code>; migrate dropped fields and credentials before converting. ImageRepository uses Flux artifact storage by default, causing an initial rescan. Supported Kubernetes minima are 1.35.2, 1.36.1, and 1.37.0 for their respective minors. <a href="https://github.com/fluxcd/flux2/releases/tag/v2.10.0">Release and migration notes</a>.</li>
+<li><strong>Loki community chart 20:</strong> bundled MinIO, <code>minio</code>, and <code>ignoreMinioDeprecation</code> are removed. Migrate storage on 19.x and retain access to old data until it ages out before crossing this boundary. Chart 20 rejects unknown top-level values. The lab uses chart 20.0.3, Monolithic mode, and ephemeral filesystem storage, not bundled MinIO. Simple Scalable mode is being deprecated. <a href="https://github.com/grafana-community/helm-charts/blob/loki-20.0.3/charts/loki/README.md">Tagged migration notes</a>, <a href="https://grafana.com/docs/loki/latest/setup/install/helm/">deployment modes</a>.</li>
+<li><strong>Longhorn 1.13:</strong> Kubernetes 1.34+ is mandatory. Experimental V2 sharded volumes lack backup/restore, cloning, backing-image, DR, and live-migration workflows; do not treat them as equivalent to ordinary persistent volumes. <a href="https://github.com/longhorn/longhorn/releases/tag/v1.13.0">Release</a>.</li>
+<li><strong>Runtime and DNS releases:</strong> CRI-O 1.37.2 belongs with Kubernetes 1.37, not the 1.35/1.36 study baseline. containerd major versions change configuration paths. Managed CoreDNS/runtime versions follow the provider's upgrade policy, not the repository's upstream latest column. See <a href="cri-o-setup.html">CRI-O</a>, <a href="containerd-setup.html">containerd</a>, and <a href="coredns-setup.html">CoreDNS</a>.</li>
 </ul>
 <h2 id="ingress-nginx-remains-retired">ingress-nginx remains retired</h2>
 <p>The repository was archived on <strong>March 24, 2026</strong>. Keep <a href="nginx-ingress-setup.html">nginx-ingress-setup.md</a> and its manifests for historical study; use a maintained <a href="https://gateway-api.sigs.k8s.io/implementations/">Gateway API implementation</a> for new work. <a href="https://github.com/kubernetes/ingress-nginx">Archive status</a>.</p>
@@ -127,12 +156,14 @@
 <p>Check each project's release and upgrade documentation again before deployment. For repositories containing multiple Helm charts, use the component-specific release tag rather than assuming <code>/releases/latest</code> identifies the desired chart. Review security advisories, Kubernetes support windows, and controller conformance separately from release numbers.</p></main>
 <aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
 <ul>
-<li><a href="#release-changes-since-july">Release changes since July</a></li>
+<li><a href="#release-changes-since-october-1">Release changes since October 1</a></li>
+<li><a href="#priority-october-security-patches">Priority: October security patches</a></li>
 <li><a href="#priority-keda-221-security-and-breaking-changes">Priority: KEDA 2.21 security and breaking changes</a></li>
 <li><a href="#argocd-35-helm-and-deprecated-signature-configuration">ArgoCD 3.5: Helm and deprecated signature configuration</a></li>
-<li><a href="#cert-manager-1212-security-hardening-and-reliability">cert-manager 1.21.2: security hardening and reliability</a></li>
+<li><a href="#cert-manager-1213-trust-secret-ownership-and-renewal">cert-manager 1.21.3: trust, Secret ownership, and renewal</a></li>
 <li><a href="#kubernetes-and-istio-support-windows">Kubernetes and Istio support windows</a></li>
 <li><a href="#networking-and-monitoring-updates">Networking and monitoring updates</a></li>
+<li><a href="#newly-covered-ecosystem-migration-boundaries">Newly covered ecosystem migration boundaries</a></li>
 <li><a href="#ingress-nginx-remains-retired">ingress-nginx remains retired</a></li>
 <li><a href="#rechecking-this-snapshot">Rechecking this snapshot</a></li>
 </ul>

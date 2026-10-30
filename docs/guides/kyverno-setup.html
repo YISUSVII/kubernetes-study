@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kyverno Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kyverno Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="kyverno-setup-notes">Kyverno Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/kyverno/kyverno/releases/tag/v1.19.2">Kyverno v1.19.2</a> addresses 24 security advisories, including critical and high-severity issues. Select a chart whose <code>appVersion</code> includes these fixes; do not confuse the chart's version with 1.19.2.</p>
+</blockquote>
+<p>Kyverno evaluates admission policies and produces policy reports. It can validate, mutate, generate, and verify resources. Policy admission is different from network enforcement, vulnerability scanning, and runtime detection: use Calico/Cilium, Trivy, and Falco for those layers.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster with CRD/webhook permissions and Helm. Check the <a href="https://kyverno.io/docs/installation/releases/">supported releases</a> against your Kubernetes version. Choose a chart version from the search output and set <code>CHART_VERSION</code> in Bash.</p>
+<pre><code class="language-bash">helm repo add kyverno https://kyverno.github.io/kyverno/
+helm repo update
+helm search repo kyverno/kyverno --versions
+export CHART_VERSION='&lt;selected-chart-version&gt;'
+helm show chart kyverno/kyverno --version &quot;$CHART_VERSION&quot;
+helm install kyverno kyverno/kyverno --version &quot;$CHART_VERSION&quot; \
+  -n kyverno --create-namespace --wait --timeout 5m
+kubectl get deployments -n kyverno
+</code></pre>
+<p>This uses the supported Helm installation path; production needs controller availability, webhook recovery planning, and careful namespace exclusions.</p>
+<h2 id="lab">Lab</h2>
+<p>The following legacy <code>ClusterPolicy</code> API is useful for studying existing policies. Check the selected release's API/deprecation documentation before adoption; newer CEL-based policy types have different schemas. This rule affects only one lab namespace and starts in Audit mode.</p>
+<pre><code class="language-bash">kubectl create namespace kyverno-study
+kubectl apply -f - &lt;&lt;'EOF'
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: study-require-owner
+spec:
+  background: true
+  rules:
+    - name: require-owner
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [kyverno-study]
+      validate:
+        failureAction: Audit
+        message: Pods must have an owner label.
+        pattern:
+          metadata:
+            labels:
+              owner: &quot;?*&quot;
+EOF
+kubectl run unlabelled -n kyverno-study --image=nginx:stable-alpine
+kubectl get policyreports -n kyverno-study
+</code></pre>
+<p>Allow time for background reports. The Pod is allowed in Audit mode but should produce a failed policy result. Inspect the report with <code>kubectl get policyreports -n kyverno-study -o yaml</code>. Then enable enforcement and test admission without creating another workload:</p>
+<pre><code class="language-bash">kubectl patch clusterpolicy study-require-owner --type=json \
+  -p='[{&quot;op&quot;:&quot;replace&quot;,&quot;path&quot;:&quot;/spec/rules/0/validate/failureAction&quot;,&quot;value&quot;:&quot;Enforce&quot;}]'
+kubectl run denied -n kyverno-study --image=nginx:stable-alpine --dry-run=server
+kubectl run allowed -n kyverno-study --image=nginx:stable-alpine --labels=owner=study --dry-run=server
+</code></pre>
+<p>Expect the first request to be denied and the second accepted. Enforcement does not evict the existing unlabelled Pod. Pin images by digest in a production policy exercise.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>If policies are not applied, inspect match rules, namespace exclusions, and admission-controller logs. API server connectivity to webhooks is essential: a fail-closed webhook outage can block resource creation. Do not apply cluster-wide enforcement until Audit results and recovery procedures have been reviewed.</p>
+<pre><code class="language-bash">kubectl delete clusterpolicy study-require-owner
+kubectl delete namespace kyverno-study
+helm uninstall kyverno -n kyverno
+</code></pre>
+<p>Remove policies before controllers; uninstall the shared controller only in the isolated lab.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://kyverno.io/docs/installation/">Kyverno installation</a></li>
+<li><a href="https://kyverno.io/docs/policy-types/overview/">Policy types</a></li>
+<li><a href="https://kyverno.io/docs/guides/reports/">Policy reports</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

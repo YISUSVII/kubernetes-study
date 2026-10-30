@@ -19,7 +19,7 @@
 <div class="container reader-layout has-toc">
 <main id="main" class="reader-content"><h1 id="argocd-setup-notes">ArgoCD Setup Notes</h1>
 <blockquote>
-<p><strong>October 2026 update</strong>: stable is <a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.3">ArgoCD v3.5.3</a>. Review the <a href="https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/">3.4 → 3.5 upgrade guide</a> for Helm 4, OCI registry settings, and Source Integrity migration before upgrading. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+<p><strong>October 29, 2026 update</strong>: stable is <a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.6">ArgoCD v3.5.6</a>, including the <a href="https://github.com/argoproj/argo-cd/releases/tag/v3.5.4">3.5.4 security fixes</a>. Helm-rendering Kustomize builds no longer honor <code>helmGlobals.configHome</code>, and OCI manifests over 4 MiB are rejected. Review the <a href="https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/3.4-3.5/">3.4 → 3.5 upgrade guide</a> for Helm 4, OCI registry settings, and Source Integrity migration. Version 3.6 remains a prerelease and is not the lab pin. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
 </blockquote>
 <h2 id="prerequisites">Prerequisites</h2>
 <pre><code class="language-bash"># Add ArgoCD Helm repository (optional - can use kubectl apply directly)
@@ -33,10 +33,10 @@ helm repo update
 <pre><code class="language-bash">kubectl create namespace argocd
 </code></pre>
 <h3 id="2-install-argocd-using-kubectl-recommended-for-simplicity">2. Install ArgoCD using kubectl (recommended for simplicity)</h3>
-<pre><code class="language-bash">kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml
+<pre><code class="language-bash">kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.6/manifests/install.yaml
 </code></pre>
 <h3 id="alternative-install-using-helm">Alternative: Install using Helm</h3>
-<pre><code class="language-bash"># Select a chart version whose appVersion matches v3.5.3 (chart and app versions differ).
+<pre><code class="language-bash"># Select a chart version whose appVersion matches v3.5.6 (chart and app versions differ).
 helm search repo argo/argo-cd --versions
 helm show chart argo/argo-cd --version &lt;CHART_VERSION&gt;
 helm install argocd argo/argo-cd --namespace argocd --version &lt;CHART_VERSION&gt;

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CoreDNS Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>CoreDNS Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="coredns-setup-notes">CoreDNS Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/coredns/coredns/releases/tag/v1.15.0">CoreDNS v1.15.0</a> includes Go security updates and compromised eMudhra CA distrust. Kubernetes distributions can intentionally ship another supported version; use their upgrade mechanism rather than replacing cluster DNS independently.</p>
+</blockquote>
+<p>CoreDNS commonly provides Kubernetes service discovery. Its <code>kubernetes</code> plugin answers cluster service names, while <code>forward</code> usually sends external queries to upstream resolvers. The Service may still be named <code>kube-dns</code> even when its implementation is CoreDNS.</p>
+<h2 id="prerequisites-and-installation-boundaries">Prerequisites and installation boundaries</h2>
+<p>Most cluster distributions install and manage DNS during bootstrap. Inspect the existing installation before adding another DNS server; do not install a competing Helm release into <code>kube-system</code>. For a new kubeadm cluster, use the <a href="https://kubernetes.io/docs/tasks/administer-cluster/coredns/">DNS addon workflow</a>. For managed Kubernetes, follow the provider's addon/version policy. Standalone CoreDNS is a different deployment model and does not automatically configure kubelet's cluster DNS setting.</p>
+<pre><code class="language-bash">kubectl get deployment,daemonset,service -n kube-system
+kubectl get pods -n kube-system -l k8s-app=kube-dns
+kubectl get configmap coredns -n kube-system -o yaml
+</code></pre>
+<p>Names and labels vary by distribution, and NodeLocal DNSCache can sit between Pods and CoreDNS. If the ConfigMap or label is absent, identify the provider's DNS implementation rather than creating replacements blindly. Check the CoreDNS release bundled with your cluster instead of upgrading its image independently.</p>
+<h2 id="lab">Lab</h2>
+<p>This Bash-compatible lab creates a Service with a known DNS record and queries it from another Pod. It assumes the standard <code>cluster.local</code> domain; substitute your configured cluster domain if different.</p>
+<pre><code class="language-bash">kubectl create namespace dns-study
+kubectl create deployment web -n dns-study --image=nginx:stable-alpine
+kubectl expose deployment web -n dns-study --port=80
+kubectl run dns-client -n dns-study --image=busybox:1.37 \
+  --restart=Never -- /bin/sh -c 'sleep 3600'
+kubectl wait --for=condition=Ready pod/dns-client -n dns-study --timeout=120s
+kubectl exec -n dns-study dns-client -- cat /etc/resolv.conf
+kubectl exec -n dns-study dns-client -- nslookup kubernetes.default.svc.cluster.local
+kubectl exec -n dns-study dns-client -- nslookup web.dns-study.svc.cluster.local
+kubectl exec -n dns-study dns-client -- nslookup example.com
+kubectl get service web -n dns-study -o wide
+</code></pre>
+<p>Expect the Service DNS result to match the web Service's ClusterIP. Internal DNS success with external failure points toward forwarding/upstream DNS, while failure of both suggests a cluster DNS path problem. External resolution may intentionally be blocked in restricted labs. Service name resolution does not prove the application's HTTP endpoint is healthy.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<pre><code class="language-bash">kubectl get endpointslices -n kube-system -l kubernetes.io/service-name=kube-dns
+kubectl logs -n kube-system -l k8s-app=kube-dns --tail=100
+kubectl get networkpolicy -n dns-study
+</code></pre>
+<p>Check the resolver address in the Pod, DNS Service endpoints, node-local caching, CoreDNS readiness, CNI connectivity, and UDP <strong>and</strong> TCP port 53 policies. An egress default-deny policy needs DNS allowances appropriate to the actual DNS path; allowing only UDP can break larger responses or fallback. A successful lookup from the node is not proof that the Pod network can reach DNS.</p>
+<p>Corefile changes are cluster-wide. Before a change, export the existing ConfigMap to a protected local backup and follow the provider's configuration mechanism; some providers overwrite direct edits. Validate plugin syntax and roll out only in a disposable cluster. A <code>loop</code> failure may indicate forwarding back to the same resolver, including host stub-resolver mistakes. Avoid blindly forwarding to <code>/etc/resolv.conf</code> without inspecting what it points at.</p>
+<h2 id="cleanup-and-exercise">Cleanup and exercise</h2>
+<pre><code class="language-bash">kubectl delete namespace dns-study
+</code></pre>
+<p>Leave the shared DNS addon installed. Exercise: apply a namespace-scoped egress deny policy, reproduce the DNS failure, then add a DNS allowance using the <a href="../examples/Calico/index.html">Calico examples</a> or <a href="cilium-setup.html">Cilium guide</a>. Record the difference between DNS resolution failure and inability to connect to the resolved address.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/">Kubernetes DNS debugging</a></li>
+<li><a href="https://coredns.io/plugins/kubernetes/">CoreDNS Kubernetes plugin</a></li>
+<li><a href="https://coredns.io/plugins/forward/">CoreDNS forward plugin</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation-boundaries">Prerequisites and installation boundaries</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#cleanup-and-exercise">Cleanup and exercise</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

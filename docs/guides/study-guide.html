@@ -18,7 +18,7 @@
 <div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kubernetes Learning Journey: Complete Study Guide</span></div>
 <div class="container reader-layout has-toc">
 <main id="main" class="reader-content"><h1 id="kubernetes-learning-journey-complete-study-guide">Kubernetes Learning Journey: Complete Study Guide</h1>
-<p>Welcome to your comprehensive Kubernetes study guide! This resource is designed to help you learn Kubernetes administration, networking, and deployment patterns at your own pace. All examples reference actual YAML files in the <a href="../examples/index.html"><code>examples/</code></a> directory.</p>
+<p>Welcome to your comprehensive Kubernetes study guide! This resource is designed to help you learn Kubernetes administration, networking, and deployment patterns at your own pace. Standalone YAML collections live in the <a href="../examples/index.html"><code>examples/</code></a> directory; additional ecosystem guides include inline commands and configuration labs.</p>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol>
 <li><a href="#getting-started">Getting Started</a></li>
@@ -64,6 +64,55 @@
 </ul>
 <hr />
 <h2 id="learning-paths">Learning Paths</h2>
+<h3 id="ecosystem-extensions">Ecosystem extensions</h3>
+<p>The <a href="readme.html#ecosystem-image-coverage">image comparison</a> maps all 24 pictured technologies to content. Use these focused labs alongside the six paths below; prerequisites differ, so they are not one installation sequence.</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Suggested progression</th>
+<th>Completion check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Packaging and delivery</td>
+<td><a href="helm-setup.html">Helm</a>, <a href="kustomize-setup.html">Kustomize</a>, then <a href="flux-setup.html">Flux</a> as an alternative to ArgoCD</td>
+<td>Render manifests, inspect release history, and reconcile a Git revision</td>
+</tr>
+<tr>
+<td>Gateway implementation</td>
+<td><a href="envoy-gateway-setup.html">Envoy Gateway</a> alongside Path 3</td>
+<td>Resolve route conditions and send an HTTP request through Envoy</td>
+</tr>
+<tr>
+<td>Telemetry</td>
+<td><a href="opentelemetry-setup.html">OpenTelemetry</a>, <a href="loki-setup.html">Loki</a>, then <a href="fluent-bit-setup.html">Fluent Bit</a> alongside Path 4</td>
+<td>Send synthetic telemetry, ingest a container log, and query it</td>
+</tr>
+<tr>
+<td>Security layers</td>
+<td><a href="trivy-setup.html">Trivy</a>, <a href="kyverno-setup.html">Kyverno</a>, <a href="falco-setup.html">Falco</a></td>
+<td>Distinguish a scan finding, an admission denial, and a runtime alert</td>
+</tr>
+<tr>
+<td>Storage and recovery</td>
+<td><a href="longhorn-setup.html">Longhorn</a>, then <a href="velero-setup.html">Velero</a></td>
+<td>Verify persistence and restore known content; distinguish metadata from volume backup</td>
+</tr>
+<tr>
+<td>Node capacity</td>
+<td><a href="karpenter-setup.html">Karpenter</a> alongside Path 5</td>
+<td>Observe a NodeClaim and Ready node, then verify cloud resource teardown</td>
+</tr>
+<tr>
+<td>Cluster foundations</td>
+<td><a href="coredns-setup.html">CoreDNS</a>, then either <a href="containerd-setup.html">containerd</a> or <a href="cri-o-setup.html">CRI-O</a></td>
+<td>Resolve service DNS and inspect the node's actual CRI runtime</td>
+</tr>
+</tbody>
+</table>
+<p>Use disposable environments. For Bash labs on Windows, use WSL; run Linux node diagnostics on the node itself. Never replace cluster DNS/runtimes, apply storage destruction, or provision cloud capacity on an existing environment without the relevant operational authorization.</p>
 <h3 id="path-1-web-application-deployment-beginner">Path 1: Web Application Deployment (Beginner)<span aria-hidden="true" class="path-anchor" id="path-1"></span></h3>
 <p><strong>Time: 2-3 weeks | Difficulty: ⭐</strong></p>
 <p>This path teaches you to deploy a web application with external access.</p>
@@ -1327,7 +1376,7 @@ kubectl describe networkpolicy &lt;name&gt;
 <li>[ ] Can troubleshoot complex issues</li>
 </ul>
 <hr />
-<p><strong>Last Updated</strong>: October 1, 2026
+<p><strong>Last Updated</strong>: October 29, 2026
 <strong>Next Review</strong>: 1 month<br />
 <strong>Status</strong>: Study Material Ready ✓ — Updated for K8s 1.35/1.36 study baseline</p>
 <hr />
@@ -1365,6 +1414,7 @@ kubectl describe networkpolicy &lt;name&gt;
 </ul>
 </li>
 <li><a href="#learning-paths">Learning Paths</a><ul>
+<li><a href="#ecosystem-extensions">Ecosystem extensions</a></li>
 <li><a href="#path-1-web-application-deployment-beginner">Path 1: Web Application Deployment (Beginner)</a></li>
 <li><a href="#path-2-continuous-deployment--gitops-intermediate">Path 2: Continuous Deployment &amp; GitOps (Intermediate)</a></li>
 <li><a href="#path-3-advanced-networking--service-mesh-advanced">Path 3: Advanced Networking &amp; Service Mesh (Advanced)</a></li>

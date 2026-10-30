@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kustomize Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Kustomize Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="kustomize-setup-notes">Kustomize Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: standalone <a href="https://github.com/kubernetes-sigs/kustomize/releases/tag/kustomize/v5.8.3">Kustomize v5.8.3</a>. The version embedded in kubectl can differ; record which renderer you use.</p>
+</blockquote>
+<p>Kustomize transforms ordinary Kubernetes YAML without templates. A base defines shared resources; overlays customize names, replicas, images, and configuration. It is included in <code>kubectl</code> and can also run as a standalone CLI. ArgoCD and Flux can reconcile Kustomize output.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Use a disposable cluster, <code>kubectl</code>, and a Bash-compatible shell. Check <code>kubectl version --client</code> for the bundled Kustomize version; standalone Kustomize and kubectl can produce different output when their versions differ. Work in a temporary directory outside this repository.</p>
+<h2 id="lab">Lab</h2>
+<p>Create a base and an overlay:</p>
+<pre><code class="language-bash">mkdir -p /tmp/kustomize-study/base /tmp/kustomize-study/overlays/dev
+cd /tmp/kustomize-study
+cat &gt; base/deployment.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: nginx:stable-alpine
+          ports:
+            - containerPort: 80
+EOF
+cat &gt; base/kustomization.yaml &lt;&lt;'EOF'
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+EOF
+cat &gt; overlays/dev/kustomization.yaml &lt;&lt;'EOF'
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kustomize-study
+namePrefix: dev-
+resources:
+  - ../../base
+replicas:
+  - name: web
+    count: 2
+configMapGenerator:
+  - name: settings
+    literals:
+      - environment=development
+EOF
+kubectl kustomize overlays/dev
+kubectl create namespace kustomize-study
+kubectl apply --dry-run=server -k overlays/dev
+kubectl apply -k overlays/dev
+kubectl rollout status deployment/dev-web -n kustomize-study --timeout=120s
+kubectl get deployments,configmaps -n kustomize-study
+</code></pre>
+<p>Expect <code>dev-web</code> with two replicas and a generated ConfigMap whose name includes a content hash. The ConfigMap is deliberately not consumed by the application yet. Exercise: reference it with <code>envFrom.configMapRef</code> in the base and verify that Kustomize rewrites the reference to the generated name. Pin the nginx image to a reviewed digest for reproducible deployments.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Use <code>kubectl kustomize</code> before applying: missing files, incorrectly targeted patches, and paths outside allowed roots fail during rendering. Prefer current <code>resources</code> and <code>patches</code> fields rather than deprecated <code>bases</code>, <code>patchesStrategicMerge</code>, or <code>patchesJson6902</code>. Deleting a resource from a kustomization does not automatically delete it from a cluster when using plain <code>kubectl apply -k</code>; GitOps pruning requires separate configuration.</p>
+<pre><code class="language-bash">kubectl delete -k overlays/dev
+kubectl delete namespace kustomize-study
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://kubectl.docs.kubernetes.io/references/kustomize/">Kustomize documentation</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">Kubernetes Kustomize tasks</a></li>
+<li><a href="argocd-setup.html">ArgoCD integration</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

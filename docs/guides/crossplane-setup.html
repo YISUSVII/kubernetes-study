@@ -19,13 +19,13 @@
 <div class="container reader-layout has-toc">
 <main id="main" class="reader-content"><h1 id="crossplane-setup-notes">Crossplane Setup Notes</h1>
 <p>Crossplane adds a declarative platform API to Kubernetes. This lab creates an <code>AppConfig</code> API that reconciles a ConfigMap, without provisioning cloud infrastructure. It complements ArgoCD: GitOps can deliver the API definitions and requests, while Crossplane reconciles their composed resources.</p>
-<p><a href="https://www.cncf.io/projects/crossplane/">CNCF graduated status</a> and <a href="https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration">Scheduling &amp; Orchestration category</a> checked October 1, 2026. Release pin: <a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.2">v2.4.2</a>.</p>
+<p><a href="https://www.cncf.io/projects/crossplane/">CNCF graduated status</a> and <a href="https://landscape.cncf.io/guide#orchestration-management--scheduling-orchestration">Scheduling &amp; Orchestration category</a> checked October 1, 2026. Release pin refreshed October 29: <a href="https://github.com/crossplane/crossplane/releases/tag/v2.4.3">v2.4.3</a>, which removes compromised eMudhra CA trust and fixes truncated package-download caching, Usage reconciliation, and XR scale RBAC.</p>
 <h2 id="install">Install</h2>
-<p>Use a disposable Kubernetes cluster, Helm, and permission to install CRDs/RBAC. These instructions assume the chart's default ServiceAccount name <code>crossplane</code>.</p>
+<p>Use a disposable Kubernetes cluster, Helm, and permission to install CRDs/RBAC. These instructions assume the chart's default ServiceAccount name <a href="../examples/Crossplane/index.html"><code>crossplane</code></a>.</p>
 <pre><code class="language-bash">helm repo add crossplane-stable https://charts.crossplane.io/stable
 helm repo update
 helm install crossplane crossplane-stable/crossplane \
-  --namespace crossplane-system --create-namespace --version 2.4.2 --wait
+  --namespace crossplane-system --create-namespace --version 2.4.3 --wait
 kubectl get pods -n crossplane-system
 </code></pre>
 <p>Source: <a href="https://docs.crossplane.io/latest/get-started/install/">official installation guide</a>.</p>

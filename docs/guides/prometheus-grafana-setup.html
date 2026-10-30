@@ -26,17 +26,18 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 </code></pre>
 <h2 id="installation-command">Installation Command</h2>
-<pre><code class="language-bash">helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 91.8.2
+<pre><code class="language-bash">helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --version 92.16.0
 </code></pre>
 <h2 id="example-installation-details">Example Installation Details</h2>
 <ul>
-<li><strong>Chart Version</strong>: 91.8.2 (stable snapshot checked October 1, 2026)</li>
+<li><strong>Chart Version</strong>: 92.16.0 (published snapshot checked October 29, 2026)</li>
+<li><strong>Chart appVersion</strong>: v0.94.2 (Prometheus Operator, not the Prometheus or Grafana application version)</li>
 <li><strong>Release Name</strong>: prometheus</li>
 <li><strong>Namespace</strong>: monitoring</li>
 <li><strong>Status</strong>: verify in your cluster using the commands below</li>
 </ul>
 <blockquote>
-<p><strong>October 2026 update</strong>: <a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.8.2">chart 91.8.2</a> replaces the July 87.21.0 pin. Review the <a href="https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.8.2/charts/kube-prometheus-stack/README.md">chart upgrade notes</a> before upgrading across major chart versions.</p>
+<p><strong>October 29, 2026 update</strong>: <a href="https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-92.16.0">chart 92.16.0</a> replaces 91.8.2. Chart 92 adds Linux node selectors to chart-owned workloads and triggers a one-time rollout; review placement in mixed-OS clusters. Read the <a href="https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-92.16.0/charts/kube-prometheus-stack/UPGRADE.md">tagged upgrade notes</a> and CRD lifecycle instructions before upgrading. Save your values, render the chart, and verify ServiceMonitors, rules, and dashboards afterward.</p>
 </blockquote>
 <h2 id="post-installation-commands">Post-Installation Commands</h2>
 <h3 id="check-installation-status">Check Installation Status</h3>

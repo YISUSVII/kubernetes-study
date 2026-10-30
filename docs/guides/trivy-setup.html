@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trivy Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Trivy Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="trivy-setup-notes">Trivy Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/aquasecurity/trivy/releases/tag/v0.76.1">Trivy v0.76.1</a> includes the compromised eMudhra CA distrust mitigation (CVE-2026-111943). Keep both the scanner and vulnerability database current; a database refresh alone does not patch the scanner binary.</p>
+</blockquote>
+<p>Trivy scans container images, filesystems, and infrastructure configuration for known vulnerabilities and other security issues. It complements admission policies and runtime monitoring; a clean scan is not proof that an application is secure.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Install the CLI through the <a href="https://trivy.dev/latest/getting-started/installation/">official installation guide</a>. Use a supported release and record <code>trivy --version</code>. The first scan downloads databases and needs registry/network access plus local cache space. The CLI lab does not require a cluster or Docker daemon when scanning a publicly accessible registry image.</p>
+<h2 id="lab">Lab</h2>
+<p>Run these commands from the repository root in Bash. The tagged image is illustrative; replace it with a reviewed digest for reproducible findings.</p>
+<pre><code class="language-bash">trivy --version
+trivy image --scanners vuln --severity HIGH,CRITICAL nginx:stable-alpine
+trivy config examples/
+trivy image --scanners vuln --severity HIGH,CRITICAL \
+  --format json --output /tmp/trivy-study.json nginx:stable-alpine
+trivy image --scanners vuln --severity HIGH,CRITICAL \
+  --exit-code 1 nginx:stable-alpine
+</code></pre>
+<p>The last command deliberately returns a nonzero exit code when selected findings exist, making it suitable as a CI gate. A scan that fails to download its database is a scan failure, not a clean result. The <code>config</code> command reports manifest misconfigurations; it does not install CRDs or validate controller-specific business semantics.</p>
+<p>Review package name, installed/fixed versions, advisory source, and exploitability before prioritizing remediation. Upgrade the affected dependency or base image and rescan the resulting image. <code>--ignore-unfixed</code> can filter findings but does not remediate them. Record time-limited exceptions and their justification; never silently ignore a whole severity class.</p>
+<h2 id="optional-continuous-scanning">Optional continuous scanning</h2>
+<p>The <a href="https://aquasecurity.github.io/trivy-operator/latest/">Trivy Operator</a> runs in-cluster scans and exposes reports as CRDs. Choose a compatible chart, inspect its values and scan-job permissions, then install it in a disposable cluster:</p>
+<pre><code class="language-bash">helm repo add aqua https://aquasecurity.github.io/helm-charts/
+helm repo update
+helm search repo aqua/trivy-operator --versions
+export CHART_VERSION='&lt;selected-chart-version&gt;'
+helm install trivy-operator aqua/trivy-operator --version &quot;$CHART_VERSION&quot; \
+  -n trivy-system --create-namespace --wait --timeout 5m
+kubectl get vulnerabilityreports -A
+kubectl get jobs -n trivy-system
+</code></pre>
+<p>Reports appear after workloads are discovered and scan jobs finish. Review report access: package inventories and misconfiguration details may be sensitive. Limit watched namespaces and resource consumption for production. An operator report does not automatically block admission.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Registry rate limits, private registry authentication, and database download failures are common causes of missing results. Do not pass registry passwords as literal commands in shared shell history. Exercise: scan the same digest before and after a database refresh and explain why findings can change without an image change.</p>
+<pre><code class="language-bash">helm uninstall trivy-operator -n trivy-system
+kubectl delete namespace trivy-system
+</code></pre>
+<p>Only run these cleanup commands if you installed the optional operator and no other workloads share the namespace. CLI-only scans create no Kubernetes resources; remove the local JSON report when no longer needed. Operator CRDs/reports may remain after uninstall; review them before removal.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://trivy.dev/latest/docs/">Trivy scanner documentation</a></li>
+<li><a href="https://aquasecurity.github.io/trivy-operator/latest/">Trivy Operator documentation</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#optional-continuous-scanning">Optional continuous scanning</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

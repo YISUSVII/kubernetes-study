@@ -85,18 +85,18 @@ Service (Backend)
 </code></pre>
 <h2 id="prerequisites">Prerequisites</h2>
 <h3 id="1-install-gateway-api-crds">1. Install Gateway API CRDs</h3>
-<pre><code class="language-bash"># Install Gateway API standard channel (v1.6.2 - stable, checked October 1, 2026)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
+<pre><code class="language-bash"># Install the Cilium-compatible Standard channel (v1.6.3, checked October 29, 2026)
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml
 
 # Alternative for features that still require Experimental CRDs.
 # Choose one channel; review safe-upgrade restrictions before changing channels.
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/experimental-install.yaml
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/experimental-install.yaml
 
 # Verify CRDs installation
 kubectl get crd | grep gateway
 </code></pre>
 <blockquote>
-<p><strong>October 2026 update</strong>: <a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.2">v1.6.2</a> clarifies that redirect status codes 303, 307, and 308 require Extended conformance. Check controller support. As of v1.6.0, <code>TCPRoute</code> and <code>UDPRoute</code> graduated to <strong>GA (<code>v1</code>)</strong> — the <code>v1alpha2</code> versions are deprecated and will be removed in a future release. <code>TLSRoute</code>, <code>ListenerSet</code>, and the HTTPRoute CORS filter graduated to Standard in v1.5.0. See <a href="deprecations.html">DEPRECATIONS.md</a> for the full list of API version changes.</p>
+<p><strong>October 29, 2026 update</strong>: upstream stable is <a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.7.0">v1.7.0</a>, which promotes HTTPRoute retries to Standard and changes Experimental session-persistence APIs. This lab pins <a href="https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.6.3">v1.6.3</a>, the version specified by <a href="https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/">Cilium's support documentation</a>. Select CRDs by controller support, not just the newest tag. Redirect status codes 303, 307, and 308 require Extended conformance. <code>TCPRoute</code> and <code>UDPRoute</code> use <strong>GA (<code>v1</code>)</strong>; avoid their deprecated <code>v1alpha2</code> versions. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
 </blockquote>
 <h3 id="2-install-a-gateway-controller-implementation">2. Install a Gateway Controller Implementation</h3>
 <p>Popular implementations:
@@ -112,9 +112,9 @@ kubectl get crd | grep gateway
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: nginx-gateway
+  name: cilium
 spec:
-  controllerName: k8s.io/ingress-nginx
+  controllerName: io.cilium/gateway-controller
 EOF
 </code></pre>
 <h3 id="2-create-gateway-cluster-operator">2. Create Gateway (Cluster Operator)</h3>
@@ -125,7 +125,7 @@ metadata:
   name: mygateway
   namespace: default
 spec:
-  gatewayClassName: nginx-gateway
+  gatewayClassName: cilium
   listeners:
   - name: http
     protocol: HTTP
@@ -162,33 +162,24 @@ EOF
 </code></pre>
 <h2 id="installation-methods">Installation Methods</h2>
 <h3 id="method-1-install-standard-crds-only">Method 1: Install Standard CRDs Only</h3>
-<pre><code class="language-bash"># Minimal installation (CRDs only, no controller) - v1.6.2 current stable
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
+<pre><code class="language-bash"># Minimal installation (CRDs only, no controller) - v1.6.3 Cilium lab baseline
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml
 
 # Then install your preferred controller separately
 </code></pre>
-<h3 id="method-2-install-with-nginx-ingress-controller">Method 2: Install with Nginx Ingress Controller</h3>
-<pre><code class="language-bash"># Install Nginx with Gateway API support
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm install nginx-ingress ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.enableGatewayApi=true
-</code></pre>
+<h3 id="method-2-install-with-cilium">Method 2: Install with Cilium</h3>
+<p>Follow <a href="cilium-setup.html">cilium-setup.md</a> on a fresh cluster without a competing CNI, with kube-proxy replacement, the L7 proxy, and <code>gatewayAPI.enabled=true</code>. Cilium creates the <a href="../examples/Cilium/index.html"><code>cilium</code></a> GatewayClass. A LoadBalancer implementation is needed for externally addressed Gateways. Do not install retired ingress-nginx: it does not implement Gateway API, and <code>controller.enableGatewayApi</code> does not add that capability. For an independent controller, use <a href="envoy-gateway-setup.html">envoy-gateway-setup.md</a> or NGINX Gateway Fabric, following that implementation's supported CRD version.</p>
 <h3 id="method-3-install-with-istio">Method 3: Install with Istio</h3>
 <pre><code class="language-bash"># Istio comes with Gateway API support built-in
 helm repo add istio https://istio-release.storage.googleapis.com/charts
-helm install istio-base istio/base -n istio-system --create-namespace
-helm install istiod istio/istiod -n istio-system
+helm repo update
+helm install istio-base istio/base -n istio-system --create-namespace --version 1.31.3
+helm install istiod istio/istiod -n istio-system --version 1.31.3
 </code></pre>
 <h3 id="method-4-install-envoy-gateway-purpose-built">Method 4: Install Envoy Gateway (Purpose-built)</h3>
-<pre><code class="language-bash"># Add Envoy Gateway repository
-helm repo add envoy-gateway https://gateway.envoyproxy.io/charts
-helm repo update
-
-# Install Envoy Gateway
-helm install envoy-gateway envoy-gateway/gateway -n envoy-gateway --create-namespace
+<p>Use a separate lab cluster or review existing CRD ownership first: this chart installs Gateway API CRDs. If the provider manages compatible CRDs, follow <a href="envoy-gateway-setup.html">envoy-gateway-setup.md</a> and its provider-managed installation link instead.</p>
+<pre><code class="language-bash">helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.9.3 \
+  -n envoy-gateway-system --create-namespace
 </code></pre>
 <h2 id="advanced-examples">Advanced Examples</h2>
 <h3 id="1-httproute-with-header-matching">1. HTTPRoute with Header Matching</h3>
@@ -622,7 +613,7 @@ kubectl logs -n ingress-nginx -l app=ingress-nginx
 </li>
 <li><a href="#installation-methods">Installation Methods</a><ul>
 <li><a href="#method-1-install-standard-crds-only">Method 1: Install Standard CRDs Only</a></li>
-<li><a href="#method-2-install-with-nginx-ingress-controller">Method 2: Install with Nginx Ingress Controller</a></li>
+<li><a href="#method-2-install-with-cilium">Method 2: Install with Cilium</a></li>
 <li><a href="#method-3-install-with-istio">Method 3: Install with Istio</a></li>
 <li><a href="#method-4-install-envoy-gateway-purpose-built">Method 4: Install Envoy Gateway (Purpose-built)</a></li>
 </ul>

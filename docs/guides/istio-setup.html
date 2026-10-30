@@ -19,7 +19,7 @@
 <div class="container reader-layout has-toc">
 <main id="main" class="reader-content"><h1 id="istio-service-mesh-setup-notes">Istio Service Mesh Setup Notes</h1>
 <blockquote>
-<p><strong>October 2026 update</strong>: stable is <a href="https://github.com/istio/istio/releases/tag/1.31.1">Istio 1.31.1</a>. Supported branches are 1.29, 1.30, and 1.31; 1.29 reaches its expected end of support on October 12, 2026. Istio 1.31 supports Kubernetes 1.32–1.36 according to the <a href="https://istio.io/latest/docs/releases/supported-releases/">official matrix</a>. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
+<p><strong>October 29, 2026 update</strong>: stable is <a href="https://github.com/istio/istio/releases/tag/1.31.3">Istio 1.31.3</a>. Supported branches are 1.30 and 1.31; 1.29 reached end of support on October 15, 2026. Istio 1.31 supports Kubernetes 1.32–1.37 according to the <a href="https://istio.io/latest/docs/releases/supported-releases/">official matrix</a>, which lists 1.31.3+ as the patched 1.31 baseline. See <a href="deprecations.html">DEPRECATIONS.md</a>.</p>
 </blockquote>
 <h2 id="prerequisites">Prerequisites</h2>
 <pre><code class="language-bash"># Add Istio Helm repository
@@ -33,14 +33,14 @@ helm repo update
 <pre><code class="language-bash">kubectl create namespace istio-system
 </code></pre>
 <h3 id="2-install-istio-base-chart-crds-and-operators">2. Install Istio base chart (CRDs and operators)</h3>
-<pre><code class="language-bash">helm install istio-base istio/base -n istio-system --version 1.31.1 --set defaultRevision=default
+<pre><code class="language-bash">helm install istio-base istio/base -n istio-system --version 1.31.3 --set defaultRevision=default
 </code></pre>
 <h3 id="3-install-istio-discovery-control-plane">3. Install Istio discovery (control plane)</h3>
-<pre><code class="language-bash">helm install istiod istio/istiod -n istio-system --version 1.31.1
+<pre><code class="language-bash">helm install istiod istio/istiod -n istio-system --version 1.31.3
 </code></pre>
 <h3 id="4-install-istio-ingress-gateway">4. Install Istio ingress gateway</h3>
 <pre><code class="language-bash">kubectl create namespace istio-ingress
-helm install istio-ingressgateway istio/gateway -n istio-ingress --version 1.31.1
+helm install istio-ingressgateway istio/gateway -n istio-ingress --version 1.31.3
 </code></pre>
 <h2 id="enable-sidecar-injection">Enable Sidecar Injection</h2>
 <h3 id="inject-istio-sidecar-for-entire-namespace">Inject Istio sidecar for entire namespace</h3>
@@ -58,7 +58,7 @@ kubectl get crds | grep istio
 </code></pre>
 <h2 id="access-kiali-dashboard-istio-visualization">Access Kiali Dashboard (Istio Visualization)</h2>
 <pre><code class="language-bash"># Install Kiali add-on (use the version matching your Istio release)
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/kiali.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/1.31.3/samples/addons/kiali.yaml
 
 # Port forward to Kiali
 kubectl port-forward -n istio-system svc/kiali 20001:20001

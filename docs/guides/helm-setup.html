@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Helm Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Helm Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="helm-setup-notes">Helm Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/helm/helm/releases/tag/v4.3.1">Helm v4.3.1</a>. Select charts compatible with Helm 4 and review major-version migration notes; chart versions are not Helm or application versions.</p>
+</blockquote>
+<p>Helm packages Kubernetes resources into charts and manages installations as releases. Unlike Kustomize, Helm renders templates and tracks release history. ArgoCD can render Helm charts without creating Helm-managed releases.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster, <code>kubectl</code>, and a Helm CLI supported by your chosen charts. Install Helm using the <a href="https://helm.sh/docs/intro/install/">official installation instructions</a>. These labs do not assert a latest release: select a supported chart version, inspect its Kubernetes requirements, and record the selected versions before installing.</p>
+<pre><code class="language-bash">helm version
+kubectl cluster-info
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm search repo prometheus-community/prometheus --versions
+</code></pre>
+<h2 id="lab">Lab</h2>
+<p>Set <code>CHART_VERSION</code> to a version from the search output. Chart versions and application versions are different; inspect both before proceeding. Commands use a Bash-compatible shell.</p>
+<pre><code class="language-bash">export CHART_VERSION='&lt;selected-chart-version&gt;'
+helm show chart prometheus-community/prometheus --version &quot;$CHART_VERSION&quot;
+helm show values prometheus-community/prometheus --version &quot;$CHART_VERSION&quot;
+helm template study prometheus-community/prometheus \
+  --namespace helm-study --version &quot;$CHART_VERSION&quot; &gt; /tmp/helm-study.yaml
+kubectl create namespace helm-study
+kubectl apply --dry-run=server -f /tmp/helm-study.yaml
+helm upgrade --install study prometheus-community/prometheus \
+  --namespace helm-study --version &quot;$CHART_VERSION&quot; --wait --timeout 10m
+helm list -n helm-study
+kubectl get pods,pvc -n helm-study
+</code></pre>
+<p>The chart may need a default StorageClass and sufficient capacity. Server-side dry runs require APIs referenced by the chart to exist; they do not prove workloads will become healthy. This is a separate Prometheus lab, not a replacement for the <a href="prometheus-grafana-setup.html">monitoring stack guide</a>.</p>
+<h2 id="upgrade-inspect-and-recover">Upgrade, inspect, and recover</h2>
+<pre><code class="language-bash">helm get values study -n helm-study --all
+helm get manifest study -n helm-study
+helm history study -n helm-study
+helm status study -n helm-study
+</code></pre>
+<p>For an upgrade, choose another compatible chart version, render and review the diff, then repeat <code>helm upgrade --install</code> with that version. Roll back using <code>helm rollback study &lt;REVISION&gt; -n helm-study --wait</code>. A rollback does not undo external database migrations or necessarily restore CRDs. Values can contain secrets: do not publish command output or commit credentials.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Pending PVCs usually indicate missing storage provisioning. For failed releases, inspect pod events and <code>helm status</code> before retrying. Helm does not automatically upgrade or remove all CRDs placed in a chart's <code>crds/</code> directory; follow the chart's upgrade instructions.</p>
+<pre><code class="language-bash">helm uninstall study -n helm-study
+kubectl get pvc -n helm-study
+kubectl delete namespace helm-study
+</code></pre>
+<p>Deleting the namespace removes remaining PVCs; underlying volume deletion depends on the reclaim policy. Exercise: render two versions and identify changes to RBAC, images, and persistent storage before an upgrade.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://helm.sh/docs/">Helm documentation</a></li>
+<li><a href="https://helm.sh/docs/chart_best_practices/">Chart best practices</a></li>
+<li><a href="argocd-setup.html">ArgoCD Helm integration</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#upgrade-inspect-and-recover">Upgrade, inspect, and recover</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

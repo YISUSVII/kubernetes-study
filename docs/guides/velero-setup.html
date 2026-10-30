@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Velero Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Velero Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="velero-setup-notes">Velero Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/vmware-tanzu/velero/releases/tag/v1.18.4">Velero v1.18.4</a>. Match CLI/server and provider-plugin compatibility; the AWS plugin has its own release version. A successful backup is not a verified restore.</p>
+</blockquote>
+<p>Velero backs up and restores Kubernetes API resources and, when explicitly configured, persistent volume data. A backup containing a PVC object does not necessarily contain the bytes stored in that volume. This first lab intentionally backs up only a namespace and a ConfigMap.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable cluster, a compatible Velero CLI/server pair, and an external object storage bucket with a supported provider plugin. Check the <a href="https://velero.io/docs/">installation guide</a> for your selected stable release, not the development <code>main</code> documentation. Provider plugins have their own compatibility matrices and credential requirements.</p>
+<p>For an AWS S3 metadata-only lab, create a dedicated bucket and scoped credentials using the <a href="https://github.com/vmware-tanzu/velero-plugin-for-aws">AWS plugin instructions</a>. Do not use a production backup bucket. Install the CLI from official releases and replace all placeholders below in Bash. Configure a local credential file outside the repository with restrictive permissions; never paste credentials into Git or a shared terminal transcript.</p>
+<pre><code class="language-bash">export BUCKET='&lt;existing-dedicated-bucket&gt;'
+export AWS_REGION='&lt;bucket-region&gt;'
+export AWS_PLUGIN_VERSION='&lt;compatible-plugin-version&gt;'
+export CREDENTIALS_FILE='&lt;absolute-path-to-local-credentials-file&gt;'
+velero install --provider aws \
+  --plugins &quot;velero/velero-plugin-for-aws:${AWS_PLUGIN_VERSION}&quot; \
+  --bucket &quot;$BUCKET&quot; --prefix kubernetes-study \
+  --backup-location-config &quot;region=${AWS_REGION}&quot; \
+  --secret-file &quot;$CREDENTIALS_FILE&quot; --use-volume-snapshots=false --wait
+velero version
+velero backup-location get
+</code></pre>
+<p>Prefer workload identity for real deployments; use the plugin's corresponding installation flags rather than creating long-lived keys. Azure, GCP, and S3-compatible storage require their own provider-specific setup, endpoints, and permissions. Do not assume the AWS example works unchanged with another service. The backup location must report Available before continuing.</p>
+<h2 id="lab">Lab</h2>
+<pre><code class="language-bash">kubectl create namespace velero-study
+kubectl create configmap recovery-marker -n velero-study --from-literal=message=hello-velero
+velero backup create study-backup --include-namespaces velero-study \
+  --include-resources namespaces,configmaps --snapshot-volumes=false --wait
+velero backup describe study-backup --details
+velero backup logs study-backup
+</code></pre>
+<p>Do not delete the source until the backup phase is Completed and you have reviewed all warnings/errors. A PartiallyFailed backup is not a successful recovery checkpoint. Then deliberately delete only the disposable namespace and restore it:</p>
+<pre><code class="language-bash">kubectl delete namespace velero-study --wait=true
+velero restore create study-restore --from-backup study-backup --wait
+velero restore describe study-restore --details
+kubectl get configmap recovery-marker -n velero-study -o jsonpath='{.data.message}'
+</code></pre>
+<p>Expect <code>hello-velero</code>. Verify the restored content, not only the restore object's phase. Exercise: restore into a different namespace using <code>--namespace-mappings velero-study:velero-restored</code> and compare the results.</p>
+<h2 id="persistent-data-and-production-boundaries">Persistent data and production boundaries</h2>
+<p>For volume data, deliberately select CSI snapshots, snapshot data movement, or filesystem backup based on the storage driver's support. Install the required snapshot APIs/controllers or node agent, configure the backup method, and verify recovery on another cluster. Application consistency may require quiescing writes or database-native backups/hooks. A storage snapshot that remains in the same failure domain is not automatically an off-site backup.</p>
+<p>Velero does not replace etcd/control-plane backup, recreate cloud infrastructure by itself, or guarantee compatibility between removed Kubernetes API versions. Encrypt backups, restrict bucket/report access, define retention, and measure recovery time and recovery point objectives through restores.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Unavailable backup locations usually indicate provider credentials, region, endpoint, or bucket permission errors. For failed restores, inspect Velero logs, existing resource conflicts, missing CRDs, and storage compatibility.</p>
+<pre><code class="language-bash">kubectl delete namespace velero-study
+velero restore delete study-restore --confirm
+velero backup delete study-backup --confirm
+</code></pre>
+<p>Backup deletion also deletes its stored artifacts; run it only against this disposable backup. Wait for deletion to finish before uninstalling Velero. Follow the selected release's uninstall instructions and separately review bucket contents, snapshots, IAM resources, and charges. Never remove a shared backup bucket as routine cleanup.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://velero.io/docs/">Velero documentation and stable versions</a></li>
+<li><a href="https://velero.io/plugins/">Supported provider plugins</a></li>
+<li><a href="longhorn-setup.html">Longhorn persistence lab</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#persistent-data-and-production-boundaries">Persistent data and production boundaries</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>

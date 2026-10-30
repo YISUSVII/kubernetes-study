@@ -20,7 +20,7 @@
 <main id="main" class="reader-content"><h1 id="calico-network-policy-setup-notes">Calico Network Policy Setup Notes</h1>
 <h2 id="prerequisites">Prerequisites</h2>
 <pre><code class="language-bash"># Add Calico Helm repository
-helm repo add projectcalico https://projectcalico.docs.tigera.io/charts
+helm repo add projectcalico https://docs.tigera.io/calico/charts
 
 # Update Helm repositories
 helm repo update
@@ -30,10 +30,12 @@ helm repo update
 <pre><code class="language-bash">kubectl create namespace tigera-operator
 </code></pre>
 <h3 id="2-install-calico-using-helm">2. Install Calico using Helm</h3>
-<pre><code class="language-bash">helm install calico projectcalico/tigera-operator --namespace tigera-operator --version v3.32.2
+<pre><code class="language-bash">helm template calico-crds projectcalico/crd.projectcalico.org.v1 --version v3.33.0 \
+  | kubectl apply --server-side -f -
+helm install calico projectcalico/tigera-operator --namespace tigera-operator --version v3.33.0
 </code></pre>
 <blockquote>
-<p><strong>2026 update</strong>: stable as checked October 1, 2026 is <a href="https://github.com/projectcalico/calico/releases/tag/v3.32.2">Calico v3.32.2</a>. See <a href="deprecations.html">DEPRECATIONS.md</a> for version history notes.</p>
+<p><strong>October 29, 2026 update</strong>: stable is <a href="https://github.com/projectcalico/calico/releases/tag/v3.33.0">Calico v3.33.0</a>. Since 3.32, install and upgrade CRDs separately before the operator. Version 3.33 consolidates component images, deprecates the chart's <code>defaultFelixConfiguration</code>, and requires Linux 5.10+ with BTF/CO-RE for eBPF. Review the <a href="https://github.com/projectcalico/calico/blob/v3.33.0/release-notes/v3.33.0-release-notes.md">release notes</a> and <a href="deprecations.html">DEPRECATIONS.md</a> before upgrading an existing CNI. Use a fresh cluster without another CNI for this installation lab.</p>
 </blockquote>
 <h3 id="3-verify-installation">3. Verify Installation</h3>
 <pre><code class="language-bash"># Check Calico pods

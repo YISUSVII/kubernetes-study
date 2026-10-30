@@ -10,38 +10,38 @@ const EXAMPLES = "examples";
 const TECHNOLOGIES = [
   {
     id: "argocd", icon: "🔄", name: "ArgoCD", tagline: "Declarative GitOps continuous delivery for Kubernetes.",
-    version: "v3.5.3", note: "Helm 4; review upgrade guide", status: "major-update", statusLabel: "Major update from v2.14",
-    install: "kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.3/manifests/install.yaml",
+    version: "v3.5.6", note: "includes critical 3.5.4 fixes", status: "attention", statusLabel: "Security update",
+    install: "kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.6/manifests/install.yaml",
     setup: `${GUIDES}/argocd-setup.html`, examples: `${EXAMPLES}/ArgoCD/index.html`,
   },
   {
     id: "calico", icon: "🛡️", name: "Calico", tagline: "Network policy enforcement, including AdminNetworkPolicy.",
-    version: "v3.32.2", note: "current stable", status: "stable", statusLabel: "Stable",
-    install: "helm install calico projectcalico/tigera-operator -n tigera-operator --version v3.32.2",
+    version: "v3.33.0", note: "separate CRDs; image and kernel changes", status: "major-update", statusLabel: "Review migration",
+    install: "# Install the pinned CRD chart before tigera-operator; follow the setup guide",
     setup: `${GUIDES}/calico-setup.html`, examples: `${EXAMPLES}/Calico/index.html`,
   },
   {
     id: "cert-manager", icon: "🔐", name: "cert-manager", tagline: "Automated TLS certificate issuance and renewal.",
-    version: "v1.21.2", note: "security hardening and renewal fixes", status: "attention", statusLabel: "Security fix — upgrade",
-    install: "helm install cert-manager jetstack/cert-manager -n cert-manager --version v1.21.2",
+    version: "v1.21.3", note: "CA distrust, Secret ownership, ARI fixes", status: "attention", statusLabel: "Security fix — upgrade",
+    install: "helm install cert-manager jetstack/cert-manager -n cert-manager --version v1.21.3",
     setup: `${GUIDES}/cert-manager-setup.html`, examples: `${EXAMPLES}/CertManager/index.html`,
   },
   {
     id: "cilium", icon: "⚡", name: "Cilium", tagline: "eBPF-based CNI with native Gateway API and Hubble observability.",
-    version: "v1.20.2", note: "1.20 stable", status: "stable", statusLabel: "Stable",
-    install: "helm install cilium cilium/cilium --version 1.20.2 -n kube-system",
+    version: "v1.20.4", note: "security and BackendTLSPolicy fixes", status: "attention", statusLabel: "Security update",
+    install: "helm install cilium cilium/cilium --version 1.20.4 -n kube-system",
     setup: `${GUIDES}/cilium-setup.html`, examples: `${EXAMPLES}/Cilium/index.html`,
   },
   {
     id: "gateway-api", icon: "🌐", name: "Gateway API", tagline: "The role-oriented successor to Ingress: HTTPRoute, GRPCRoute, TCPRoute/UDPRoute.",
-    version: "v1.6.2", note: "TCPRoute/UDPRoute now GA", status: "stable", statusLabel: "Stable",
-    install: "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml",
+    version: "v1.7.0", note: "upstream; Cilium lab uses v1.6.3", status: "attention", statusLabel: "Check controller support",
+    install: "kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml",
     setup: `${GUIDES}/gateway-api-setup.html`, examples: `${EXAMPLES}/GatewayAPI/index.html`,
   },
   {
     id: "istio", icon: "🕸️", name: "Istio", tagline: "Full-featured service mesh: mTLS, traffic shaping, observability.",
-    version: "v1.31.1", note: "was 1.24 (past EOL)", status: "major-update", statusLabel: "Multiple releases behind",
-    install: "helm install istiod istio/istiod -n istio-system --version 1.31.1",
+    version: "v1.31.3", note: "1.29 reached EOL October 15", status: "attention", statusLabel: "Security update",
+    install: "helm install istiod istio/istiod -n istio-system --version 1.31.3",
     setup: `${GUIDES}/istio-setup.html`, examples: `${EXAMPLES}/Istio/index.html`,
   },
   {
@@ -58,14 +58,14 @@ const TECHNOLOGIES = [
   },
   {
     id: "prometheus", icon: "📊", name: "Prometheus & Grafana", tagline: "Metrics, alerting, and dashboards via kube-prometheus-stack.",
-    version: "chart 91.8.2", note: "was chart 79.9.0", status: "stable", statusLabel: "Stable",
-    install: "helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --version 91.8.2",
+    version: "chart 92.16.0", note: "92.x Linux placement and rollout changes", status: "major-update", statusLabel: "Review chart upgrade",
+    install: "helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --version 92.16.0",
     setup: `${GUIDES}/prometheus-grafana-setup.html`, examples: `${EXAMPLES}/Prometheus/index.html`,
   },
   {
     id: "crossplane", icon: "🧩", name: "Crossplane", tagline: "Build platform APIs using namespaced composite Kubernetes resources.",
-    version: "v2.4.2", note: "CNCF Graduated; ConfigMap composition lab", status: "stable", statusLabel: "CNCF Graduated",
-    install: "helm install crossplane crossplane-stable/crossplane -n crossplane-system --create-namespace --version 2.4.2 --wait",
+    version: "v2.4.3", note: "CA distrust and package/RBAC fixes", status: "attention", statusLabel: "Security update",
+    install: "helm install crossplane crossplane-stable/crossplane -n crossplane-system --create-namespace --version 2.4.3 --wait",
     setup: `${GUIDES}/crossplane-setup.html`, examples: `${EXAMPLES}/Crossplane/index.html`,
   },
   {
@@ -75,6 +75,32 @@ const TECHNOLOGIES = [
     setup: `${GUIDES}/karmada-setup.html`, examples: `${EXAMPLES}/Karmada/index.html`,
   },
 ];
+
+const ECOSYSTEM_GUIDES = [
+  { id: "helm", icon: "HE", name: "Helm", version: "v4.3.1", note: "CLI; review chart compatibility", tagline: "Chart rendering, release history, upgrades, and rollback." },
+  { id: "kustomize", icon: "KU", name: "Kustomize", version: "v5.8.3", note: "standalone; kubectl embeds another version", tagline: "Template-free bases, overlays, and generated configuration." },
+  { id: "flux", icon: "FL", name: "Flux", version: "v2.10.0", note: "notification v1 and identity RBAC migration", tagline: "GitOps source reconciliation and declarative workload delivery." },
+  { id: "envoy-gateway", icon: "EG", name: "Envoy Gateway", version: "v1.9.3", note: "match controller and CRD support", tagline: "Gateway API controller, Envoy data plane, and HTTP routing." },
+  { id: "opentelemetry", icon: "OT", name: "OpenTelemetry", version: "Collector v0.164.0", note: "not the SDK, Operator, or chart version", tagline: "OTel Collector pipelines and OTLP telemetry ingestion." },
+  { id: "fluent-bit", icon: "FB", name: "Fluent Bit", version: "v5.1.5", note: "application version", tagline: "Node-level container log collection and forwarding to Loki." },
+  { id: "loki", icon: "LO", name: "Loki", version: "v3.7.9 / chart 20.0.3", note: "chart 20 removes bundled MinIO", tagline: "Label-based log storage, ingestion, and LogQL queries." },
+  { id: "longhorn", icon: "LH", name: "Longhorn", version: "v1.13.0", note: "requires Kubernetes 1.34+", tagline: "CSI persistent storage, volume replicas, and data lifecycle." },
+  { id: "velero", icon: "VE", name: "Velero", version: "v1.18.4", note: "match provider plugin; verify restores", tagline: "Object-storage backups and verified Kubernetes resource restores." },
+  { id: "karpenter", icon: "KA", name: "Karpenter", version: "AWS v1.15.1", note: "AWS-specific provider release", tagline: "Provider-aware node provisioning, capacity, and consolidation." },
+  { id: "kyverno", icon: "KY", name: "Kyverno", version: "v1.19.2", note: "24 security advisories addressed", tagline: "Admission policy auditing, reporting, and enforcement." },
+  { id: "falco", icon: "FA", name: "Falco", version: "0.45.2", note: "match drivers and host kernel", tagline: "Kernel event monitoring and runtime security alerts." },
+  { id: "trivy", icon: "TR", name: "Trivy", version: "v0.76.1", note: "security update; refresh scanner and DB", tagline: "Image vulnerability and Kubernetes manifest misconfiguration scanning." },
+  { id: "coredns", icon: "DNS", name: "CoreDNS", version: "v1.15.0", note: "respect distribution-managed DNS", tagline: "Cluster service discovery, upstream forwarding, and DNS diagnostics." },
+  { id: "containerd", icon: "CD", name: "containerd", version: "v2.4.2", note: "security fixes; provider-supported branch", tagline: "Container runtime configuration and node-level CRI diagnostics." },
+  { id: "cri-o", icon: "CR", name: "CRI-O", version: "v1.37.2", note: "match runtime minor to Kubernetes", tagline: "Kubernetes-focused OCI runtime and node compatibility checks." },
+];
+
+TECHNOLOGIES.push(...ECOSYSTEM_GUIDES.map((guide) => ({
+  ...guide,
+  status: "study", statusLabel: "Study lab",
+  setup: `${GUIDES}/${guide.id}-setup.html`,
+  examples: `${GUIDES}/${guide.id}-setup.html#lab`, examplesLabel: "Lab",
+})));
 
 const PATHS = [
   { n: 1, title: "Web Application Deployment", desc: "Ingress, TLS with cert-manager, and your first production-ready deploy.", diff: 1, time: "2–3 weeks" },
@@ -86,8 +112,8 @@ const PATHS = [
 ];
 
 const VERSIONS = [
-  { tool: "Kubernetes", version: "v1.37.1", status: "ok", note: "Maintained: 1.35 / 1.36 / 1.37", source: "https://kubernetes.io/releases/" },
-  ...TECHNOLOGIES.map((t) => ({
+  { tool: "Kubernetes", version: "v1.37.2", status: "ok", note: "Maintained: 1.35 / 1.36 / 1.37; 1.34 EOL October 27", source: "https://github.com/kubernetes/kubernetes/releases/tag/v1.37.2" },
+  ...TECHNOLOGIES.filter((t) => t.version).map((t) => ({
     tool: t.name, version: t.version, status: t.status === "retired" ? "danger" : "ok", note: t.note,
     source: t.setup,
   })),
@@ -95,11 +121,14 @@ const VERSIONS = [
 
 const DEPRECATIONS = [
   { tool: "KEDA 2.21 token audiences", severity: "Critical fix", detail: "CVE-2026-77524 affects Vault Kubernetes auth and bound service account tokens. Review dedicated audience mappings before upgrading; Temporal and Azure Pipelines also have breaking changes." },
-  { tool: "ArgoCD 3.5", severity: "Upgrade", detail: "Helm 4 changes plain HTTP OCI registry handling. AppProject signatureKeys is deprecated in favor of sourceIntegrity." },
-  { tool: "Istio support window", severity: "Plan ahead", detail: "1.29 support is expected to end October 12, 2026. Istio 1.31 lists Kubernetes 1.32–1.36 as supported." },
-  { tool: "cert-manager 1.21.2", severity: "Security", detail: "September patch hardens issuer responses and ambient AWS credentials and fixes renewal, webhook, and Gateway listener issues." },
-  { tool: "Gateway API 1.6.2", severity: "Conformance", detail: "Redirect codes 303, 307, and 308 require Extended conformance. Check your controller's supported features." },
-  { tool: "Cilium 1.20", severity: "Stable release", detail: "1.20 is now stable; 1.20.2 includes networking and policy fixes. Review minor upgrade requirements before replacing a CNI." },
+  { tool: "ArgoCD 3.5.6", severity: "Security", detail: "Includes critical 3.5.4 fixes. Kustomize Helm configHome is no longer honored; OCI manifests over 4 MiB are rejected. Review Helm 4 and Source Integrity migration." },
+  { tool: "Istio support window", severity: "EOL", detail: "1.29 reached EOL October 15. Supported patched baselines are 1.30.7+ and 1.31.3+. Istio 1.31 supports Kubernetes 1.32–1.37." },
+  { tool: "October CA distrust patches", severity: "Security", detail: "cert-manager 1.21.3, Cilium 1.20.4, Crossplane 2.4.3, and Istio 1.31.3 remove compromised eMudhra CA trust. Review release-specific fixes and certificate chains." },
+  { tool: "Gateway API 1.7.0", severity: "Compatibility", detail: "HTTPRoute retries are Standard; Experimental session-persistence APIs changed. Cilium's documented lab baseline remains 1.6.3; choose CRDs by controller support." },
+  { tool: "Calico 3.33", severity: "Migration", detail: "Install CRDs separately before the operator. Audit consolidated images and eBPF kernel requirements; defaultFelixConfiguration and BIRD-owned IPIP routes are deprecated." },
+  { tool: "Flux 2.10", severity: "Migration", detail: "Notification APIs graduate to v1. Workload identity requires explicit token RBAC where needed. Check minimum Kubernetes patch versions before upgrading." },
+  { tool: "Loki chart 20", severity: "Breaking", detail: "Bundled MinIO and its values are removed. Migrate storage on chart 19 first; chart 20 rejects unknown top-level values. Simple Scalable mode is being deprecated." },
+  { tool: "Kyverno 1.19.2", severity: "Security", detail: "Addresses 24 advisories. Choose a chart with the patched application; chart and application versions differ." },
 ];
 
 const EXAMPLE_FOLDERS = [
@@ -124,18 +153,18 @@ function renderTechGrid() {
     <article class="tech-card reveal" data-status="${t.status}" data-name="${t.name.toLowerCase()}" data-tagline="${t.tagline.toLowerCase()}">
       <div class="tech-card-top">
         <div class="tech-icon">${t.icon}</div>
-        <span class="badge badge-${t.status}">${t.statusLabel}</span>
+        <span class="badge badge-${t.status === "study" ? "stable" : t.status}">${t.statusLabel}</span>
       </div>
       <h3>${t.name}</h3>
       <p class="tech-tagline">${t.tagline}</p>
-      <p class="tech-version">Latest: <strong>${t.version}</strong> ${t.note ? `· ${t.note}` : ""}</p>
-      <div class="tech-install">
+      ${t.version ? `<p class="tech-version">Snapshot: <strong>${t.version}</strong> ${t.note ? `· ${t.note}` : ""}</p>` : ""}
+      ${t.install ? `<div class="tech-install">
         <code>${escapeHtml(t.install)}</code>
         <button class="copy-btn" data-copy="${encodeURIComponent(t.install)}" title="Copy command" aria-label="Copy install command">⧉</button>
-      </div>
+      </div>` : ""}
       <div class="tech-links">
         <a href="${t.setup}">Setup guide</a>
-        <a href="${t.examples}">Examples</a>
+        <a href="${t.examples}">${t.examplesLabel || "Examples"}</a>
       </div>
     </article>
   `).join("");

@@ -22,7 +22,7 @@ Cilium is the most widely deployed CNI in 2025/2026:
 | **AdminNetworkPolicy** | ✅ v3.29+ | ✅ v1.16+ |
 | **Performance** | Good | Excellent (eBPF) |
 
-> **2026 update**: stable is [Cilium **v1.20.2**](https://github.com/cilium/cilium/releases/tag/v1.20.2). Review the minor-version upgrade guide before moving an existing cluster to 1.20. See [DEPRECATIONS.md](DEPRECATIONS.md).
+> **October 29, 2026 update**: stable is [Cilium **v1.20.4**](https://github.com/cilium/cilium/releases/tag/v1.20.4), an out-of-band security patch for compromised eMudhra CAs that also fixes the 1.20.3 BackendTLSPolicy regression. The [Gateway API support guide](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/) specifies Gateway API v1.6.3; do not assume today's v1.7.0 CRDs are supported. Review the minor-version upgrade guide before moving an existing cluster to 1.20. See [DEPRECATIONS.md](DEPRECATIONS.md).
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ helm repo update
 ```bash
 # Install Cilium with recommended settings for K8s 1.34+
 helm install cilium cilium/cilium \
-  --version 1.20.2 \
+  --version 1.20.4 \
   --namespace kube-system \
   --set ipam.mode=kubernetes \
   --set kubeProxyReplacement=true \
@@ -55,7 +55,7 @@ helm install cilium cilium/cilium \
 ### 2. Install with Hubble only (existing cluster)
 ```bash
 helm install cilium cilium/cilium \
-  --version 1.20.2 \
+  --version 1.20.4 \
   --namespace kube-system \
   --set hubble.enabled=true \
   --set hubble.relay.enabled=true \

@@ -1,6 +1,6 @@
 # Istio Service Mesh Setup Notes
 
-> **October 2026 update**: stable is [Istio 1.31.1](https://github.com/istio/istio/releases/tag/1.31.1). Supported branches are 1.29, 1.30, and 1.31; 1.29 reaches its expected end of support on October 12, 2026. Istio 1.31 supports Kubernetes 1.32–1.36 according to the [official matrix](https://istio.io/latest/docs/releases/supported-releases/). See [DEPRECATIONS.md](DEPRECATIONS.md).
+> **October 29, 2026 update**: stable is [Istio 1.31.3](https://github.com/istio/istio/releases/tag/1.31.3). Supported branches are 1.30 and 1.31; 1.29 reached end of support on October 15, 2026. Istio 1.31 supports Kubernetes 1.32–1.37 according to the [official matrix](https://istio.io/latest/docs/releases/supported-releases/), which lists 1.31.3+ as the patched 1.31 baseline. See [DEPRECATIONS.md](DEPRECATIONS.md).
 
 ## Prerequisites
 ```bash
@@ -20,18 +20,18 @@ kubectl create namespace istio-system
 
 ### 2. Install Istio base chart (CRDs and operators)
 ```bash
-helm install istio-base istio/base -n istio-system --version 1.31.1 --set defaultRevision=default
+helm install istio-base istio/base -n istio-system --version 1.31.3 --set defaultRevision=default
 ```
 
 ### 3. Install Istio discovery (control plane)
 ```bash
-helm install istiod istio/istiod -n istio-system --version 1.31.1
+helm install istiod istio/istiod -n istio-system --version 1.31.3
 ```
 
 ### 4. Install Istio ingress gateway
 ```bash
 kubectl create namespace istio-ingress
-helm install istio-ingressgateway istio/gateway -n istio-ingress --version 1.31.1
+helm install istio-ingressgateway istio/gateway -n istio-ingress --version 1.31.3
 ```
 
 ## Enable Sidecar Injection
@@ -56,7 +56,7 @@ kubectl get crds | grep istio
 ## Access Kiali Dashboard (Istio Visualization)
 ```bash
 # Install Kiali add-on (use the version matching your Istio release)
-kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.24/samples/addons/kiali.yaml
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/1.31.3/samples/addons/kiali.yaml
 
 # Port forward to Kiali
 kubectl port-forward -n istio-system svc/kiali 20001:20001

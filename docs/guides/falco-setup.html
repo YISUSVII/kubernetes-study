@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Falco Setup Notes · K8s Study</title>
+<link rel="stylesheet" href="../assets/style.css" />
+<link rel="stylesheet" href="../assets/reader.css" />
+<script src="../assets/reader.js" defer></script>
+</head>
+<body>
+<div class="bg-fx" aria-hidden="true"></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><nav class="nav container" aria-label="Main navigation">
+<a class="brand" href="../index.html"><span class="brand-mark">⎈</span><span>K8s Study<span class="brand-year">.2026</span></span></a>
+<div class="reader-nav"><a href="study-guide.html">Study guide</a><a href="../examples/index.html">Examples</a><button id="themeToggle" class="btn btn-ghost" type="button" aria-label="Toggle light/dark theme">Theme</button></div>
+</nav></header>
+<div class="container reader-breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true"> / </span><span>Falco Setup Notes</span></div>
+<div class="container reader-layout has-toc">
+<main id="main" class="reader-content"><h1 id="falco-setup-notes">Falco Setup Notes</h1>
+<blockquote>
+<p><strong>October 29, 2026 release check</strong>: <a href="https://github.com/falcosecurity/falco/releases/tag/0.45.2">Falco 0.45.2</a>. Helm chart, rules, plugins, and kernel drivers have separate versions; choose the chart and driver against the host kernel, not just the application release number.</p>
+</blockquote>
+<p>Falco evaluates runtime events against rules and emits security alerts. It complements Trivy's static scans and Kyverno's admission checks. Falco detects behavior; it does not automatically block a process or enforce a network policy.</p>
+<h2 id="prerequisites-and-installation">Prerequisites and installation</h2>
+<p>Use a disposable Kubernetes cluster with supported Linux kernels and permission for privileged node-level monitoring. This is not a serverless or restricted Pod Security lab. Inspect the <a href="https://falco.org/docs/concepts/event-sources/kernel/">driver requirements</a> before choosing modern eBPF or another driver; do not assume every Docker Desktop or managed cluster exposes the needed kernel capabilities.</p>
+<p>The <a href="https://falco.org/docs/setup/kubernetes/">official documentation</a> recommends the Operator for new deployments and still supports Helm. This guide uses the supported Helm path to keep the study lab small. Choose a compatible chart version; the chart version is not the Falco application version.</p>
+<pre><code class="language-bash">helm repo add falcosecurity https://falcosecurity.github.io/charts
+helm repo update
+helm search repo falcosecurity/falco --versions
+export CHART_VERSION='&lt;selected-chart-version&gt;'
+helm show values falcosecurity/falco --version &quot;$CHART_VERSION&quot;
+</code></pre>
+<h2 id="lab">Lab</h2>
+<p>Use a harmless marker-file rule rather than depending on a particular version of the default ruleset. It observes file creation inside a container and does not read host secrets.</p>
+<pre><code class="language-bash">cat &gt; /tmp/falco-study-values.yaml &lt;&lt;'EOF'
+driver:
+  kind: modern_ebpf
+customRules:
+  study.yaml: |-
+    - rule: Study marker file created
+      desc: Detect creation of a disposable marker inside a container
+      condition: container.id != host and evt.type in (open, openat, openat2, creat) and evt.is_open_write=true and fd.name=/tmp/falco-study-marker
+      output: &quot;Study marker created (container=%container.id process=%proc.name file=%fd.name)&quot;
+      priority: NOTICE
+      tags: [study]
+EOF
+helm install falco falcosecurity/falco --version &quot;$CHART_VERSION&quot; \
+  -n falco --create-namespace -f /tmp/falco-study-values.yaml \
+  --wait --timeout 5m
+kubectl get daemonsets,pods -n falco
+kubectl create namespace falco-study
+kubectl run marker -n falco-study --image=busybox:1.37 --restart=Never \
+  -- /bin/sh -c 'touch /tmp/falco-study-marker; sleep 120'
+kubectl logs -n falco -l app.kubernetes.io/name=falco -c falco --tail=100
+</code></pre>
+<p>Expect <code>Study marker created</code> in a Falco pod on the workload's node. If the event was missed during startup, wait for the DaemonSet to become ready and recreate the marker Pod. A Ready pod alone does not establish that events are being captured: verify the alert end to end.</p>
+<h2 id="troubleshooting-and-cleanup">Troubleshooting and cleanup</h2>
+<p>Driver failures usually involve unsupported kernels, missing BTF/eBPF features, or privileges. Missing alerts can mean the workload ran on an unmonitored node, the rule failed to load, or events were dropped. Inspect Falco startup logs and dropped-event metrics before weakening rules. Exercise: narrow the rule to a chosen namespace when Kubernetes metadata is available and document the metadata enrichment dependency.</p>
+<p>Forward alerts to a protected sink for production, tune exceptions carefully, and monitor event loss. Alert payloads can contain sensitive command-line arguments. Do not enable automatic disruptive responses based on an unreviewed study rule.</p>
+<pre><code class="language-bash">kubectl delete namespace falco-study
+helm uninstall falco -n falco
+kubectl delete namespace falco
+</code></pre>
+<p>Uninstall only this isolated lab's installation, not a shared monitoring agent.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://falco.org/docs/setup/kubernetes/">Falco Kubernetes setup</a></li>
+<li><a href="https://falco.org/docs/rules/basic-elements/">Falco rule syntax</a></li>
+<li><a href="https://falco.org/docs/troubleshooting/">Falco troubleshooting</a></li>
+</ul></main>
+<aside class="reader-toc"><details open><summary>On this page</summary><div class="toc">
+<ul>
+<li><a href="#prerequisites-and-installation">Prerequisites and installation</a></li>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#troubleshooting-and-cleanup">Troubleshooting and cleanup</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+</details></aside>
+</div>
+<footer class="site-footer"><div class="container footer-inner"><a href="../index.html#paths">← Learning paths</a><a href="#main">Back to top ↑</a></div></footer>
+</body>
+</html>
